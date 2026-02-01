@@ -1168,23 +1168,29 @@
             const $picker = $(this).closest('.vic-emoji-picker-full, .vic-emoji-picker');
             let $input = null;
 
-            // Méthode 1: Remonter vers le wrapper parent et chercher l'input
+            // Méthode 1: Remonter vers le wrapper parent et chercher l'input directement
+            // Structure: .vic-comment-input-skool-wrapper > input.vic-comment-input-skool + .vic-comment-tools-skool > picker
             const $wrapper = $picker.closest('.vic-comment-input-skool-wrapper');
             if ($wrapper.length) {
-                $input = $wrapper.find('.vic-comment-input-skool');
+                $input = $wrapper.children('.vic-comment-input-skool');
             }
 
-            // Méthode 2: Chercher dans la modale
+            // Méthode 2: Chercher dans la modale visible
             if (!$input || !$input.length) {
-                const $modal = $('.vic-modal');
+                const $modal = $('.vic-modal:visible');
                 if ($modal.length) {
                     $input = $modal.find('.vic-comment-input-skool');
                 }
             }
 
-            // Méthode 3: Chercher globalement
+            // Méthode 3: Chercher dans le formulaire principal de la page
             if (!$input || !$input.length) {
-                $input = $('.vic-comment-input-skool');
+                $input = $('.vic-comment-form-wrapper-skool .vic-comment-input-skool').first();
+            }
+
+            // Méthode 4: Chercher globalement (fallback)
+            if (!$input || !$input.length) {
+                $input = $('.vic-comment-input-skool').first();
             }
 
             console.log('Emoji - Input trouvé:', $input.length, 'Valeur actuelle:', $input.val());
