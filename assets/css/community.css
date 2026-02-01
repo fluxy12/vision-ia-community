@@ -333,10 +333,10 @@ body .vic-community-wrapper,
 /* Post Card - Style Skool identique */
 .vic-post-card {
     background: var(--vic-white);
-    border-radius: 16px;
-    padding: 20px 24px;
-    margin-bottom: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     border: 1px solid var(--vic-gray-200);
     transition: all 0.2s ease;
     cursor: pointer;
@@ -344,29 +344,29 @@ body .vic-community-wrapper,
 }
 
 .vic-post-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-color: var(--vic-gray-300);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Badge épinglé - Style Skool en haut à droite */
+/* Badge épinglé - Style Skool exact */
 .vic-pinned-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 12px;
-    background: var(--vic-warning);
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #F472B6 0%, #EC4899 100%);
     color: var(--vic-white);
-    border-radius: 6px;
-    font-size: 12px;
+    border-radius: 8px;
+    font-size: 13px;
     font-weight: 600;
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 20px;
+    right: 20px;
+    box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
 }
 
 .vic-pinned-badge::before {
     content: '📌';
-    font-size: 11px;
+    font-size: 12px;
 }
 
 /* Ajouter position relative sur la carte pour le badge */
@@ -431,7 +431,7 @@ body .vic-community-wrapper,
 .vic-post-header {
     display: flex;
     align-items: flex-start;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .vic-author-info {
@@ -441,11 +441,10 @@ body .vic-community-wrapper,
 }
 
 .vic-author-info img {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--vic-gray-100);
 }
 
 .vic-author-meta {
@@ -456,7 +455,10 @@ body .vic-community-wrapper,
 .vic-author-name {
     font-weight: 600;
     color: var(--vic-gray-900);
-    font-size: 15px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .vic-post-meta {
@@ -471,18 +473,19 @@ body .vic-community-wrapper,
 .vic-category-tag {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
+    padding: 4px 12px;
     background: var(--vic-gray-100);
-    border-radius: 12px;
+    border-radius: 20px;
     font-size: 12px;
     font-weight: 500;
     color: var(--vic-gray-600);
+    border: 1px solid var(--vic-gray-200);
 }
 
 .vic-post-title {
-    margin: 0 0 8px 0;
-    font-size: 18px;
-    font-weight: 600;
+    margin: 0 0 6px 0;
+    font-size: 17px;
+    font-weight: 700;
     line-height: 1.4;
     color: var(--vic-gray-900);
 }
@@ -514,10 +517,10 @@ body .vic-community-wrapper,
 .vic-post-footer {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--vic-gray-100);
+    padding-top: 0;
+    border-top: none;
 }
 
 .vic-like-btn,
@@ -525,13 +528,13 @@ body .vic-community-wrapper,
 .vic-pin-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
+    gap: 5px;
+    padding: 6px 8px;
     border: none;
     background: none;
-    color: var(--vic-gray-600);
+    color: var(--vic-gray-500);
     cursor: pointer;
-    border-radius: 8px;
+    border-radius: 6px;
     font-size: 14px;
     font-weight: 500;
     transition: all 0.2s ease;
@@ -540,8 +543,7 @@ body .vic-community-wrapper,
 
 .vic-like-btn:hover,
 .vic-comment-btn:hover {
-    background: var(--vic-gray-100);
-    color: var(--vic-gray-800);
+    background: var(--vic-gray-50);
 }
 
 .vic-like-btn.liked {
@@ -552,14 +554,26 @@ body .vic-community-wrapper,
     fill: #3B82F6;
 }
 
+/* Style par défaut du bouton like - bleu comme Skool */
+.vic-like-btn svg {
+    width: 18px;
+    height: 18px;
+    color: #3B82F6;
+}
+
+.vic-like-btn .vic-like-count {
+    color: #3B82F6;
+}
+
 .vic-pin-btn.pinned {
     color: var(--vic-warning);
 }
 
 .vic-like-count,
 .vic-comment-count {
-    font-weight: 600;
+    font-weight: 500;
     font-size: 14px;
+    color: var(--vic-gray-600);
 }
 
 /* Commenters avatars - Style Skool */
@@ -567,7 +581,7 @@ body .vic-community-wrapper,
     display: flex;
     align-items: center;
     margin-left: auto;
-    gap: 8px;
+    gap: 10px;
 }
 
 .vic-commenters-avatars {
@@ -575,11 +589,11 @@ body .vic-community-wrapper,
 }
 
 .vic-commenters-avatars img {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     border: 2px solid var(--vic-white);
-    margin-left: -10px;
+    margin-left: -8px;
     object-fit: cover;
 }
 
@@ -591,7 +605,6 @@ body .vic-community-wrapper,
     font-size: 13px;
     color: #10B981;
     font-weight: 500;
-    margin-left: 8px;
 }
 
 /* Style Skool pour "Nouveau commentaire il y a X" */
@@ -605,6 +618,11 @@ body .vic-community-wrapper,
 .vic-last-comment a:hover,
 .vic-new-comment-link:hover {
     text-decoration: underline;
+}
+
+/* Menu trois points */
+.vic-post-menu {
+    margin-left: 8px;
 }
 
 /* ========================================
