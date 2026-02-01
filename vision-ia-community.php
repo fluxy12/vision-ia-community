@@ -241,7 +241,22 @@ class Vision_IA_Community {
                                         <polygon points="10,8 16,12 10,16"/>
                                     </svg>
                                 </button>
-                                
+
+                                <!-- Bouton Emoji -->
+                                <button type="button" class="vic-btn-icon vic-post-add-emoji" title="Ajouter un emoji">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                                        <line x1="9" y1="9" x2="9.01" y2="9"/>
+                                        <line x1="15" y1="9" x2="15.01" y2="9"/>
+                                    </svg>
+                                </button>
+
+                                <!-- Bouton GIF -->
+                                <button type="button" class="vic-btn-icon vic-post-add-gif" title="Ajouter un GIF">
+                                    <span style="font-weight: 600; font-size: 11px;">GIF</span>
+                                </button>
+
                                 <select name="post_category" class="vic-select-category">
                                     <?php
                                     $categories = get_terms([

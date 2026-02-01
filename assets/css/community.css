@@ -1861,6 +1861,28 @@
     flex-direction: column;
 }
 
+/* Position pour le formulaire de création de post */
+.vic-post-emoji-picker,
+.vic-post-gif-picker {
+    bottom: auto;
+    top: calc(100% + 8px);
+    left: 0;
+    right: auto;
+}
+
+/* Preview GIF dans le formulaire de post */
+.vic-gif-preview-item {
+    position: relative;
+    display: inline-block;
+}
+
+.vic-gif-preview-item img {
+    max-width: 150px;
+    max-height: 100px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
 .vic-emoji-search {
     padding: 12px;
     border-bottom: 1px solid var(--vic-gray-200);

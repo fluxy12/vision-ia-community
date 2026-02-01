@@ -184,6 +184,278 @@
             }
         });
 
+        // ====== EMOJI PICKER POUR POSTS ======
+        $(document).on('click', '.vic-post-add-emoji', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $btn = $(this);
+
+            // Fermer autres pickers
+            $('.vic-emoji-picker-full, .vic-emoji-picker, .vic-gif-picker').remove();
+
+            // Créer le picker complet (réutiliser emojiData défini plus bas)
+            const $picker = $('<div class="vic-emoji-picker-full vic-post-emoji-picker"></div>');
+
+            // Barre de recherche
+            $picker.append('<div class="vic-emoji-search"><input type="text" placeholder="Rechercher un emoji..." class="vic-emoji-search-input"></div>');
+
+            // Catégories
+            const postEmojiCategories = [
+                { id: 'smileys', icon: '😀', name: 'Smileys' },
+                { id: 'people', icon: '👋', name: 'Personnes' },
+                { id: 'nature', icon: '🌿', name: 'Nature' },
+                { id: 'food', icon: '🍕', name: 'Nourriture' },
+                { id: 'activities', icon: '⚽', name: 'Activités' },
+                { id: 'travel', icon: '✈️', name: 'Voyage' },
+                { id: 'objects', icon: '💡', name: 'Objets' },
+                { id: 'symbols', icon: '❤️', name: 'Symboles' }
+            ];
+
+            const $categories = $('<div class="vic-emoji-categories"></div>');
+            postEmojiCategories.forEach(function(cat, idx) {
+                $categories.append('<button data-category="' + cat.id + '" ' + (idx === 0 ? 'class="active"' : '') + ' title="' + cat.name + '">' + cat.icon + '</button>');
+            });
+            $picker.append($categories);
+
+            // Grille d'emojis
+            const $grid = $('<div class="vic-emoji-grid"></div>');
+            // Utiliser la même fonction renderEmojiCategory que pour les commentaires
+            if (typeof emojiData !== 'undefined') {
+                const emojis = emojiData['smileys'] || [];
+                emojis.forEach(function(emoji) {
+                    $grid.append('<span class="vic-emoji-item vic-post-emoji-item">' + emoji + '</span>');
+                });
+            }
+            $picker.append($grid);
+
+            $btn.after($picker);
+            $picker.find('.vic-emoji-search-input').focus();
+        });
+
+        // Insérer emoji dans le textarea du post
+        $(document).on('click', '.vic-post-emoji-item', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $emojiItem = $(this);
+
+            // Récupérer l'emoji (support Twemoji)
+            let emoji = '';
+            const $img = $emojiItem.find('img.emoji');
+            if ($img.length) {
+                emoji = $img.attr('alt') || '';
+            } else {
+                emoji = $emojiItem.text().trim();
+            }
+
+            if (!emoji) return;
+
+            // Insérer dans le textarea du post
+            const $textarea = $('#vic-new-post-form textarea[name="post_content"]');
+            if ($textarea.length) {
+                const currentVal = $textarea.val() || '';
+                $textarea.val(currentVal + emoji);
+                $textarea.focus();
+                updateSubmitButton();
+            }
+
+            // Fermer le picker
+            $('.vic-emoji-picker-full, .vic-emoji-picker').remove();
+        });
+
+        // Changer de catégorie dans le picker post
+        $(document).on('click', '.vic-post-emoji-picker .vic-emoji-categories button', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const category = $(this).data('category');
+            const $picker = $(this).closest('.vic-emoji-picker-full');
+
+            $picker.find('.vic-emoji-categories button').removeClass('active');
+            $(this).addClass('active');
+
+            // Remplir la grille avec la catégorie sélectionnée
+            const $grid = $picker.find('.vic-emoji-grid');
+            $grid.empty();
+            if (typeof emojiData !== 'undefined' && emojiData[category]) {
+                emojiData[category].forEach(function(emoji) {
+                    $grid.append('<span class="vic-emoji-item vic-post-emoji-item">' + emoji + '</span>');
+                });
+            }
+        });
+
+        // Recherche emoji dans picker post
+        $(document).on('input', '.vic-post-emoji-picker .vic-emoji-search-input', function() {
+            const query = $(this).val().toLowerCase();
+            const $picker = $(this).closest('.vic-emoji-picker-full');
+            const $grid = $picker.find('.vic-emoji-grid');
+
+            if (query.length < 1) {
+                const activeCategory = $picker.find('.vic-emoji-categories button.active').data('category');
+                $grid.empty();
+                if (typeof emojiData !== 'undefined' && emojiData[activeCategory]) {
+                    emojiData[activeCategory].forEach(function(emoji) {
+                        $grid.append('<span class="vic-emoji-item vic-post-emoji-item">' + emoji + '</span>');
+                    });
+                }
+                return;
+            }
+
+            $grid.empty();
+            if (typeof emojiData !== 'undefined') {
+                let found = [];
+                Object.keys(emojiData).forEach(function(cat) {
+                    emojiData[cat].forEach(function(emoji) {
+                        if (found.length < 40) {
+                            found.push(emoji);
+                        }
+                    });
+                });
+                found.slice(0, 40).forEach(function(emoji) {
+                    $grid.append('<span class="vic-emoji-item vic-post-emoji-item">' + emoji + '</span>');
+                });
+            }
+        });
+
+        // ====== GIF PICKER POUR POSTS ======
+        $(document).on('click', '.vic-post-add-gif', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $btn = $(this);
+
+            // Fermer autres pickers
+            $('.vic-gif-picker, .vic-emoji-picker-full, .vic-emoji-picker').remove();
+
+            // Créer le picker GIF
+            const $picker = $(`
+                <div class="vic-gif-picker vic-post-gif-picker">
+                    <div class="vic-gif-header">
+                        <input type="text" placeholder="Rechercher des GIFs..." class="vic-gif-search-input">
+                    </div>
+                    <div class="vic-gif-grid">
+                        <div class="vic-gif-loading">Recherchez un GIF...</div>
+                    </div>
+                </div>
+            `);
+
+            $btn.after($picker);
+            $picker.find('.vic-gif-search-input').focus();
+
+            // Charger les GIFs tendance
+            loadPostTrendingGifs($picker.find('.vic-gif-grid'));
+        });
+
+        // Fonction pour charger les GIFs tendance pour les posts
+        function loadPostTrendingGifs($grid) {
+            const TENOR_API_KEY = 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ';
+            $grid.html('<div class="vic-gif-loading">Chargement...</div>');
+
+            fetch(`https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&limit=20&media_filter=gif,tinygif`)
+                .then(response => response.json())
+                .then(data => {
+                    $grid.empty();
+                    if (data.results && data.results.length > 0) {
+                        data.results.forEach(gif => {
+                            const gifUrl = gif.media_formats.gif?.url || gif.media_formats.tinygif?.url;
+                            const previewUrl = gif.media_formats.tinygif?.url || gif.media_formats.nanogif?.url || gifUrl;
+                            if (gifUrl) {
+                                $grid.append(`<img src="${previewUrl}" data-full="${gifUrl}" class="vic-gif-item vic-post-gif-item" alt="${gif.content_description || 'GIF'}">`);
+                            }
+                        });
+                    } else {
+                        $grid.html('<div class="vic-gif-loading">Aucun GIF trouvé</div>');
+                    }
+                })
+                .catch(() => {
+                    $grid.html('<div class="vic-gif-loading">Erreur de chargement</div>');
+                });
+        }
+
+        // Recherche de GIFs pour posts
+        let postGifSearchTimeout;
+        $(document).on('input', '.vic-post-gif-picker .vic-gif-search-input', function() {
+            const query = $(this).val().trim();
+            const $grid = $(this).closest('.vic-gif-picker').find('.vic-gif-grid');
+
+            clearTimeout(postGifSearchTimeout);
+
+            if (query.length < 2) {
+                loadPostTrendingGifs($grid);
+                return;
+            }
+
+            postGifSearchTimeout = setTimeout(function() {
+                const TENOR_API_KEY = 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ';
+                $grid.html('<div class="vic-gif-loading">Recherche...</div>');
+
+                fetch(`https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=${TENOR_API_KEY}&limit=20&media_filter=gif,tinygif`)
+                    .then(response => response.json())
+                    .then(data => {
+                        $grid.empty();
+                        if (data.results && data.results.length > 0) {
+                            data.results.forEach(gif => {
+                                const gifUrl = gif.media_formats.gif?.url || gif.media_formats.tinygif?.url;
+                                const previewUrl = gif.media_formats.tinygif?.url || gif.media_formats.nanogif?.url || gifUrl;
+                                if (gifUrl) {
+                                    $grid.append(`<img src="${previewUrl}" data-full="${gifUrl}" class="vic-gif-item vic-post-gif-item" alt="${gif.content_description || 'GIF'}">`);
+                                }
+                            });
+                        } else {
+                            $grid.html('<div class="vic-gif-loading">Aucun GIF trouvé</div>');
+                        }
+                    })
+                    .catch(() => {
+                        $grid.html('<div class="vic-gif-loading">Erreur de recherche</div>');
+                    });
+            }, 300);
+        });
+
+        // Sélectionner un GIF pour le post
+        $(document).on('click', '.vic-post-gif-item', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const gifUrl = $(this).data('full') || $(this).attr('src');
+
+            // Ajouter le GIF dans le textarea avec le format [gif]url[/gif]
+            const $textarea = $('#vic-new-post-form textarea[name="post_content"]');
+            if ($textarea.length && gifUrl) {
+                const currentVal = $textarea.val() || '';
+                $textarea.val(currentVal + (currentVal ? '\n' : '') + '[gif]' + gifUrl + '[/gif]');
+                $textarea.focus();
+                updateSubmitButton();
+
+                // Ajouter une preview du GIF
+                const $preview = $('#vic-attachments-preview');
+                $preview.append(`
+                    <div class="vic-attachment-item vic-gif-preview-item">
+                        <img src="${gifUrl}" alt="GIF">
+                        <button type="button" class="vic-remove-attachment vic-remove-gif-preview" data-gif="${gifUrl}">✕</button>
+                    </div>
+                `);
+            }
+
+            // Fermer le picker
+            $('.vic-gif-picker').remove();
+        });
+
+        // Supprimer la preview GIF du post
+        $(document).on('click', '.vic-remove-gif-preview', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const gifUrl = $(this).data('gif');
+            const $textarea = $('#vic-new-post-form textarea[name="post_content"]');
+
+            // Retirer le GIF du textarea
+            if ($textarea.length && gifUrl) {
+                const gifTag = '[gif]' + gifUrl + '[/gif]';
+                $textarea.val($textarea.val().replace(gifTag, '').trim());
+            }
+
+            $(this).closest('.vic-gif-preview-item').remove();
+        });
+
         // Submit form
         $submitForm.on('submit', function(e) {
             e.preventDefault();
