@@ -759,6 +759,28 @@
                 success: function(response) {
                     if (response.success) {
                         $('.vic-modal-overlay .vic-modal').html(response.data.html);
+
+                        // Attacher le listener scroll au modal content
+                        setTimeout(function() {
+                            const $modalContent = $('.vic-modal-content');
+                            if ($modalContent.length) {
+                                $modalContent.on('scroll', function() {
+                                    const $jumpBtn = $('#vic-jump-latest');
+                                    if (!$jumpBtn.length) return;
+
+                                    const scrollTop = $(this).scrollTop();
+                                    const scrollHeight = this.scrollHeight;
+                                    const clientHeight = this.clientHeight;
+
+                                    // Si on est proche du bas (< 120px), masquer le bouton
+                                    if (scrollTop + clientHeight >= scrollHeight - 120) {
+                                        $jumpBtn.addClass('hidden');
+                                    } else {
+                                        $jumpBtn.removeClass('hidden');
+                                    }
+                                });
+                            }
+                        }, 100);
                     } else {
                         closeModal();
                         alert('Erreur lors du chargement');
@@ -887,29 +909,60 @@
         // ====== Jump to Latest Comment ======
         $(document).on('click', '.vic-jump-latest', function(e) {
             e.preventDefault();
-            const $lastComment = $('.vic-comments-list > .vic-comment:last-child');
-            if ($lastComment.length) {
-                $lastComment[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            e.stopPropagation();
+
+            // Scroller vers la zone de commentaire (input en bas)
+            const $commentForm = $('.vic-comment-form-wrapper-skool');
+            if ($commentForm.length) {
+                $commentForm[0].scrollIntoView({ behavior: 'smooth', block: 'end' });
+            } else {
+                // Fallback: scroller vers le dernier commentaire
+                const $lastComment = $('.vic-comments-list > .vic-comment:last-child');
+                if ($lastComment.length) {
+                    $lastComment[0].scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }
             }
         });
 
         // Détection scroll pour masquer le bouton jump quand en bas
-        $(document).on('scroll', '.vic-modal-content', function() {
-            const $this = $(this);
-            const $jumpBtn = $('#vic-jump-latest');
+        // Utilisation de l'event delegation sur le modal-content
+        $(document).on('scroll', function(e) {
+            const $modalContent = $('.vic-modal-content');
+            if (!$modalContent.length) return;
 
+            const $jumpBtn = $('#vic-jump-latest');
             if (!$jumpBtn.length) return;
 
-            const scrollTop = $this.scrollTop();
-            const scrollHeight = this.scrollHeight;
-            const clientHeight = this.clientHeight;
+            const modalContent = $modalContent[0];
+            const scrollTop = $modalContent.scrollTop();
+            const scrollHeight = modalContent.scrollHeight;
+            const clientHeight = modalContent.clientHeight;
 
-            // Si on est proche du bas (< 150px du bas), masquer le bouton
-            if (scrollTop + clientHeight >= scrollHeight - 150) {
+            // Si on est proche du bas (< 100px du bas), masquer le bouton
+            if (scrollTop + clientHeight >= scrollHeight - 100) {
                 $jumpBtn.addClass('hidden');
             } else {
                 $jumpBtn.removeClass('hidden');
             }
+        });
+
+        // Observer pour le scroll dans la modale (car l'event delegation marche mal sur scroll)
+        $(document).on('DOMNodeInserted', '.vic-modal-content', function() {
+            const $modalContent = $(this);
+            $modalContent.off('scroll.vicjump').on('scroll.vicjump', function() {
+                const $jumpBtn = $('#vic-jump-latest');
+                if (!$jumpBtn.length) return;
+
+                const scrollTop = $(this).scrollTop();
+                const scrollHeight = this.scrollHeight;
+                const clientHeight = this.clientHeight;
+
+                if (scrollTop + clientHeight >= scrollHeight - 100) {
+                    $jumpBtn.addClass('hidden');
+                } else {
+                    $jumpBtn.removeClass('hidden');
+                }
+            });
         });
 
         // ====== Comment Menu 3 Points ======
@@ -1099,25 +1152,48 @@
         $(document).on('click', '.vic-emoji-item', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            const emoji = $(this).text();
+            const emoji = $(this).text().trim();
 
-            // Trouver le bon input
+            // Trouver le bon input - chercher de manière plus précise
+            let $input = null;
+
+            // D'abord chercher dans la modale
             const $modal = $('.vic-modal');
-            let $input = $modal.find('.vic-comment-input-skool');
+            if ($modal.length) {
+                // Chercher l'input skool-style d'abord
+                $input = $modal.find('input.vic-comment-input-skool');
 
-            if (!$input.length) {
-                $input = $modal.find('.vic-comment-input');
+                // Si pas trouvé, chercher le textarea classique
+                if (!$input.length) {
+                    $input = $modal.find('textarea.vic-comment-input');
+                }
             }
 
-            if ($input.length) {
-                const currentVal = $input.val();
-                $input.val(currentVal + emoji);
+            // Fallback global
+            if (!$input || !$input.length) {
+                $input = $('input.vic-comment-input-skool');
+            }
+
+            console.log('Emoji input found:', $input.length, 'Emoji:', emoji);
+
+            if ($input && $input.length) {
+                const currentVal = $input.val() || '';
+                const newVal = currentVal + emoji;
+                $input.val(newVal);
+
+                // Trigger input event pour activer le bouton si nécessaire
+                $input.trigger('input');
+
+                // Focus sur l'input
                 $input.focus();
 
                 // Positionner curseur à la fin
-                const len = $input.val().length;
-                if ($input[0].setSelectionRange) {
-                    $input[0].setSelectionRange(len, len);
+                const inputEl = $input[0];
+                const len = newVal.length;
+                if (inputEl.setSelectionRange) {
+                    setTimeout(function() {
+                        inputEl.setSelectionRange(len, len);
+                    }, 0);
                 }
             }
 
@@ -1132,8 +1208,9 @@
             }
         });
 
-        // ====== GIF PICKER AVEC GIPHY ======
-        const GIPHY_API_KEY = 'dc6zaTOxFJmzC'; // Clé publique beta Giphy
+        // ====== GIF PICKER AVEC TENOR ======
+        // Tenor API (plus fiable que Giphy beta key)
+        const TENOR_API_KEY = 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ'; // Google Tenor API key publique
 
         $(document).on('click', '.vic-comment-add-gif', function(e) {
             e.preventDefault();
@@ -1149,7 +1226,7 @@
                 <div class="vic-gif-picker">
                     <div class="vic-gif-header">
                         <input type="text" placeholder="Rechercher des GIFs..." class="vic-gif-search-input">
-                        <span class="vic-gif-powered">GIPHY</span>
+                        <span class="vic-gif-powered">Tenor</span>
                     </div>
                     <div class="vic-gif-grid">
                         <div class="vic-gif-loading">Chargement...</div>
@@ -1165,19 +1242,31 @@
             $picker.find('.vic-gif-search-input').focus();
         });
 
-        // Charger GIFs tendance
+        // Charger GIFs tendance avec Tenor
         function loadTrendingGifs($container) {
-            fetch('https://api.giphy.com/v1/gifs/trending?api_key=' + GIPHY_API_KEY + '&limit=20&rating=pg')
-                .then(response => response.json())
-                .then(data => {
-                    renderGifs(data.data, $container);
+            $container.html('<div class="vic-gif-loading">Chargement...</div>');
+
+            fetch('https://tenor.googleapis.com/v2/featured?key=' + TENOR_API_KEY + '&limit=20&media_filter=gif,tinygif&contentfilter=medium')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network error');
+                    return response.json();
                 })
-                .catch(() => {
-                    $container.html('<div class="vic-gif-loading">Erreur de chargement</div>');
+                .then(data => {
+                    console.log('Tenor response:', data);
+                    if (data.results) {
+                        renderGifsTenor(data.results, $container);
+                    } else {
+                        $container.html('<div class="vic-gif-loading">Aucun GIF disponible</div>');
+                    }
+                })
+                .catch(err => {
+                    console.error('Tenor error:', err);
+                    // Fallback: afficher des GIFs populaires en dur
+                    showFallbackGifs($container);
                 });
         }
 
-        // Rechercher GIFs
+        // Rechercher GIFs avec Tenor
         let gifSearchTimeout;
         $(document).on('input', '.vic-gif-search-input', function() {
             const query = $(this).val().trim();
@@ -1194,10 +1283,14 @@
             $grid.html('<div class="vic-gif-loading">Recherche...</div>');
 
             gifSearchTimeout = setTimeout(function() {
-                fetch('https://api.giphy.com/v1/gifs/search?api_key=' + GIPHY_API_KEY + '&q=' + encodeURIComponent(query) + '&limit=20&rating=pg')
+                fetch('https://tenor.googleapis.com/v2/search?key=' + TENOR_API_KEY + '&q=' + encodeURIComponent(query) + '&limit=20&media_filter=gif,tinygif&contentfilter=medium')
                     .then(response => response.json())
                     .then(data => {
-                        renderGifs(data.data, $grid);
+                        if (data.results) {
+                            renderGifsTenor(data.results, $grid);
+                        } else {
+                            $grid.html('<div class="vic-gif-loading">Aucun GIF trouvé</div>');
+                        }
                     })
                     .catch(() => {
                         $grid.html('<div class="vic-gif-loading">Erreur de recherche</div>');
@@ -1205,8 +1298,8 @@
             }, 300);
         });
 
-        // Afficher les GIFs
-        function renderGifs(gifs, $container) {
+        // Afficher les GIFs Tenor
+        function renderGifsTenor(gifs, $container) {
             $container.empty();
 
             if (!gifs || gifs.length === 0) {
@@ -1215,9 +1308,37 @@
             }
 
             gifs.forEach(function(gif) {
-                const previewUrl = gif.images.fixed_height_small ? gif.images.fixed_height_small.url : gif.images.original.url;
-                const fullUrl = gif.images.original.url;
-                const $img = $('<img src="' + previewUrl + '" alt="' + (gif.title || 'GIF') + '" data-full="' + fullUrl + '">');
+                // Tenor v2 API structure
+                const previewUrl = gif.media_formats?.tinygif?.url || gif.media_formats?.gif?.url || '';
+                const fullUrl = gif.media_formats?.gif?.url || previewUrl;
+
+                if (previewUrl) {
+                    const $img = $('<img src="' + previewUrl + '" alt="' + (gif.content_description || 'GIF') + '" data-full="' + fullUrl + '">');
+                    $container.append($img);
+                }
+            });
+
+            if ($container.children().length === 0) {
+                $container.html('<div class="vic-gif-loading">Aucun GIF disponible</div>');
+            }
+        }
+
+        // Fallback GIFs si l'API ne marche pas
+        function showFallbackGifs($container) {
+            const fallbackGifs = [
+                'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif',
+                'https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif',
+                'https://media.giphy.com/media/111ebonMs90YLu/giphy.gif',
+                'https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif',
+                'https://media.giphy.com/media/QMHoU66sBXqqLqYvGO/giphy.gif',
+                'https://media.giphy.com/media/5GoVLqeAOo6PK/giphy.gif',
+                'https://media.giphy.com/media/3o6Zt6KHxJTbXCnSvu/giphy.gif',
+                'https://media.giphy.com/media/xUPGGDNsLvqsBOhuU0/giphy.gif'
+            ];
+
+            $container.empty();
+            fallbackGifs.forEach(function(url) {
+                const $img = $('<img src="' + url + '" alt="GIF" data-full="' + url + '">');
                 $container.append($img);
             });
         }
@@ -1231,15 +1352,16 @@
 
             // Trouver le bon input
             const $modal = $('.vic-modal');
-            let $input = $modal.find('.vic-comment-input-skool');
+            let $input = $modal.find('input.vic-comment-input-skool');
 
             if (!$input.length) {
-                $input = $modal.find('.vic-comment-input');
+                $input = $modal.find('textarea.vic-comment-input');
             }
 
             if ($input.length && gifUrl) {
-                const currentVal = $input.val();
+                const currentVal = $input.val() || '';
                 $input.val(currentVal + (currentVal ? ' ' : '') + gifUrl);
+                $input.trigger('input');
                 $input.focus();
             }
 

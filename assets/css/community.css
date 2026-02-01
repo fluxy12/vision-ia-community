@@ -1578,10 +1578,11 @@
 
 .vic-jump-latest-sticky {
     position: sticky;
-    bottom: 80px;
+    bottom: 60px;
     display: flex;
     justify-content: center;
-    padding: 12px 0;
+    padding: 8px 0;
+    margin: 16px 0 8px 0;
     z-index: 50;
     pointer-events: none;
     transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -1590,6 +1591,7 @@
 .vic-jump-latest-sticky.hidden {
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
 }
 
 .vic-jump-latest {
@@ -1616,7 +1618,7 @@
 }
 
 .vic-jump-latest svg {
-    /* Flèche vers le bas - pas de rotation */
+    /* Flèche vers le bas */
 }
 
 /* ========================================
