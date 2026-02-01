@@ -718,8 +718,25 @@
         let searchTimeout;
         const $searchInput = $('#vic-search-input');
         const $searchClear = $('#vic-search-clear');
+        const $searchBox = $('.vic-search-box');
+        const $searchToggle = $('#vic-search-toggle');
         const $feed = $('#vic-feed');
         const $loadMore = $('#vic-load-more');
+
+        // Toggle search box visibility
+        $searchToggle.on('click', function() {
+            $searchBox.toggleClass('vic-search-open');
+            $(this).toggleClass('active');
+
+            if ($searchBox.hasClass('vic-search-open')) {
+                $searchInput.focus();
+            } else {
+                // Clear search when closing
+                $searchInput.val('');
+                $searchClear.hide();
+                performSearch('');
+            }
+        });
 
         // Search on input with debounce
         $searchInput.on('input', function() {

@@ -34,11 +34,11 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
 }
 
-/* Create Post Box */
+/* Create Post Box - Style compact comme Skool */
 .vic-create-post-box {
     background: var(--vic-white);
-    border-radius: var(--vic-border-radius);
-    padding: 20px;
+    border-radius: 50px;
+    padding: 8px 8px 8px 16px;
     margin-bottom: 24px;
     box-shadow: var(--vic-shadow);
     border: 1px solid var(--vic-gray-200);
@@ -50,23 +50,25 @@
     gap: 12px;
 }
 
-.vic-create-post-header img {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
+.vic-create-post-header img,
+.vic-create-post-header .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50% !important;
     object-fit: cover;
+    flex-shrink: 0;
 }
 
 .vic-create-post-trigger {
     flex: 1;
-    padding: 14px 20px;
+    padding: 10px 16px;
     background: var(--vic-gray-100);
-    border: 1px solid var(--vic-gray-200);
+    border: none;
     border-radius: 24px;
     text-align: left;
     color: var(--vic-gray-500);
     cursor: pointer;
-    font-size: 15px;
+    font-size: 14px;
     transition: all 0.2s ease;
 }
 
@@ -193,9 +195,17 @@
     color: var(--vic-white);
 }
 
-/* Search Box */
+/* Search Box - Caché par défaut, s'ouvre avec le bouton loupe */
 .vic-search-box {
-    margin-bottom: 20px;
+    margin-bottom: 0;
+    display: none;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.vic-search-box.vic-search-open {
+    display: block;
+    margin-bottom: 16px;
 }
 
 .vic-search-wrapper {
@@ -213,11 +223,11 @@
 
 .vic-search-input {
     width: 100%;
-    padding: 14px 44px;
+    padding: 12px 44px;
     border: 1px solid var(--vic-gray-200);
     border-radius: 24px;
-    font-size: 15px;
-    background: var(--vic-white);
+    font-size: 14px;
+    background: var(--vic-gray-50);
     transition: all 0.2s ease;
 }
 
@@ -225,6 +235,7 @@
     outline: none;
     border-color: var(--vic-primary);
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    background: var(--vic-white);
 }
 
 .vic-search-input::placeholder {
@@ -251,6 +262,31 @@
 .vic-search-clear:hover {
     background: var(--vic-gray-300);
     color: var(--vic-gray-700);
+}
+
+/* Bouton Loupe dans les filtres */
+.vic-search-toggle-btn {
+    padding: 8px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--vic-gray-200);
+    background: var(--vic-white);
+    color: var(--vic-gray-600);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vic-search-toggle-btn:hover {
+    background: var(--vic-gray-100);
+}
+
+.vic-search-toggle-btn.active {
+    background: var(--vic-primary);
+    color: var(--vic-white);
+    border-color: var(--vic-primary);
 }
 
 /* Filters */
