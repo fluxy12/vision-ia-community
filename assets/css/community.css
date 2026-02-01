@@ -397,6 +397,7 @@ body .vic-community-wrapper,
     border-radius: 12px;
     overflow: hidden;
     background: var(--vic-gray-100);
+    margin-top: 32px;
 }
 
 .vic-post-thumbnail img,
