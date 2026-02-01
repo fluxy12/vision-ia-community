@@ -190,6 +190,7 @@
             e.stopPropagation();
 
             const $btn = $(this);
+            const $formActions = $btn.closest('.vic-form-actions');
 
             // Fermer autres pickers
             $('.vic-emoji-picker-full, .vic-emoji-picker, .vic-gif-picker').remove();
@@ -229,8 +230,13 @@
             }
             $picker.append($grid);
 
-            $btn.after($picker);
-            $picker.find('.vic-emoji-search-input').focus();
+            // Ajouter au parent .vic-form-actions pour un bon positionnement
+            $formActions.append($picker);
+
+            // Ne pas scroller, garder le focus
+            setTimeout(function() {
+                $picker.find('.vic-emoji-search-input').focus();
+            }, 10);
         });
 
         // Insérer emoji dans le textarea du post
@@ -323,6 +329,7 @@
             e.stopPropagation();
 
             const $btn = $(this);
+            const $formActions = $btn.closest('.vic-form-actions');
 
             // Fermer autres pickers
             $('.vic-gif-picker, .vic-emoji-picker-full, .vic-emoji-picker').remove();
@@ -339,8 +346,13 @@
                 </div>
             `);
 
-            $btn.after($picker);
-            $picker.find('.vic-gif-search-input').focus();
+            // Ajouter au parent .vic-form-actions pour un bon positionnement
+            $formActions.append($picker);
+
+            // Ne pas scroller, garder le focus
+            setTimeout(function() {
+                $picker.find('.vic-gif-search-input').focus();
+            }, 10);
 
             // Charger les GIFs tendance
             loadPostTrendingGifs($picker.find('.vic-gif-grid'));

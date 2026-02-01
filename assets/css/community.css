@@ -132,6 +132,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    position: relative;
 }
 
 .vic-btn-icon {
@@ -1864,10 +1865,12 @@
 /* Position pour le formulaire de création de post */
 .vic-post-emoji-picker,
 .vic-post-gif-picker {
-    bottom: auto;
-    top: calc(100% + 8px);
+    position: absolute;
+    bottom: calc(100% + 10px);
+    top: auto;
     left: 0;
     right: auto;
+    z-index: 9999;
 }
 
 /* Preview GIF dans le formulaire de post */
