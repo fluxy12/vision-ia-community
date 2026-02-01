@@ -1153,6 +1153,79 @@
     color: var(--vic-danger);
 }
 
+/* Link preview in comments */
+.vic-link-preview {
+    background: var(--vic-gray-100);
+    border: 1px solid var(--vic-gray-200);
+}
+
+.vic-link-preview .vic-file-icon {
+    font-size: 16px;
+}
+
+.vic-link-preview .vic-file-name {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--vic-primary);
+}
+
+/* YouTube preview in comments */
+.vic-youtube-preview {
+    position: relative;
+    padding: 4px;
+    background: var(--vic-gray-900);
+    border-radius: 8px;
+}
+
+.vic-youtube-preview .vic-youtube-thumb {
+    width: 80px;
+    height: 45px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.vic-youtube-preview .vic-youtube-play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 20px;
+    text-shadow: 0 0 8px rgba(0,0,0,0.8);
+    pointer-events: none;
+}
+
+.vic-youtube-preview .vic-youtube-remove {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--vic-danger);
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+/* File icon in attachment preview */
+.vic-file-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.vic-file-name {
+    color: var(--vic-gray-700);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 /* No comments */
 .vic-no-comments {
     text-align: center;

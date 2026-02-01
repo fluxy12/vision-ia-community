@@ -556,10 +556,22 @@
             this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
 
-        // Comment file upload
+        // Comment file upload (compatible Skool-style et ancien style)
         $(document).on('change', '.vic-comment-file-input', function(e) {
             const files = Array.from(e.target.files);
-            const $preview = $(this).closest('.vic-comment-input-wrapper').find('.vic-comment-attachments-preview');
+            const $this = $(this);
+
+            // Chercher la zone de preview - d'abord style Skool, puis ancien style
+            let $preview = $this.closest('.vic-comment-form-wrapper-skool').find('.vic-comment-attachments-preview');
+            if (!$preview.length) {
+                $preview = $this.closest('.vic-comment-input-wrapper').find('.vic-comment-attachments-preview');
+            }
+            // Fallback: chercher dans la modale visible
+            if (!$preview.length) {
+                $preview = $('.vic-modal:visible .vic-comment-attachments-preview');
+            }
+
+            console.log('Upload fichier - Preview zone trouvée:', $preview.length);
 
             files.forEach(function(file) {
                 if (file.size > 10 * 1024 * 1024) {
@@ -572,6 +584,8 @@
             });
 
             updateCommentSubmitState();
+            // Reset l'input pour pouvoir re-sélectionner le même fichier
+            $this.val('');
         });
 
         // Remove comment attachment
@@ -642,19 +656,64 @@
             });
         });
 
-        // Add link to comment (legacy)
+        // Add link to comment with preview
         $(document).on('click', '.vic-comment-add-link', function() {
             const url = prompt('Entrez l\'URL :');
             if (url && url.trim()) {
-                // Check for Skool-style input first
-                let $input = $(this).closest('.vic-comment-input-skool-wrapper').find('.vic-comment-input-skool');
+                const $wrapper = $(this).closest('.vic-comment-form-wrapper-skool, .vic-comment-input-wrapper');
+                let $input = $wrapper.find('.vic-comment-input-skool');
                 if (!$input.length) {
-                    $input = $(this).closest('.vic-comment-input-wrapper').find('.vic-comment-input');
+                    $input = $wrapper.find('.vic-comment-input');
                 }
+
+                // Ajouter l'URL au texte
                 const currentVal = $input.val();
                 $input.val(currentVal + (currentVal ? ' ' : '') + url.trim());
                 $input.trigger('input');
+
+                // Ajouter un aperçu visuel du lien
+                let $preview = $wrapper.find('.vic-comment-attachments-preview');
+                if (!$preview.length) {
+                    $preview = $wrapper.closest('.vic-comment-form-wrapper-skool').find('.vic-comment-attachments-preview');
+                }
+
+                if ($preview.length) {
+                    // Extraire le domaine pour l'affichage
+                    let domain = url.trim();
+                    try {
+                        domain = new URL(url.trim()).hostname;
+                    } catch(e) {}
+
+                    const $linkPreview = $(`
+                        <div class="vic-comment-attachment-item vic-link-preview">
+                            <span class="vic-file-icon">🔗</span>
+                            <span class="vic-file-name" title="${url.trim()}">${domain}</span>
+                            <button type="button" class="vic-comment-attachment-remove vic-link-remove">✕</button>
+                        </div>
+                    `);
+                    $linkPreview.data('url', url.trim());
+                    $preview.append($linkPreview);
+                }
+
+                $input.focus();
             }
+        });
+
+        // Remove link preview
+        $(document).on('click', '.vic-link-remove', function() {
+            const $item = $(this).closest('.vic-link-preview');
+            const urlToRemove = $item.data('url');
+            const $wrapper = $item.closest('.vic-comment-form-wrapper-skool, .vic-comment-input-wrapper');
+            let $input = $wrapper.find('.vic-comment-input-skool');
+            if (!$input.length) {
+                $input = $wrapper.find('.vic-comment-input');
+            }
+
+            // Retirer l'URL du texte
+            if ($input.length && urlToRemove) {
+                $input.val($input.val().replace(urlToRemove, '').trim());
+            }
+            $item.remove();
         });
 
         // Skool-style comment submission (on Enter key)
@@ -690,12 +749,12 @@
             formData.append('post_id', postId);
             formData.append('content', content);
 
-            // Add files if any
-            const $fileInput = $wrapper.find('.vic-comment-file-input');
-            if ($fileInput.length && $fileInput[0].files.length > 0) {
-                for (let i = 0; i < $fileInput[0].files.length; i++) {
-                    formData.append('comment_attachments[]', $fileInput[0].files[i]);
-                }
+            // Add files from commentFiles array (global)
+            if (commentFiles && commentFiles.length > 0) {
+                commentFiles.forEach(function(file) {
+                    formData.append('comment_attachments[]', file);
+                });
+                console.log('Envoi de', commentFiles.length, 'fichier(s)');
             }
 
             $.ajax({
@@ -717,7 +776,8 @@
                         $input.val('');
                         $wrapper.find('.vic-comment-attachments-preview').empty();
                         $wrapper.data('selected-gif', '');
-                        $fileInput.val('');
+                        $wrapper.find('.vic-comment-file-input').val('');
+                        commentFiles = []; // Reset le tableau global
 
                         // Update comment count
                         const $countEl = $('.vic-post-card[data-post-id="' + postId + '"] .vic-comment-btn span');
@@ -817,18 +877,29 @@
             const $item = $('<div class="vic-comment-attachment-item"></div>');
 
             if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    $item.prepend('<img src="' + e.target.result + '" alt="">');
-                };
-                reader.readAsDataURL(file);
+                // Utiliser URL.createObjectURL - beaucoup plus rapide que FileReader
+                const objectUrl = URL.createObjectURL(file);
+                const $img = $('<img src="' + objectUrl + '" alt="">');
+                $item.prepend($img);
+                // Libérer la mémoire quand l'image est chargée
+                $img.on('load', function() {
+                    URL.revokeObjectURL(objectUrl);
+                });
+            } else if (file.type.startsWith('video/')) {
+                $item.prepend('<span class="vic-file-icon">🎬</span>');
+            } else if (file.type.startsWith('audio/')) {
+                $item.prepend('<span class="vic-file-icon">🎵</span>');
+            } else if (file.type === 'application/pdf') {
+                $item.prepend('<span class="vic-file-icon">📄</span>');
             } else {
-                $item.prepend('<span>📎</span>');
+                $item.prepend('<span class="vic-file-icon">📎</span>');
             }
 
-            $item.append('<span>' + file.name.substring(0, 15) + '</span>');
+            $item.append('<span class="vic-file-name">' + file.name.substring(0, 20) + (file.name.length > 20 ? '...' : '') + '</span>');
             $item.append('<button type="button" class="vic-comment-attachment-remove">✕</button>');
             $preview.append($item);
+
+            console.log('Preview ajoutée pour:', file.name);
         }
 
         function updateCommentSubmitState() {
@@ -1046,11 +1117,68 @@
             e.preventDefault();
             const url = prompt('Collez l\'URL de la vidéo YouTube :');
             if (url && url.trim()) {
-                const $input = $('.vic-comment-input-skool');
-                const currentVal = $input.val();
-                $input.val(currentVal + (currentVal ? ' ' : '') + url.trim());
-                $input.focus();
+                const $wrapper = $(this).closest('.vic-comment-form-wrapper-skool, .vic-comment-input-wrapper');
+                let $input = $wrapper.find('.vic-comment-input-skool');
+                if (!$input.length) {
+                    $input = $wrapper.find('.vic-comment-input');
+                }
+                if (!$input.length) {
+                    $input = $('.vic-comment-input-skool');
+                }
+
+                // Extraire l'ID de la vidéo YouTube
+                const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/;
+                const match = url.trim().match(youtubeRegex);
+
+                if (match && match[1]) {
+                    const videoId = match[1];
+                    const thumbnailUrl = 'https://img.youtube.com/vi/' + videoId + '/mqdefault.jpg';
+
+                    // Ajouter l'URL au texte
+                    const currentVal = $input.val();
+                    $input.val(currentVal + (currentVal ? ' ' : '') + url.trim());
+                    $input.trigger('input');
+
+                    // Ajouter un aperçu visuel avec miniature
+                    let $preview = $wrapper.find('.vic-comment-attachments-preview');
+                    if (!$preview.length) {
+                        $preview = $wrapper.closest('.vic-comment-form-wrapper-skool').find('.vic-comment-attachments-preview');
+                    }
+
+                    if ($preview.length) {
+                        const $ytPreview = $(`
+                            <div class="vic-comment-attachment-item vic-youtube-preview">
+                                <img src="${thumbnailUrl}" alt="YouTube" class="vic-youtube-thumb">
+                                <span class="vic-youtube-play">▶</span>
+                                <button type="button" class="vic-comment-attachment-remove vic-youtube-remove">✕</button>
+                            </div>
+                        `);
+                        $ytPreview.data('url', url.trim());
+                        $preview.append($ytPreview);
+                    }
+
+                    $input.focus();
+                } else {
+                    alert('URL YouTube invalide. Formats acceptés:\n- https://www.youtube.com/watch?v=VIDEO_ID\n- https://youtu.be/VIDEO_ID');
+                }
             }
+        });
+
+        // Remove YouTube preview
+        $(document).on('click', '.vic-youtube-remove', function() {
+            const $item = $(this).closest('.vic-youtube-preview');
+            const urlToRemove = $item.data('url');
+            const $wrapper = $item.closest('.vic-comment-form-wrapper-skool, .vic-comment-input-wrapper');
+            let $input = $wrapper.find('.vic-comment-input-skool');
+            if (!$input.length) {
+                $input = $wrapper.find('.vic-comment-input');
+            }
+
+            // Retirer l'URL du texte
+            if ($input.length && urlToRemove) {
+                $input.val($input.val().replace(urlToRemove, '').trim());
+            }
+            $item.remove();
         });
 
         // ====== EMOJI PICKER COMPLET ======
