@@ -724,6 +724,16 @@
             }
         });
 
+        // Skool-style comment submission (on button click)
+        $(document).on('click', '.vic-comment-submit-skool', function(e) {
+            e.preventDefault();
+            const $wrapper = $(this).closest('.vic-comment-form-wrapper-skool');
+            const $input = $wrapper.find('.vic-comment-input-skool');
+            if ($input.length) {
+                submitSkoolComment($input);
+            }
+        });
+
         // Submit Skool-style comment
         function submitSkoolComment($input) {
             let content = $input.val().trim();
@@ -903,9 +913,16 @@
         }
 
         function updateCommentSubmitState() {
-            const $input = $('.vic-comment-input');
-            const $submit = $('.vic-comment-submit');
-            const hasContent = $input.val().trim().length > 0 || commentFiles.length > 0;
+            // Support both Skool-style and legacy input
+            let $input = $('.vic-comment-input-skool:visible');
+            if (!$input.length) {
+                $input = $('.vic-comment-input');
+            }
+            const $submit = $('.vic-comment-submit-skool, .vic-comment-submit');
+
+            // Vérifier si l'input existe avant d'appeler .val()
+            const inputVal = $input.length ? $input.val() : '';
+            const hasContent = (inputVal && inputVal.trim().length > 0) || commentFiles.length > 0;
 
             if (hasContent) {
                 $submit.addClass('active');

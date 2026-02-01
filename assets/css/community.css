@@ -1016,6 +1016,35 @@
     color: var(--vic-gray-600);
 }
 
+/* Send button for Skool-style comments */
+.vic-comment-submit-skool {
+    background: var(--vic-primary);
+    border: none;
+    padding: 6px 10px;
+    cursor: pointer;
+    color: white;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 4px;
+}
+
+.vic-comment-submit-skool:hover {
+    background: var(--vic-primary-dark, #4338ca);
+    transform: scale(1.05);
+}
+
+.vic-comment-submit-skool:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.vic-comment-submit-skool svg {
+    stroke: white;
+}
+
 /* Legacy comment form styles (kept for backwards compatibility) */
 .vic-comment-form-wrapper {
     background: var(--vic-white);
