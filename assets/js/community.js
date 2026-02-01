@@ -729,6 +729,149 @@
                 $submit.removeClass('active');
             }
         }
+
+        // ====== Comment Like System ======
+        $(document).on('click', '.vic-comment-like-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $btn = $(this);
+            const commentId = $btn.data('comment-id');
+            const $count = $btn.find('.vic-comment-like-count');
+
+            $btn.prop('disabled', true);
+
+            $.ajax({
+                url: vicAjax.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'vic_like_comment',
+                    nonce: vicAjax.nonce,
+                    comment_id: commentId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $count.text(response.data.likes);
+
+                        if (response.data.action === 'liked') {
+                            $btn.addClass('liked');
+                        } else {
+                            $btn.removeClass('liked');
+                        }
+                    }
+                },
+                complete: function() {
+                    $btn.prop('disabled', false);
+                }
+            });
+        });
+
+        // ====== Comment Reply System ======
+        // Toggle reply form
+        $(document).on('click', '.vic-comment-reply-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $comment = $(this).closest('.vic-comment');
+            const $replyForm = $comment.find('> .vic-comment-body > .vic-reply-form-wrapper').first();
+
+            // Hide other reply forms
+            $('.vic-reply-form-wrapper').not($replyForm).slideUp(200);
+
+            // Toggle this reply form
+            $replyForm.slideToggle(200);
+
+            // Focus on textarea
+            setTimeout(function() {
+                if ($replyForm.is(':visible')) {
+                    $replyForm.find('.vic-reply-input').focus();
+                }
+            }, 210);
+        });
+
+        // Cancel reply
+        $(document).on('click', '.vic-reply-cancel', function(e) {
+            e.preventDefault();
+            const $wrapper = $(this).closest('.vic-reply-form-wrapper');
+            $wrapper.find('.vic-reply-input').val('');
+            $wrapper.slideUp(200);
+        });
+
+        // Auto-resize reply textarea
+        $(document).on('input', '.vic-reply-input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        });
+
+        // Submit reply
+        $(document).on('click', '.vic-reply-submit', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $btn = $(this);
+            const $wrapper = $btn.closest('.vic-reply-form-wrapper');
+            const $input = $wrapper.find('.vic-reply-input');
+            const content = $input.val().trim();
+            const commentId = $btn.data('comment-id');
+            const postId = $btn.data('post-id');
+
+            if (!content) {
+                alert('Veuillez écrire une réponse');
+                return;
+            }
+
+            $btn.text('...').prop('disabled', true);
+
+            $.ajax({
+                url: vicAjax.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'vic_reply_comment',
+                    nonce: vicAjax.nonce,
+                    post_id: postId,
+                    parent_comment_id: commentId,
+                    content: content
+                },
+                success: function(response) {
+                    if (response.success) {
+                        const $comment = $wrapper.closest('.vic-comment');
+
+                        // Check if replies container exists
+                        let $repliesContainer = $comment.find('> .vic-comment-body > .vic-comment-replies').first();
+                        if (!$repliesContainer.length) {
+                            $repliesContainer = $('<div class="vic-comment-replies"></div>');
+                            $comment.find('> .vic-comment-body').append($repliesContainer);
+                        }
+
+                        // Add reply
+                        $repliesContainer.append(response.data.comment_html);
+
+                        // Reset and hide form
+                        $input.val('').css('height', 'auto');
+                        $wrapper.slideUp(200);
+
+                        // Update comment count in post card
+                        const $countEl = $('.vic-post-card[data-post-id="' + postId + '"] .vic-comment-btn span');
+                        if ($countEl.length) {
+                            const newCount = parseInt($countEl.text()) + 1;
+                            $countEl.text(newCount);
+                        }
+
+                        // Scroll to new reply
+                        const $newReply = $repliesContainer.find('.vic-comment').last();
+                        $newReply[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                        alert(response.data.message || 'Erreur');
+                    }
+                },
+                error: function() {
+                    alert('Erreur de connexion');
+                },
+                complete: function() {
+                    $btn.text('Répondre').prop('disabled', false);
+                }
+            });
+        });
     }
 
 })(jQuery);

@@ -31,6 +31,8 @@ class Vision_IA_Community {
         add_action('wp_ajax_vic_get_post_modal', [$this, 'handle_get_post_modal']);
         add_action('wp_ajax_nopriv_vic_get_post_modal', [$this, 'handle_get_post_modal']);
         add_action('wp_ajax_vic_add_comment', [$this, 'handle_add_comment']);
+        add_action('wp_ajax_vic_like_comment', [$this, 'handle_like_comment']);
+        add_action('wp_ajax_vic_reply_comment', [$this, 'handle_reply_comment']);
         add_shortcode('community_feed', [$this, 'render_feed']);
         
         // Hook MasterStudy profile tab
@@ -327,28 +329,8 @@ class Vision_IA_Community {
             'post_type' => 'community_post',
             'posts_per_page' => $posts_per_page,
             'paged' => $paged,
-            'orderby' => 'date',
-            'order' => 'DESC',
-            'meta_query' => [
-                'relation' => 'OR',
-                [
-                    'key' => '_vic_pinned',
-                    'compare' => 'NOT EXISTS'
-                ],
-                [
-                    'key' => '_vic_pinned',
-                    'value' => '1',
-                    'compare' => '='
-                ]
-            ]
+            'post_status' => 'publish'
         ];
-
-        // Pinned posts first
-        $args['orderby'] = [
-            'meta_value_num' => 'DESC',
-            'date' => 'DESC'
-        ];
-        $args['meta_key'] = '_vic_pinned';
 
         if ($category && $category !== 'all') {
             $args['tax_query'] = [
@@ -360,20 +342,62 @@ class Vision_IA_Community {
             ];
         }
 
-        $query = new WP_Query($args);
-        
+        // Get pinned posts first, then others by date
+        $pinned_args = array_merge($args, [
+            'meta_key' => '_vic_pinned',
+            'meta_value' => '1',
+            'orderby' => 'date',
+            'order' => 'DESC'
+        ]);
+
+        $regular_args = array_merge($args, [
+            'meta_query' => [
+                'relation' => 'OR',
+                [
+                    'key' => '_vic_pinned',
+                    'compare' => 'NOT EXISTS'
+                ],
+                [
+                    'key' => '_vic_pinned',
+                    'value' => '1',
+                    'compare' => '!='
+                ]
+            ],
+            'orderby' => 'date',
+            'order' => 'DESC'
+        ]);
+
+        $pinned_query = new WP_Query($pinned_args);
+        $regular_query = new WP_Query($regular_args);
+
         ob_start();
-        
-        if ($query->have_posts()) {
-            while ($query->have_posts()) {
-                $query->the_post();
+
+        $has_posts = false;
+
+        // Render pinned posts first
+        if ($pinned_query->have_posts()) {
+            $has_posts = true;
+            while ($pinned_query->have_posts()) {
+                $pinned_query->the_post();
                 $this->render_single_post(get_the_ID());
             }
             wp_reset_postdata();
-        } else {
+        }
+
+        // Then render regular posts
+        if ($regular_query->have_posts()) {
+            $has_posts = true;
+            while ($regular_query->have_posts()) {
+                $regular_query->the_post();
+                $this->render_single_post(get_the_ID());
+            }
+            wp_reset_postdata();
+        }
+
+        if (!$has_posts) {
             echo '<p class="vic-no-posts">Aucun post pour le moment.</p>';
         }
-        
+
         return ob_get_clean();
     }
 
@@ -974,16 +998,18 @@ class Vision_IA_Community {
             <div class="vic-comments-section">
                 <div class="vic-comments-list">
                     <?php
+                    // Only get top-level comments (replies are rendered recursively)
                     $comments = get_comments([
                         'post_id' => $post_id,
                         'status' => 'approve',
+                        'parent' => 0,
                         'orderby' => 'comment_date',
                         'order' => 'ASC'
                     ]);
 
                     if ($comments) {
                         foreach ($comments as $comment) {
-                            $this->render_single_comment($comment);
+                            $this->render_single_comment($comment, 0);
                         }
                     } else {
                         echo '<p class="vic-no-comments">Soyez le premier à commenter !</p>';
@@ -1037,10 +1063,13 @@ class Vision_IA_Community {
     /**
      * Render a single comment
      */
-    public function render_single_comment($comment) {
+    public function render_single_comment($comment, $depth = 0) {
         $comment_date = human_time_diff(strtotime($comment->comment_date), current_time('timestamp'));
+        $likes = (int) get_comment_meta($comment->comment_ID, '_vic_comment_likes', true);
+        $user_liked = $this->user_has_liked_comment($comment->comment_ID);
+        $max_depth = 3; // Maximum reply depth
         ?>
-        <div class="vic-comment" data-comment-id="<?php echo $comment->comment_ID; ?>">
+        <div class="vic-comment <?php echo $depth > 0 ? 'vic-comment-reply' : ''; ?>" data-comment-id="<?php echo $comment->comment_ID; ?>" data-depth="<?php echo $depth; ?>">
             <?php echo get_avatar($comment->user_id ?: $comment->comment_author_email, 36, '', '', ['class' => 'vic-comment-avatar']); ?>
             <div class="vic-comment-body">
                 <div class="vic-comment-header">
@@ -1066,12 +1095,161 @@ class Vision_IA_Community {
                     ?>
                 </div>
                 <div class="vic-comment-actions">
-                    <button class="vic-comment-action">👍 0</button>
-                    <button class="vic-comment-action">Reply</button>
+                    <button class="vic-comment-like-btn <?php echo $user_liked ? 'liked' : ''; ?>" data-comment-id="<?php echo $comment->comment_ID; ?>">
+                        👍 <span class="vic-comment-like-count"><?php echo $likes; ?></span>
+                    </button>
+                    <?php if ($depth < $max_depth && is_user_logged_in()) : ?>
+                    <button class="vic-comment-reply-btn" data-comment-id="<?php echo $comment->comment_ID; ?>" data-post-id="<?php echo $comment->comment_post_ID; ?>">Reply</button>
+                    <?php endif; ?>
                 </div>
+
+                <!-- Reply Form (hidden by default) -->
+                <?php if ($depth < $max_depth && is_user_logged_in()) : ?>
+                <div class="vic-reply-form-wrapper" style="display: none;">
+                    <div class="vic-reply-form">
+                        <?php echo get_avatar(get_current_user_id(), 28, '', '', ['class' => 'vic-reply-avatar']); ?>
+                        <div class="vic-reply-input-wrapper">
+                            <textarea class="vic-reply-input" placeholder="Répondre à <?php echo esc_attr($comment->comment_author); ?>..." rows="1"></textarea>
+                            <div class="vic-reply-form-actions">
+                                <button type="button" class="vic-reply-cancel">Annuler</button>
+                                <button type="button" class="vic-reply-submit" data-comment-id="<?php echo $comment->comment_ID; ?>" data-post-id="<?php echo $comment->comment_post_ID; ?>">Répondre</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <!-- Nested Replies -->
+                <?php
+                $replies = get_comments([
+                    'parent' => $comment->comment_ID,
+                    'status' => 'approve',
+                    'orderby' => 'comment_date',
+                    'order' => 'ASC'
+                ]);
+
+                if ($replies) {
+                    echo '<div class="vic-comment-replies">';
+                    foreach ($replies as $reply) {
+                        $this->render_single_comment($reply, $depth + 1);
+                    }
+                    echo '</div>';
+                }
+                ?>
             </div>
         </div>
         <?php
+    }
+
+    /**
+     * Check if current user has liked a comment
+     */
+    public function user_has_liked_comment($comment_id) {
+        $user_id = get_current_user_id();
+        if (!$user_id) return false;
+
+        $likes = get_comment_meta($comment_id, '_vic_comment_liked_users', true);
+        if (!is_array($likes)) return false;
+
+        return in_array($user_id, $likes);
+    }
+
+    /**
+     * Handle comment like AJAX
+     */
+    public function handle_like_comment() {
+        check_ajax_referer('vic_nonce', 'nonce');
+
+        if (!is_user_logged_in()) {
+            wp_send_json_error(['message' => 'Vous devez être connecté']);
+        }
+
+        $comment_id = intval($_POST['comment_id']);
+        $user_id = get_current_user_id();
+
+        $likes = (int) get_comment_meta($comment_id, '_vic_comment_likes', true);
+        $liked_users = get_comment_meta($comment_id, '_vic_comment_liked_users', true);
+
+        if (!is_array($liked_users)) {
+            $liked_users = [];
+        }
+
+        if (in_array($user_id, $liked_users)) {
+            // Unlike
+            $likes--;
+            $liked_users = array_diff($liked_users, [$user_id]);
+            $action = 'unliked';
+        } else {
+            // Like
+            $likes++;
+            $liked_users[] = $user_id;
+            $action = 'liked';
+        }
+
+        update_comment_meta($comment_id, '_vic_comment_likes', $likes);
+        update_comment_meta($comment_id, '_vic_comment_liked_users', $liked_users);
+
+        wp_send_json_success([
+            'likes' => $likes,
+            'action' => $action
+        ]);
+    }
+
+    /**
+     * Handle reply to comment AJAX
+     */
+    public function handle_reply_comment() {
+        check_ajax_referer('vic_nonce', 'nonce');
+
+        if (!is_user_logged_in()) {
+            wp_send_json_error(['message' => 'Vous devez être connecté']);
+        }
+
+        $post_id = intval($_POST['post_id']);
+        $parent_comment_id = intval($_POST['parent_comment_id']);
+        $content = sanitize_textarea_field($_POST['content']);
+
+        if (empty($content)) {
+            wp_send_json_error(['message' => 'La réponse ne peut pas être vide']);
+        }
+
+        $user = wp_get_current_user();
+
+        $comment_data = [
+            'comment_post_ID' => $post_id,
+            'comment_parent' => $parent_comment_id,
+            'comment_content' => $content,
+            'user_id' => $user->ID,
+            'comment_author' => $user->display_name,
+            'comment_author_email' => $user->user_email,
+            'comment_approved' => 1
+        ];
+
+        $comment_id = wp_insert_comment($comment_data);
+
+        if (!$comment_id) {
+            wp_send_json_error(['message' => 'Erreur lors de l\'ajout de la réponse']);
+        }
+
+        // Get comment HTML
+        $comment = get_comment($comment_id);
+
+        // Get parent depth
+        $parent_depth = 0;
+        $parent = get_comment($parent_comment_id);
+        while ($parent && $parent->comment_parent) {
+            $parent_depth++;
+            $parent = get_comment($parent->comment_parent);
+        }
+
+        ob_start();
+        $this->render_single_comment($comment, $parent_depth + 1);
+        $comment_html = ob_get_clean();
+
+        wp_send_json_success([
+            'comment_html' => $comment_html,
+            'comment_id' => $comment_id
+        ]);
     }
 
     /**
