@@ -2159,4 +2159,198 @@
         });
     }
 
+    // ====== POST MENU (Edit/Delete) ======
+    initPostMenu();
+
+    function initPostMenu() {
+        // Toggle menu dropdown
+        $(document).on('click', '.vic-post-menu-trigger', function(e) {
+            e.stopPropagation();
+            const $menu = $(this).closest('.vic-post-menu');
+            const $dropdown = $menu.find('.vic-post-menu-dropdown');
+
+            // Close all other menus
+            $('.vic-post-menu-dropdown').not($dropdown).removeClass('show');
+
+            $dropdown.toggleClass('show');
+        });
+
+        // Close menu when clicking outside
+        $(document).on('click', function() {
+            $('.vic-post-menu-dropdown').removeClass('show');
+        });
+
+        // Delete post
+        $(document).on('click', '.vic-delete-post', function(e) {
+            e.stopPropagation();
+            const postId = $(this).data('post-id');
+
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce post ? Cette action est irréversible.')) {
+                return;
+            }
+
+            $.ajax({
+                url: vicAjax.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'vic_delete_post',
+                    nonce: vicAjax.nonce,
+                    post_id: postId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Remove post card from feed
+                        $('.vic-post-card[data-post-id="' + postId + '"]').fadeOut(300, function() {
+                            $(this).remove();
+                        });
+
+                        // Close modal if open
+                        $('.vic-modal-overlay').fadeOut(300, function() {
+                            $(this).remove();
+                        });
+                        $('body').removeClass('vic-modal-open');
+                    } else {
+                        alert(response.data.message || 'Erreur lors de la suppression');
+                    }
+                },
+                error: function() {
+                    alert('Erreur de connexion');
+                }
+            });
+        });
+
+        // Edit post - open edit modal
+        $(document).on('click', '.vic-edit-post', function(e) {
+            e.stopPropagation();
+            const postId = $(this).data('post-id');
+            const $postCard = $('.vic-post-card[data-post-id="' + postId + '"]');
+
+            // Get current post data
+            const currentTitle = $postCard.find('.vic-post-title').text().trim();
+
+            // Create edit modal
+            const editModal = `
+                <div class="vic-edit-modal-overlay">
+                    <div class="vic-edit-modal">
+                        <div class="vic-edit-modal-header">
+                            <h3>Modifier le post</h3>
+                            <button class="vic-edit-modal-close">✕</button>
+                        </div>
+                        <form class="vic-edit-post-form" data-post-id="${postId}">
+                            <input type="text" name="edit_post_title" class="vic-input vic-input-title" value="${escapeHtml(currentTitle)}" placeholder="Titre" required>
+                            <textarea name="edit_post_content" class="vic-textarea" placeholder="Contenu..." required></textarea>
+                            <div class="vic-edit-modal-footer">
+                                <button type="button" class="vic-btn vic-btn-cancel vic-edit-modal-close">ANNULER</button>
+                                <button type="submit" class="vic-btn vic-btn-primary">ENREGISTRER</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+
+            $('body').append(editModal);
+
+            // Load current content via AJAX
+            $.ajax({
+                url: vicAjax.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'vic_get_post_modal',
+                    nonce: vicAjax.nonce,
+                    post_id: postId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Extract content from modal HTML
+                        const $temp = $('<div>').html(response.data.html);
+                        const content = $temp.find('.vic-modal-post-content').text().trim();
+                        $('.vic-edit-post-form textarea[name="edit_post_content"]').val(content);
+                    }
+                }
+            });
+
+            // Close any open post menu dropdown
+            $('.vic-post-menu-dropdown').removeClass('show');
+        });
+
+        // Close edit modal
+        $(document).on('click', '.vic-edit-modal-close, .vic-edit-modal-overlay', function(e) {
+            if (e.target === this || $(this).hasClass('vic-edit-modal-close')) {
+                $('.vic-edit-modal-overlay').fadeOut(200, function() {
+                    $(this).remove();
+                });
+            }
+        });
+
+        // Prevent modal close when clicking inside modal
+        $(document).on('click', '.vic-edit-modal', function(e) {
+            e.stopPropagation();
+        });
+
+        // Submit edit form
+        $(document).on('submit', '.vic-edit-post-form', function(e) {
+            e.preventDefault();
+
+            const $form = $(this);
+            const postId = $form.data('post-id');
+            const title = $form.find('input[name="edit_post_title"]').val().trim();
+            const content = $form.find('textarea[name="edit_post_content"]').val().trim();
+
+            if (!title || !content) {
+                alert('Le titre et le contenu sont requis');
+                return;
+            }
+
+            const $submitBtn = $form.find('button[type="submit"]');
+            $submitBtn.text('...').prop('disabled', true);
+
+            $.ajax({
+                url: vicAjax.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'vic_edit_post',
+                    nonce: vicAjax.nonce,
+                    post_id: postId,
+                    post_title: title,
+                    post_content: content
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Replace post card in feed
+                        const $oldCard = $('.vic-post-card[data-post-id="' + postId + '"]');
+                        if ($oldCard.length) {
+                            $oldCard.replaceWith(response.data.post_html);
+                        }
+
+                        // Close edit modal
+                        $('.vic-edit-modal-overlay').fadeOut(200, function() {
+                            $(this).remove();
+                        });
+
+                        // Close post modal if open
+                        $('.vic-modal-overlay').fadeOut(200, function() {
+                            $(this).remove();
+                        });
+                        $('body').removeClass('vic-modal-open');
+                    } else {
+                        alert(response.data.message || 'Erreur lors de la modification');
+                    }
+                },
+                error: function() {
+                    alert('Erreur de connexion');
+                },
+                complete: function() {
+                    $submitBtn.text('ENREGISTRER').prop('disabled', false);
+                }
+            });
+        });
+    }
+
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
 })(jQuery);

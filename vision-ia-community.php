@@ -26,6 +26,8 @@ class Vision_IA_Community {
         add_action('wp_ajax_vic_load_posts', [$this, 'handle_load_posts']);
         add_action('wp_ajax_nopriv_vic_load_posts', [$this, 'handle_load_posts']);
         add_action('wp_ajax_vic_pin_post', [$this, 'handle_pin_post']);
+        add_action('wp_ajax_vic_delete_post', [$this, 'handle_delete_post']);
+        add_action('wp_ajax_vic_edit_post', [$this, 'handle_edit_post']);
         add_action('wp_ajax_vic_search_posts', [$this, 'handle_search_posts']);
         add_action('wp_ajax_nopriv_vic_search_posts', [$this, 'handle_search_posts']);
         add_action('wp_ajax_vic_get_post_modal', [$this, 'handle_get_post_modal']);
@@ -530,6 +532,24 @@ class Vision_IA_Community {
                 </button>
                 <?php endif; ?>
 
+                <?php
+                $current_user_id = get_current_user_id();
+                $is_owner = $current_user_id && (int) $author_id === $current_user_id;
+                $is_admin = current_user_can('manage_options');
+
+                if ($is_owner || $is_admin) :
+                ?>
+                <div class="vic-post-menu">
+                    <button class="vic-post-menu-trigger" type="button">•••</button>
+                    <div class="vic-post-menu-dropdown">
+                        <?php if ($is_owner) : ?>
+                        <button type="button" class="vic-edit-post" data-post-id="<?php echo $post_id; ?>">Modifier</button>
+                        <?php endif; ?>
+                        <button type="button" class="vic-delete-post" data-post-id="<?php echo $post_id; ?>">Supprimer</button>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <?php if (!empty($recent_comments)) : ?>
                 <div class="vic-commenters">
                     <div class="vic-commenters-avatars">
@@ -862,6 +882,105 @@ class Vision_IA_Community {
     }
 
     /**
+     * Handle delete post AJAX
+     * Users can delete their own posts, admins can delete any post
+     */
+    public function handle_delete_post() {
+        check_ajax_referer('vic_nonce', 'nonce');
+
+        if (!is_user_logged_in()) {
+            wp_send_json_error(['message' => 'Vous devez être connecté']);
+        }
+
+        $post_id = intval($_POST['post_id']);
+        $post = get_post($post_id);
+
+        if (!$post || $post->post_type !== 'community_post') {
+            wp_send_json_error(['message' => 'Post non trouvé']);
+        }
+
+        $current_user_id = get_current_user_id();
+        $is_admin = current_user_can('manage_options');
+        $is_owner = (int) $post->post_author === $current_user_id;
+
+        // Only owner or admin can delete
+        if (!$is_owner && !$is_admin) {
+            wp_send_json_error(['message' => 'Vous n\'avez pas la permission de supprimer ce post']);
+        }
+
+        // Delete attachments
+        $attachments = get_post_meta($post_id, '_vic_attachments', true);
+        if (!empty($attachments) && is_array($attachments)) {
+            foreach ($attachments as $attachment_id) {
+                wp_delete_attachment($attachment_id, true);
+            }
+        }
+
+        // Delete the post
+        $deleted = wp_delete_post($post_id, true);
+
+        if ($deleted) {
+            wp_send_json_success(['message' => 'Post supprimé avec succès']);
+        } else {
+            wp_send_json_error(['message' => 'Erreur lors de la suppression']);
+        }
+    }
+
+    /**
+     * Handle edit post AJAX
+     * Only post owner can edit
+     */
+    public function handle_edit_post() {
+        check_ajax_referer('vic_nonce', 'nonce');
+
+        if (!is_user_logged_in()) {
+            wp_send_json_error(['message' => 'Vous devez être connecté']);
+        }
+
+        $post_id = intval($_POST['post_id']);
+        $post = get_post($post_id);
+
+        if (!$post || $post->post_type !== 'community_post') {
+            wp_send_json_error(['message' => 'Post non trouvé']);
+        }
+
+        $current_user_id = get_current_user_id();
+        $is_owner = (int) $post->post_author === $current_user_id;
+
+        // Only owner can edit
+        if (!$is_owner) {
+            wp_send_json_error(['message' => 'Vous ne pouvez modifier que vos propres posts']);
+        }
+
+        $title = sanitize_text_field($_POST['post_title']);
+        $content = wp_kses_post($_POST['post_content']);
+
+        if (empty($title) || empty($content)) {
+            wp_send_json_error(['message' => 'Le titre et le contenu sont requis']);
+        }
+
+        $updated = wp_update_post([
+            'ID' => $post_id,
+            'post_title' => $title,
+            'post_content' => $content
+        ], true);
+
+        if (is_wp_error($updated)) {
+            wp_send_json_error(['message' => 'Erreur lors de la modification']);
+        }
+
+        // Get updated post HTML
+        ob_start();
+        $this->render_single_post($post_id);
+        $post_html = ob_get_clean();
+
+        wp_send_json_success([
+            'message' => 'Post modifié avec succès',
+            'post_html' => $post_html
+        ]);
+    }
+
+    /**
      * Handle search posts AJAX
      */
     public function handle_search_posts() {
@@ -958,6 +1077,11 @@ class Vision_IA_Community {
 
         ob_start();
         ?>
+        <?php
+        $current_user_id = get_current_user_id();
+        $is_owner = $current_user_id && (int) $author_id === $current_user_id;
+        $is_admin = current_user_can('manage_options');
+        ?>
         <!-- Modal Header -->
         <div class="vic-modal-header">
             <div class="vic-modal-header-left">
@@ -965,6 +1089,17 @@ class Vision_IA_Community {
                 <h3 class="vic-modal-title"><?php echo esc_html($author_name); ?></h3>
             </div>
             <div class="vic-modal-actions">
+                <?php if ($is_owner || $is_admin) : ?>
+                <div class="vic-post-menu vic-modal-post-menu">
+                    <button class="vic-post-menu-trigger" type="button">•••</button>
+                    <div class="vic-post-menu-dropdown">
+                        <?php if ($is_owner) : ?>
+                        <button type="button" class="vic-edit-post" data-post-id="<?php echo $post_id; ?>">Modifier</button>
+                        <?php endif; ?>
+                        <button type="button" class="vic-delete-post" data-post-id="<?php echo $post_id; ?>">Supprimer</button>
+                    </div>
+                </div>
+                <?php endif; ?>
                 <button class="vic-modal-action-btn vic-modal-close">✕</button>
             </div>
         </div>
