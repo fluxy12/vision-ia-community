@@ -2353,4 +2353,199 @@
         return div.innerHTML;
     }
 
+    // ====== POST ACTIONS (Copy link, Report) ======
+    initPostActions();
+
+    function initPostActions() {
+        // Copy post link
+        $(document).on('click', '.vic-copy-post-link', function(e) {
+            e.stopPropagation();
+            const postId = $(this).data('post-id');
+            const url = window.location.origin + window.location.pathname + '?post_id=' + postId;
+
+            navigator.clipboard.writeText(url).then(function() {
+                alert('Lien copié !');
+            }).catch(function() {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = url;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('Lien copié !');
+            });
+
+            // Close menu
+            $('.vic-post-menu-dropdown').removeClass('show');
+        });
+
+        // Report post
+        $(document).on('click', '.vic-report-post', function(e) {
+            e.stopPropagation();
+            const postId = $(this).data('post-id');
+
+            if (!confirm('Voulez-vous signaler ce post aux administrateurs ?')) {
+                return;
+            }
+
+            $.ajax({
+                url: vicAjax.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'vic_report_post',
+                    nonce: vicAjax.nonce,
+                    post_id: postId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Post signalé aux administrateurs');
+                    } else {
+                        alert(response.data.message || 'Erreur lors du signalement');
+                    }
+                },
+                error: function() {
+                    alert('Erreur de connexion');
+                }
+            });
+
+            // Close menu
+            $('.vic-post-menu-dropdown').removeClass('show');
+        });
+    }
+
+    // ====== COMMENT ACTIONS (Edit, Delete) ======
+    initCommentActions();
+
+    function initCommentActions() {
+        // Delete comment
+        $(document).on('click', '.vic-delete-comment', function(e) {
+            e.stopPropagation();
+            const commentId = $(this).data('comment-id');
+            const $comment = $(this).closest('.vic-comment');
+
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ? Cette action est irréversible.')) {
+                return;
+            }
+
+            $.ajax({
+                url: vicAjax.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'vic_delete_comment',
+                    nonce: vicAjax.nonce,
+                    comment_id: commentId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Remove comment from DOM
+                        $comment.fadeOut(300, function() {
+                            $(this).remove();
+
+                            // Update comment count if visible
+                            const $modalCount = $('.vic-comment-count');
+                            if ($modalCount.length) {
+                                const currentText = $modalCount.text();
+                                const match = currentText.match(/(\d+)/);
+                                if (match) {
+                                    const newCount = Math.max(0, parseInt(match[1]) - 1);
+                                    $modalCount.html($modalCount.html().replace(/\d+/, newCount));
+                                }
+                            }
+                        });
+                    } else {
+                        alert(response.data.message || 'Erreur lors de la suppression');
+                    }
+                },
+                error: function() {
+                    alert('Erreur de connexion');
+                }
+            });
+
+            // Close menu
+            $('.vic-comment-menu-dropdown').removeClass('show');
+        });
+
+        // Edit comment - show inline edit form
+        $(document).on('click', '.vic-edit-comment', function(e) {
+            e.stopPropagation();
+            const commentId = $(this).data('comment-id');
+            const $comment = $(this).closest('.vic-comment');
+            const $contentDiv = $comment.find('> .vic-comment-body > .vic-comment-content').first();
+
+            // Get current content (text only, without images/embeds)
+            const currentContent = $contentDiv.clone()
+                .find('img, .vic-youtube-embed-link, a').remove().end()
+                .text().trim();
+
+            // Replace content with edit form
+            const originalHtml = $contentDiv.html();
+            $contentDiv.data('original-html', originalHtml);
+
+            $contentDiv.html(`
+                <div class="vic-edit-comment-form">
+                    <textarea class="vic-edit-comment-input">${escapeHtml(currentContent)}</textarea>
+                    <div class="vic-edit-comment-actions">
+                        <button type="button" class="vic-edit-comment-cancel">Annuler</button>
+                        <button type="button" class="vic-edit-comment-save" data-comment-id="${commentId}">Enregistrer</button>
+                    </div>
+                </div>
+            `);
+
+            // Focus the textarea
+            $contentDiv.find('.vic-edit-comment-input').focus();
+
+            // Close menu
+            $('.vic-comment-menu-dropdown').removeClass('show');
+        });
+
+        // Cancel edit comment
+        $(document).on('click', '.vic-edit-comment-cancel', function(e) {
+            e.stopPropagation();
+            const $contentDiv = $(this).closest('.vic-comment-content');
+            const originalHtml = $contentDiv.data('original-html');
+            $contentDiv.html(originalHtml);
+        });
+
+        // Save edited comment
+        $(document).on('click', '.vic-edit-comment-save', function(e) {
+            e.stopPropagation();
+            const $btn = $(this);
+            const commentId = $btn.data('comment-id');
+            const $comment = $btn.closest('.vic-comment');
+            const content = $comment.find('.vic-edit-comment-input').val().trim();
+
+            if (!content) {
+                alert('Le commentaire ne peut pas être vide');
+                return;
+            }
+
+            $btn.text('...').prop('disabled', true);
+
+            $.ajax({
+                url: vicAjax.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'vic_edit_comment',
+                    nonce: vicAjax.nonce,
+                    comment_id: commentId,
+                    content: content
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Replace comment with updated version
+                        $comment.replaceWith(response.data.comment_html);
+                    } else {
+                        alert(response.data.message || 'Erreur lors de la modification');
+                        $btn.text('Enregistrer').prop('disabled', false);
+                    }
+                },
+                error: function() {
+                    alert('Erreur de connexion');
+                    $btn.text('Enregistrer').prop('disabled', false);
+                }
+            });
+        });
+    }
+
 })(jQuery);

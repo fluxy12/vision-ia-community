@@ -2446,3 +2446,96 @@
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* ====== EDIT COMMENT INLINE ====== */
+.vic-edit-comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.vic-edit-comment-input {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    resize: vertical;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.vic-edit-comment-input:focus {
+    outline: none;
+    border-color: #2563EB;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.vic-edit-comment-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.vic-edit-comment-cancel,
+.vic-edit-comment-save {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.vic-edit-comment-cancel {
+    background: #F3F4F6;
+    color: #374151;
+    border: none;
+}
+
+.vic-edit-comment-cancel:hover {
+    background: #E5E7EB;
+}
+
+.vic-edit-comment-save {
+    background: #2563EB;
+    color: white;
+    border: none;
+}
+
+.vic-edit-comment-save:hover {
+    background: #1D4ED8;
+}
+
+.vic-edit-comment-save:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Report post styling (same as delete) */
+.vic-post-menu-dropdown .vic-report-post {
+    color: #F59E0B;
+}
+
+.vic-post-menu-dropdown .vic-report-post:hover {
+    background: #FFFBEB;
+}
+
+/* Comment menu delete styling */
+.vic-comment-menu-dropdown .vic-delete-comment {
+    color: #EF4444;
+}
+
+.vic-comment-menu-dropdown .vic-delete-comment:hover {
+    background: #FEF2F2;
+}
+
+/* Comment menu report styling */
+.vic-comment-menu-dropdown .vic-report-comment {
+    color: #F59E0B;
+}
+
+.vic-comment-menu-dropdown .vic-report-comment:hover {
+    background: #FFFBEB;
+}

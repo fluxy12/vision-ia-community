@@ -36,6 +36,9 @@ class Vision_IA_Community {
         add_action('wp_ajax_vic_like_comment', [$this, 'handle_like_comment']);
         add_action('wp_ajax_vic_reply_comment', [$this, 'handle_reply_comment']);
         add_action('wp_ajax_vic_report_comment', [$this, 'handle_report_comment']);
+        add_action('wp_ajax_vic_report_post', [$this, 'handle_report_post']);
+        add_action('wp_ajax_vic_delete_comment', [$this, 'handle_delete_comment']);
+        add_action('wp_ajax_vic_edit_comment', [$this, 'handle_edit_comment']);
         add_shortcode('community_feed', [$this, 'render_feed']);
         
         // Hook MasterStudy profile tab
@@ -536,8 +539,6 @@ class Vision_IA_Community {
                 $current_user_id = get_current_user_id();
                 $is_owner = $current_user_id && (int) $author_id === $current_user_id;
                 $is_admin = current_user_can('manage_options');
-
-                if ($is_owner || $is_admin) :
                 ?>
                 <div class="vic-post-menu">
                     <button class="vic-post-menu-trigger" type="button">•••</button>
@@ -545,10 +546,15 @@ class Vision_IA_Community {
                         <?php if ($is_owner) : ?>
                         <button type="button" class="vic-edit-post" data-post-id="<?php echo $post_id; ?>">Modifier</button>
                         <?php endif; ?>
+                        <?php if ($is_owner || $is_admin) : ?>
                         <button type="button" class="vic-delete-post" data-post-id="<?php echo $post_id; ?>">Supprimer</button>
+                        <?php endif; ?>
+                        <button type="button" class="vic-copy-post-link" data-post-id="<?php echo $post_id; ?>">Copier le lien</button>
+                        <?php if (is_user_logged_in() && !$is_owner) : ?>
+                        <button type="button" class="vic-report-post" data-post-id="<?php echo $post_id; ?>">Signaler aux admins</button>
+                        <?php endif; ?>
                     </div>
                 </div>
-                <?php endif; ?>
 
                 <?php if (!empty($recent_comments)) : ?>
                 <div class="vic-commenters">
@@ -1089,17 +1095,21 @@ class Vision_IA_Community {
                 <h3 class="vic-modal-title"><?php echo esc_html($author_name); ?></h3>
             </div>
             <div class="vic-modal-actions">
-                <?php if ($is_owner || $is_admin) : ?>
                 <div class="vic-post-menu vic-modal-post-menu">
                     <button class="vic-post-menu-trigger" type="button">•••</button>
                     <div class="vic-post-menu-dropdown">
                         <?php if ($is_owner) : ?>
                         <button type="button" class="vic-edit-post" data-post-id="<?php echo $post_id; ?>">Modifier</button>
                         <?php endif; ?>
+                        <?php if ($is_owner || $is_admin) : ?>
                         <button type="button" class="vic-delete-post" data-post-id="<?php echo $post_id; ?>">Supprimer</button>
+                        <?php endif; ?>
+                        <button type="button" class="vic-copy-post-link" data-post-id="<?php echo $post_id; ?>">Copier le lien</button>
+                        <?php if (is_user_logged_in() && !$is_owner) : ?>
+                        <button type="button" class="vic-report-post" data-post-id="<?php echo $post_id; ?>">Signaler aux admins</button>
+                        <?php endif; ?>
                     </div>
                 </div>
-                <?php endif; ?>
                 <button class="vic-modal-action-btn vic-modal-close">✕</button>
             </div>
         </div>
@@ -1390,11 +1400,24 @@ class Vision_IA_Community {
                     <?php endif; ?>
 
                     <!-- Menu 3 points -->
+                    <?php
+                    $current_user_id = get_current_user_id();
+                    $is_comment_owner = $current_user_id && (int) $comment->user_id === $current_user_id;
+                    $is_admin = current_user_can('manage_options');
+                    ?>
                     <div class="vic-comment-menu">
                         <button class="vic-comment-menu-trigger" type="button">•••</button>
                         <div class="vic-comment-menu-dropdown">
+                            <?php if ($is_comment_owner) : ?>
+                            <button type="button" class="vic-edit-comment" data-comment-id="<?php echo $comment->comment_ID; ?>">Modifier</button>
+                            <?php endif; ?>
+                            <?php if ($is_comment_owner || $is_admin) : ?>
+                            <button type="button" class="vic-delete-comment" data-comment-id="<?php echo $comment->comment_ID; ?>">Supprimer</button>
+                            <?php endif; ?>
                             <button type="button" class="vic-copy-link" data-comment-id="<?php echo $comment->comment_ID; ?>" data-post-id="<?php echo $comment->comment_post_ID; ?>">Copier le lien</button>
+                            <?php if (is_user_logged_in() && !$is_comment_owner) : ?>
                             <button type="button" class="vic-report-comment" data-comment-id="<?php echo $comment->comment_ID; ?>">Signaler aux admins</button>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -1657,6 +1680,146 @@ class Vision_IA_Community {
         wp_mail($admin_email, $subject, $message);
 
         wp_send_json_success(['message' => 'Commentaire signalé']);
+    }
+
+    /**
+     * Handle report post AJAX
+     */
+    public function handle_report_post() {
+        check_ajax_referer('vic_nonce', 'nonce');
+
+        if (!is_user_logged_in()) {
+            wp_send_json_error(['message' => 'Vous devez être connecté']);
+        }
+
+        $post_id = intval($_POST['post_id']);
+        $user = wp_get_current_user();
+        $post = get_post($post_id);
+
+        if (!$post || $post->post_type !== 'community_post') {
+            wp_send_json_error(['message' => 'Post non trouvé']);
+        }
+
+        // Send email to admin
+        $admin_email = get_option('admin_email');
+        $subject = '[Vision IA] Post signalé #' . $post_id;
+        $message = "Un post a été signalé sur la communauté Vision IA.\n\n";
+        $message .= "Signalé par: " . $user->display_name . " (" . $user->user_email . ")\n\n";
+        $message .= "Auteur du post: " . get_the_author_meta('display_name', $post->post_author) . "\n";
+        $message .= "Titre du post: " . $post->post_title . "\n";
+        $message .= "Contenu du post:\n" . wp_strip_all_tags($post->post_content) . "\n\n";
+        $message .= "Lien vers le post: " . get_permalink($post_id);
+
+        wp_mail($admin_email, $subject, $message);
+
+        wp_send_json_success(['message' => 'Post signalé aux administrateurs']);
+    }
+
+    /**
+     * Handle delete comment AJAX
+     * Users can delete their own comments, admins can delete any comment
+     */
+    public function handle_delete_comment() {
+        check_ajax_referer('vic_nonce', 'nonce');
+
+        if (!is_user_logged_in()) {
+            wp_send_json_error(['message' => 'Vous devez être connecté']);
+        }
+
+        $comment_id = intval($_POST['comment_id']);
+        $comment = get_comment($comment_id);
+
+        if (!$comment) {
+            wp_send_json_error(['message' => 'Commentaire non trouvé']);
+        }
+
+        $current_user_id = get_current_user_id();
+        $is_admin = current_user_can('manage_options');
+        $is_owner = (int) $comment->user_id === $current_user_id;
+
+        // Only owner or admin can delete
+        if (!$is_owner && !$is_admin) {
+            wp_send_json_error(['message' => 'Vous n\'avez pas la permission de supprimer ce commentaire']);
+        }
+
+        // Delete comment attachments
+        $attachments = get_comment_meta($comment_id, '_vic_comment_attachments', true);
+        if (!empty($attachments) && is_array($attachments)) {
+            foreach ($attachments as $attachment_id) {
+                wp_delete_attachment($attachment_id, true);
+            }
+        }
+
+        // Delete the comment
+        $deleted = wp_delete_comment($comment_id, true);
+
+        if ($deleted) {
+            wp_send_json_success(['message' => 'Commentaire supprimé avec succès']);
+        } else {
+            wp_send_json_error(['message' => 'Erreur lors de la suppression']);
+        }
+    }
+
+    /**
+     * Handle edit comment AJAX
+     * Only comment owner can edit
+     */
+    public function handle_edit_comment() {
+        check_ajax_referer('vic_nonce', 'nonce');
+
+        if (!is_user_logged_in()) {
+            wp_send_json_error(['message' => 'Vous devez être connecté']);
+        }
+
+        $comment_id = intval($_POST['comment_id']);
+        $comment = get_comment($comment_id);
+
+        if (!$comment) {
+            wp_send_json_error(['message' => 'Commentaire non trouvé']);
+        }
+
+        $current_user_id = get_current_user_id();
+        $is_owner = (int) $comment->user_id === $current_user_id;
+
+        // Only owner can edit
+        if (!$is_owner) {
+            wp_send_json_error(['message' => 'Vous ne pouvez modifier que vos propres commentaires']);
+        }
+
+        $content = sanitize_textarea_field($_POST['content']);
+
+        if (empty($content)) {
+            wp_send_json_error(['message' => 'Le commentaire ne peut pas être vide']);
+        }
+
+        $updated = wp_update_comment([
+            'comment_ID' => $comment_id,
+            'comment_content' => $content
+        ]);
+
+        if ($updated === false) {
+            wp_send_json_error(['message' => 'Erreur lors de la modification']);
+        }
+
+        // Get updated comment HTML
+        $comment = get_comment($comment_id);
+
+        // Determine depth
+        $depth = 0;
+        $parent = $comment;
+        while ($parent && $parent->comment_parent) {
+            $depth++;
+            $parent = get_comment($parent->comment_parent);
+        }
+
+        ob_start();
+        $this->render_single_comment($comment, $depth);
+        $comment_html = ob_get_clean();
+
+        wp_send_json_success([
+            'message' => 'Commentaire modifié avec succès',
+            'comment_html' => $comment_html
+        ]);
     }
 
     /**
