@@ -364,11 +364,6 @@ body .vic-community-wrapper,
     box-shadow: none;
 }
 
-.vic-pinned-badge::before {
-    content: '📌';
-    font-size: 14px;
-}
-
 /* Ajouter position relative sur la carte pour le badge */
 .vic-post-card {
     position: relative;
@@ -464,8 +459,9 @@ body .vic-community-wrapper,
 .vic-author-info img {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 50% !important;
     object-fit: cover;
+    aspect-ratio: 1 / 1;
 }
 
 .vic-author-meta {
@@ -542,15 +538,13 @@ body .vic-community-wrapper,
 
 .vic-post-excerpt {
     color: var(--vic-gray-600);
+    font-family: Roboto, Helvetica, Arial, sans-serif;
     font-size: 16px;
+    font-weight: normal;
     line-height: 1.5;
     margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    max-height: 48px;
     overflow: hidden;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
     word-break: break-word;
 }
 
@@ -648,11 +642,12 @@ body .vic-community-wrapper,
 .vic-commenters-avatars img {
     width: 28px;
     height: 28px;
-    border-radius: 50%;
+    border-radius: 50% !important;
     border: 2px solid var(--vic-white);
     margin-left: -10px;
     object-fit: cover;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    aspect-ratio: 1 / 1;
 }
 
 .vic-commenters-avatars img:first-child {
