@@ -1091,7 +1091,12 @@
     padding: 10px 12px;
     background: var(--vic-gray-100);
     border-radius: 8px;
-    margin-top: 8px;
+    margin: 12px 0;
+}
+
+/* Barre de progression dans le formulaire de post */
+#vic-new-post-form .vic-upload-progress {
+    margin-bottom: 16px;
 }
 
 .vic-upload-progress-track {

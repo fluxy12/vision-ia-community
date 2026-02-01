@@ -518,9 +518,24 @@
             e.preventDefault();
 
             const $btn = $submitForm.find('.vic-btn-primary');
+            const $cancelBtn = $submitForm.find('.vic-btn-cancel');
             const originalText = $btn.text();
 
+            // Désactiver les boutons
             $btn.text('Publication...').prop('disabled', true);
+            $cancelBtn.prop('disabled', true);
+
+            // Créer/afficher la barre de progression
+            let $progressBar = $submitForm.find('.vic-upload-progress');
+            if (!$progressBar.length) {
+                $progressBar = $('<div class="vic-upload-progress"><div class="vic-upload-progress-track"><div class="vic-upload-progress-bar"></div></div><span class="vic-upload-progress-text">0%</span></div>');
+                $preview.before($progressBar);
+            }
+            $progressBar.show().removeClass('processing');
+            const $progressFill = $progressBar.find('.vic-upload-progress-bar');
+            const $progressText = $progressBar.find('.vic-upload-progress-text');
+            $progressFill.css('width', '0%');
+            $progressText.text('0%');
 
             // Create FormData for file upload
             const formData = new FormData();
@@ -544,35 +559,65 @@
                 data: formData,
                 processData: false,
                 contentType: false,
+                xhr: function() {
+                    const xhr = new window.XMLHttpRequest();
+                    // Upload progress (0-90%, les 10% restants pour le traitement serveur)
+                    xhr.upload.addEventListener('progress', function(e) {
+                        if (e.lengthComputable) {
+                            const percent = Math.round((e.loaded / e.total) * 90);
+                            $progressFill.css('width', percent + '%');
+                            $progressText.text(percent + '%');
+                        }
+                    }, false);
+                    // Quand l'upload est terminé, passer en mode "traitement"
+                    xhr.upload.addEventListener('load', function() {
+                        $progressBar.addClass('processing');
+                        $progressFill.css('width', '90%');
+                        $progressText.text('Traitement...');
+                    }, false);
+                    return xhr;
+                },
                 success: function(response) {
                     if (response.success) {
-                        // Add new post to top of feed
-                        $('#vic-feed').prepend(response.data.post_html);
+                        // Animation de complétion
+                        $progressBar.removeClass('processing');
+                        $progressFill.css('width', '100%');
+                        $progressText.text('Publié !');
 
-                        // Reset and close form
-                        $submitForm[0].reset();
-                        selectedFiles = [];
-                        $preview.empty();
-                        $urlField.hide();
-                        $('#vic-post-gif-input').val('');
-                        $('#vic-post-youtube-input').val('');
-                        $('.vic-upload-btn').removeClass('has-files');
-                        $form.slideUp(200);
-                        $trigger.show();
+                        setTimeout(function() {
+                            // Add new post to top of feed
+                            $('#vic-feed').prepend(response.data.post_html);
 
-                        // Highlight new post briefly
-                        $('#vic-feed .vic-post-card').first().css('background', '#f0f9ff').animate({
-                            backgroundColor: '#ffffff'
-                        }, 2000);
+                            // Reset and close form
+                            $submitForm[0].reset();
+                            selectedFiles = [];
+                            $preview.empty();
+                            $urlField.hide();
+                            $('#vic-post-gif-input').val('');
+                            $('#vic-post-youtube-input').val('');
+                            $('.vic-upload-btn').removeClass('has-files');
+                            $progressBar.hide();
+                            $progressFill.css('width', '0%');
+                            $form.slideUp(200);
+                            $trigger.show();
+
+                            // Highlight new post briefly
+                            $('#vic-feed .vic-post-card').first().css('background', '#f0f9ff').animate({
+                                backgroundColor: '#ffffff'
+                            }, 2000);
+                        }, 500);
                     } else {
                         alert(response.data.message || 'Erreur lors de la publication');
+                        $progressBar.hide();
                     }
                 },
                 error: function() {
                     alert('Erreur de connexion. Veuillez réessayer.');
+                    $progressBar.hide();
                 },
                 complete: function() {
                     $btn.text(originalText).prop('disabled', false);
+                    $cancelBtn.prop('disabled', false);
                 }
             });
         });
