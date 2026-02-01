@@ -477,6 +477,8 @@ class Vision_IA_Community {
                         $content = get_post_field('post_content', $post_id);
                         // Remove URLs for excerpt
                         $content = preg_replace('/https?:\/\/[^\s]+/', '', $content);
+                        // Remove GIF tags for excerpt
+                        $content = preg_replace('/\[gif\].*?\[\/gif\]/i', '', $content);
                         echo wp_trim_words(wp_strip_all_tags($content), 25, '...');
                         ?>
                     </p>
@@ -490,6 +492,8 @@ class Vision_IA_Community {
                         <img src="<?php echo esc_url($thumbnail['url']); ?>" alt="">
                     <?php elseif ($thumbnail['type'] === 'vic-post-thumbnail-video') : ?>
                         <video src="<?php echo esc_url($thumbnail['url']); ?>" muted></video>
+                    <?php elseif ($thumbnail['type'] === 'vic-post-thumbnail-gif') : ?>
+                        <img src="<?php echo esc_url($thumbnail['url']); ?>" alt="GIF" class="vic-gif-thumbnail">
                     <?php endif; ?>
                 </div>
                 <?php endif; ?>
@@ -545,7 +549,7 @@ class Vision_IA_Community {
     }
 
     /**
-     * Get post thumbnail (image, video, or YouTube)
+     * Get post thumbnail (image, video, YouTube, or GIF)
      */
     public function get_post_thumbnail($post_id) {
         $content = get_post_field('post_content', $post_id);
@@ -556,6 +560,14 @@ class Vision_IA_Community {
             return [
                 'type' => 'vic-post-thumbnail-youtube',
                 'youtube_id' => $matches[1]
+            ];
+        }
+
+        // Check for GIF [gif]url[/gif]
+        if (preg_match('/\[gif\](.*?)\[\/gif\]/i', $content, $gif_matches)) {
+            return [
+                'type' => 'vic-post-thumbnail-gif',
+                'url' => $gif_matches[1]
             ];
         }
 
@@ -930,6 +942,13 @@ class Vision_IA_Community {
             <div class="vic-modal-post-content">
                 <?php
                 $content = $post->post_content;
+
+                // Parser les GIFs [gif]url[/gif] et les transformer en images
+                $content = preg_replace_callback('/\[gif\](.*?)\[\/gif\]/i', function($matches) {
+                    $gif_url = esc_url($matches[1]);
+                    return '<img src="' . $gif_url . '" alt="GIF" class="vic-post-gif">';
+                }, $content);
+
                 // Convert URLs to links
                 $content = make_clickable($content);
                 echo wpautop($content);
