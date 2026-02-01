@@ -1117,6 +1117,27 @@ class Vision_IA_Community {
                         return '<img src="' . $gif_url . '" alt="GIF" class="vic-comment-gif">';
                     }, $content);
 
+                    // Parser les URLs YouTube et les transformer en aperçu cliquable
+                    $content = preg_replace_callback(
+                        '/(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)[^\s]*)/',
+                        function($matches) {
+                            $full_url = esc_url($matches[1]);
+                            $video_id = $matches[2];
+                            $thumbnail = 'https://img.youtube.com/vi/' . $video_id . '/mqdefault.jpg';
+                            return '<a href="' . $full_url . '" target="_blank" rel="noopener" class="vic-youtube-embed-link">
+                                <div class="vic-youtube-embed">
+                                    <img src="' . $thumbnail . '" alt="YouTube" class="vic-youtube-embed-thumb">
+                                    <div class="vic-youtube-play-overlay">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="white">
+                                            <path d="M8 5v14l11-7z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </a>';
+                        },
+                        $content
+                    );
+
                     $content = make_clickable($content);
                     echo wpautop($content);
 

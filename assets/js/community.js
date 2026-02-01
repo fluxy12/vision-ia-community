@@ -749,9 +749,22 @@
                 content = content + (content ? '\n' : '') + '[gif]' + selectedGif + '[/gif]';
             }
 
-            if (!content || !postId) return;
+            if ((!content && commentFiles.length === 0) || !postId) return;
 
+            // Désactiver l'input et le bouton d'envoi
             $input.prop('disabled', true);
+            const $submitBtn = $wrapper.find('.vic-comment-submit-skool');
+            $submitBtn.prop('disabled', true);
+
+            // Créer la barre de progression
+            let $progressBar = $wrapper.find('.vic-upload-progress');
+            if (!$progressBar.length) {
+                $progressBar = $('<div class="vic-upload-progress"><div class="vic-upload-progress-bar"></div><span class="vic-upload-progress-text">0%</span></div>');
+                $wrapper.find('.vic-comment-attachments-preview').before($progressBar);
+            }
+            $progressBar.show();
+            const $progressFill = $progressBar.find('.vic-upload-progress-bar');
+            const $progressText = $progressBar.find('.vic-upload-progress-text');
 
             const formData = new FormData();
             formData.append('action', 'vic_add_comment');
@@ -773,43 +786,66 @@
                 data: formData,
                 processData: false,
                 contentType: false,
+                xhr: function() {
+                    const xhr = new window.XMLHttpRequest();
+                    // Upload progress
+                    xhr.upload.addEventListener('progress', function(e) {
+                        if (e.lengthComputable) {
+                            const percent = Math.round((e.loaded / e.total) * 100);
+                            $progressFill.css('width', percent + '%');
+                            $progressText.text(percent + '%');
+                        }
+                    }, false);
+                    return xhr;
+                },
                 success: function(response) {
                     if (response.success) {
-                        // Add new comment to list
-                        const $noComments = $('.vic-comments-list .vic-no-comments');
-                        if ($noComments.length) {
-                            $noComments.remove();
-                        }
-                        $('.vic-comments-list').append(response.data.comment_html);
+                        // Animation de complétion
+                        $progressFill.css('width', '100%');
+                        $progressText.text('Envoyé !');
 
-                        // Reset form
-                        $input.val('');
-                        $wrapper.find('.vic-comment-attachments-preview').empty();
-                        $wrapper.data('selected-gif', '');
-                        $wrapper.find('.vic-comment-file-input').val('');
-                        commentFiles = []; // Reset le tableau global
+                        setTimeout(function() {
+                            // Add new comment to list
+                            const $noComments = $('.vic-comments-list .vic-no-comments');
+                            if ($noComments.length) {
+                                $noComments.remove();
+                            }
+                            $('.vic-comments-list').append(response.data.comment_html);
 
-                        // Update comment count
-                        const $countEl = $('.vic-post-card[data-post-id="' + postId + '"] .vic-comment-btn span');
-                        if ($countEl.length) {
-                            const newCount = parseInt($countEl.text()) + 1;
-                            $countEl.text(newCount);
-                        }
+                            // Reset form
+                            $input.val('');
+                            $wrapper.find('.vic-comment-attachments-preview').empty();
+                            $wrapper.data('selected-gif', '');
+                            $wrapper.find('.vic-comment-file-input').val('');
+                            commentFiles = []; // Reset le tableau global
+                            $progressBar.hide();
+                            $progressFill.css('width', '0%');
 
-                        // Scroll to new comment
-                        const $newComment = $('.vic-comments-list .vic-comment').last();
-                        if ($newComment.length) {
-                            $newComment[0].scrollIntoView({ behavior: 'smooth' });
-                        }
+                            // Update comment count
+                            const $countEl = $('.vic-post-card[data-post-id="' + postId + '"] .vic-comment-btn span');
+                            if ($countEl.length) {
+                                const newCount = parseInt($countEl.text()) + 1;
+                                $countEl.text(newCount);
+                            }
+
+                            // Scroll to new comment
+                            const $newComment = $('.vic-comments-list .vic-comment').last();
+                            if ($newComment.length) {
+                                $newComment[0].scrollIntoView({ behavior: 'smooth' });
+                            }
+                        }, 500);
                     } else {
                         alert(response.data.message || 'Erreur');
+                        $progressBar.hide();
                     }
                 },
                 error: function() {
                     alert('Erreur de connexion');
+                    $progressBar.hide();
                 },
                 complete: function() {
                     $input.prop('disabled', false).focus();
+                    $submitBtn.prop('disabled', false);
                 }
             });
         }
