@@ -13,6 +13,7 @@
         initLoadMore();
         initPinning();
         initSearch();
+        initModal();
     });
 
     /**
@@ -27,7 +28,7 @@
         const $fileInput = $('#vic-file-input');
         const $preview = $('#vic-attachments-preview');
         const $urlField = $('#vic-url-field');
-        
+
         // Track selected files
         let selectedFiles = [];
 
@@ -53,29 +54,29 @@
         $submitForm.on('input', 'input, textarea', function() {
             updateSubmitButton();
         });
-        
+
         function updateSubmitButton() {
             const title = $submitForm.find('input[name="post_title"]').val().trim();
             const content = $submitForm.find('textarea[name="post_content"]').val().trim();
-            
+
             if (title && content) {
                 $submitBtn.addClass('active');
             } else {
                 $submitBtn.removeClass('active');
             }
         }
-        
+
         // File input change
         $fileInput.on('change', function(e) {
             const files = Array.from(e.target.files);
-            
+
             files.forEach(function(file) {
                 // Check file size (10MB max)
                 if (file.size > 10 * 1024 * 1024) {
                     alert('Le fichier "' + file.name + '" est trop volumineux (max 10MB)');
                     return;
                 }
-                
+
                 // Check file type
                 const allowedTypes = [
                     'image/jpeg', 'image/png', 'image/gif', 'image/webp',
@@ -83,26 +84,26 @@
                     'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3',
                     'application/pdf'
                 ];
-                
+
                 if (!allowedTypes.includes(file.type)) {
                     alert('Type de fichier non autorisé: ' + file.type);
                     return;
                 }
-                
+
                 selectedFiles.push(file);
                 addFilePreview(file);
             });
-            
+
             if (selectedFiles.length > 0) {
                 $('.vic-upload-btn').addClass('has-files');
             }
         });
-        
+
         // Add file preview
         function addFilePreview(file) {
             const index = selectedFiles.indexOf(file);
             const $item = $('<div class="vic-preview-item" data-index="' + index + '"></div>');
-            
+
             // Icon or thumbnail
             if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
@@ -117,30 +118,30 @@
             } else if (file.type === 'application/pdf') {
                 $item.prepend('<span>📄</span>');
             }
-            
+
             $item.append('<span class="vic-filename">' + truncateFilename(file.name, 20) + '</span>');
             $item.append('<button type="button" class="vic-remove-file" data-index="' + index + '">✕</button>');
-            
+
             $preview.append($item);
         }
-        
+
         // Remove file
         $preview.on('click', '.vic-remove-file', function() {
             const index = parseInt($(this).data('index'));
             selectedFiles.splice(index, 1);
             $(this).closest('.vic-preview-item').remove();
-            
+
             // Update indices
             $preview.find('.vic-preview-item').each(function(i) {
                 $(this).attr('data-index', i);
                 $(this).find('.vic-remove-file').attr('data-index', i);
             });
-            
+
             if (selectedFiles.length === 0) {
                 $('.vic-upload-btn').removeClass('has-files');
             }
         });
-        
+
         // Truncate filename
         function truncateFilename(name, maxLength) {
             if (name.length <= maxLength) return name;
@@ -148,8 +149,8 @@
             const base = name.substring(0, maxLength - ext.length - 4);
             return base + '...' + ext;
         }
-        
-        // URL field toggle - utiliser délégation d'événements
+
+        // URL field toggle
         $(document).on('click', '#vic-add-url', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -170,7 +171,7 @@
             $field.find('input').val('');
         });
 
-        // YouTube prompt - utiliser délégation d'événements
+        // YouTube prompt
         $(document).on('click', '#vic-add-youtube', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -186,12 +187,12 @@
         // Submit form
         $submitForm.on('submit', function(e) {
             e.preventDefault();
-            
+
             const $btn = $submitForm.find('.vic-btn-primary');
             const originalText = $btn.text();
-            
+
             $btn.text('Publication...').prop('disabled', true);
-            
+
             // Create FormData for file upload
             const formData = new FormData();
             formData.append('action', 'vic_create_post');
@@ -200,12 +201,12 @@
             formData.append('post_content', $submitForm.find('textarea[name="post_content"]').val());
             formData.append('post_category', $submitForm.find('select[name="post_category"]').val());
             formData.append('post_url', $submitForm.find('input[name="post_url"]').val());
-            
+
             // Add files
             selectedFiles.forEach(function(file) {
                 formData.append('post_attachments[]', file);
             });
-            
+
             $.ajax({
                 url: vicAjax.ajaxurl,
                 type: 'POST',
@@ -216,7 +217,7 @@
                     if (response.success) {
                         // Add new post to top of feed
                         $('#vic-feed').prepend(response.data.post_html);
-                        
+
                         // Reset and close form
                         $submitForm[0].reset();
                         selectedFiles = [];
@@ -225,7 +226,7 @@
                         $('.vic-upload-btn').removeClass('has-files');
                         $form.slideUp(200);
                         $trigger.show();
-                        
+
                         // Highlight new post briefly
                         $('#vic-feed .vic-post-card').first().css('background', '#f0f9ff').animate({
                             backgroundColor: '#ffffff'
@@ -250,13 +251,14 @@
     function initLikes() {
         $(document).on('click', '.vic-like-btn', function(e) {
             e.preventDefault();
-            
+            e.stopPropagation();
+
             const $btn = $(this);
             const postId = $btn.data('post-id');
             const $count = $btn.find('.vic-like-count');
-            
+
             $btn.prop('disabled', true);
-            
+
             $.ajax({
                 url: vicAjax.ajaxurl,
                 type: 'POST',
@@ -268,13 +270,26 @@
                 success: function(response) {
                     if (response.success) {
                         $count.text(response.data.likes);
-                        
+
                         if (response.data.action === 'liked') {
                             $btn.addClass('liked');
                             $btn.find('svg').attr('fill', 'currentColor');
                         } else {
                             $btn.removeClass('liked');
                             $btn.find('svg').attr('fill', 'none');
+                        }
+
+                        // Update modal like button if open
+                        const $modalBtn = $('.vic-modal-post-actions .vic-like-btn[data-post-id="' + postId + '"]');
+                        if ($modalBtn.length) {
+                            $modalBtn.find('.vic-like-count').text(response.data.likes);
+                            if (response.data.action === 'liked') {
+                                $modalBtn.addClass('liked');
+                                $modalBtn.find('svg').attr('fill', 'currentColor');
+                            } else {
+                                $modalBtn.removeClass('liked');
+                                $modalBtn.find('svg').attr('fill', 'none');
+                            }
                         }
                     }
                 },
@@ -292,14 +307,14 @@
         $('.vic-filter-btn').on('click', function() {
             const $btn = $(this);
             const category = $btn.data('category');
-            
+
             // Update active state
             $('.vic-filter-btn').removeClass('active');
             $btn.addClass('active');
-            
+
             // Reset page counter
             $('#vic-load-more').data('page', 1);
-            
+
             // Load filtered posts
             loadPosts(category, 1, true);
         });
@@ -313,7 +328,7 @@
             const $btn = $(this);
             const page = parseInt($btn.data('page')) + 1;
             const category = $('.vic-filter-btn.active').data('category');
-            
+
             $btn.data('page', page);
             loadPosts(category, page, false);
         });
@@ -325,10 +340,10 @@
     function loadPosts(category, page, replace) {
         const $feed = $('#vic-feed');
         const $loadMore = $('#vic-load-more');
-        
+
         $feed.addClass('vic-loading');
         $loadMore.text('Chargement...').prop('disabled', true);
-        
+
         $.ajax({
             url: vicAjax.ajaxurl,
             type: 'POST',
@@ -345,7 +360,7 @@
                     } else {
                         $feed.append(response.data.html);
                     }
-                    
+
                     // Hide load more if no more posts
                     if (response.data.has_more) {
                         $loadMore.show();
@@ -367,6 +382,7 @@
     function initPinning() {
         $(document).on('click', '.vic-pin-btn', function(e) {
             e.preventDefault();
+            e.stopPropagation();
 
             const $btn = $(this);
             const postId = $btn.data('post-id');
@@ -476,6 +492,242 @@
                     $feed.removeClass('vic-loading');
                 }
             });
+        }
+    }
+
+    /**
+     * Modal System
+     */
+    function initModal() {
+        let commentFiles = [];
+
+        // Open modal when clicking on post card (not on buttons)
+        $(document).on('click', '.vic-post-card', function(e) {
+            // Don't open modal if clicking on buttons or links
+            if ($(e.target).closest('.vic-like-btn, .vic-comment-btn, .vic-pin-btn, a').length) {
+                return;
+            }
+
+            const postId = $(this).data('post-id');
+            openModal(postId);
+        });
+
+        // Open modal from comment button
+        $(document).on('click', '.vic-comment-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const postId = $(this).closest('.vic-post-card').data('post-id');
+            openModal(postId);
+        });
+
+        // Close modal
+        $(document).on('click', '.vic-modal-overlay', function(e) {
+            if ($(e.target).hasClass('vic-modal-overlay')) {
+                closeModal();
+            }
+        });
+
+        $(document).on('click', '.vic-modal-close', function() {
+            closeModal();
+        });
+
+        // Close on escape
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && $('.vic-modal-overlay.active').length) {
+                closeModal();
+            }
+        });
+
+        // Comment form handling
+        $(document).on('input', '.vic-comment-input', function() {
+            const $wrapper = $(this).closest('.vic-comment-input-wrapper');
+            const $submit = $wrapper.find('.vic-comment-submit');
+            const hasContent = $(this).val().trim().length > 0 || commentFiles.length > 0;
+
+            if (hasContent) {
+                $submit.addClass('active');
+            } else {
+                $submit.removeClass('active');
+            }
+
+            // Auto-resize textarea
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Comment file upload
+        $(document).on('change', '.vic-comment-file-input', function(e) {
+            const files = Array.from(e.target.files);
+            const $preview = $(this).closest('.vic-comment-input-wrapper').find('.vic-comment-attachments-preview');
+
+            files.forEach(function(file) {
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('Fichier trop volumineux (max 10MB)');
+                    return;
+                }
+
+                commentFiles.push(file);
+                addCommentFilePreview(file, $preview);
+            });
+
+            updateCommentSubmitState();
+        });
+
+        // Remove comment attachment
+        $(document).on('click', '.vic-comment-attachment-remove', function() {
+            const index = $(this).closest('.vic-comment-attachment-item').index();
+            commentFiles.splice(index, 1);
+            $(this).closest('.vic-comment-attachment-item').remove();
+            updateCommentSubmitState();
+        });
+
+        // Submit comment
+        $(document).on('click', '.vic-comment-submit.active', function() {
+            const $wrapper = $(this).closest('.vic-comment-input-wrapper');
+            const $input = $wrapper.find('.vic-comment-input');
+            const content = $input.val().trim();
+            const postId = $(this).data('post-id');
+
+            if (!content && commentFiles.length === 0) return;
+
+            const $btn = $(this);
+            $btn.text('...').prop('disabled', true);
+
+            const formData = new FormData();
+            formData.append('action', 'vic_add_comment');
+            formData.append('nonce', vicAjax.nonce);
+            formData.append('post_id', postId);
+            formData.append('content', content);
+
+            commentFiles.forEach(function(file) {
+                formData.append('comment_attachments[]', file);
+            });
+
+            $.ajax({
+                url: vicAjax.ajaxurl,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        // Add new comment to list
+                        $('.vic-comments-list').append(response.data.comment_html);
+
+                        // Reset form
+                        $input.val('').css('height', 'auto');
+                        $wrapper.find('.vic-comment-attachments-preview').empty();
+                        commentFiles = [];
+                        $btn.removeClass('active');
+
+                        // Update comment count
+                        const $countEl = $('.vic-post-card[data-post-id="' + postId + '"] .vic-comment-btn span');
+                        const newCount = parseInt($countEl.text()) + 1;
+                        $countEl.text(newCount);
+
+                        // Scroll to new comment
+                        const $newComment = $('.vic-comments-list .vic-comment').last();
+                        $newComment[0].scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                        alert(response.data.message || 'Erreur');
+                    }
+                },
+                error: function() {
+                    alert('Erreur de connexion');
+                },
+                complete: function() {
+                    $btn.text('Envoyer').prop('disabled', false);
+                }
+            });
+        });
+
+        // Add link to comment
+        $(document).on('click', '.vic-comment-add-link', function() {
+            const url = prompt('Entrez l\'URL :');
+            if (url && url.trim()) {
+                const $input = $(this).closest('.vic-comment-input-wrapper').find('.vic-comment-input');
+                const currentVal = $input.val();
+                $input.val(currentVal + (currentVal ? ' ' : '') + url.trim());
+                $input.trigger('input');
+            }
+        });
+
+        function openModal(postId) {
+            // Show loading
+            $('body').append(`
+                <div class="vic-modal-overlay active">
+                    <div class="vic-modal">
+                        <div class="vic-modal-content" style="padding: 40px; text-align: center;">
+                            Chargement...
+                        </div>
+                    </div>
+                </div>
+            `);
+            $('body').css('overflow', 'hidden');
+
+            // Load post content
+            $.ajax({
+                url: vicAjax.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'vic_get_post_modal',
+                    nonce: vicAjax.nonce,
+                    post_id: postId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('.vic-modal-overlay .vic-modal').html(response.data.html);
+                    } else {
+                        closeModal();
+                        alert('Erreur lors du chargement');
+                    }
+                },
+                error: function() {
+                    closeModal();
+                    alert('Erreur de connexion');
+                }
+            });
+        }
+
+        function closeModal() {
+            const $overlay = $('.vic-modal-overlay');
+            $overlay.removeClass('active');
+            setTimeout(function() {
+                $overlay.remove();
+            }, 300);
+            $('body').css('overflow', '');
+            commentFiles = [];
+        }
+
+        function addCommentFilePreview(file, $preview) {
+            const $item = $('<div class="vic-comment-attachment-item"></div>');
+
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $item.prepend('<img src="' + e.target.result + '" alt="">');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                $item.prepend('<span>📎</span>');
+            }
+
+            $item.append('<span>' + file.name.substring(0, 15) + '</span>');
+            $item.append('<button type="button" class="vic-comment-attachment-remove">✕</button>');
+            $preview.append($item);
+        }
+
+        function updateCommentSubmitState() {
+            const $input = $('.vic-comment-input');
+            const $submit = $('.vic-comment-submit');
+            const hasContent = $input.val().trim().length > 0 || commentFiles.length > 0;
+
+            if (hasContent) {
+                $submit.addClass('active');
+            } else {
+                $submit.removeClass('active');
+            }
         }
     }
 

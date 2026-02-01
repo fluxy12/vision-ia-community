@@ -28,6 +28,9 @@ class Vision_IA_Community {
         add_action('wp_ajax_vic_pin_post', [$this, 'handle_pin_post']);
         add_action('wp_ajax_vic_search_posts', [$this, 'handle_search_posts']);
         add_action('wp_ajax_nopriv_vic_search_posts', [$this, 'handle_search_posts']);
+        add_action('wp_ajax_vic_get_post_modal', [$this, 'handle_get_post_modal']);
+        add_action('wp_ajax_nopriv_vic_get_post_modal', [$this, 'handle_get_post_modal']);
+        add_action('wp_ajax_vic_add_comment', [$this, 'handle_add_comment']);
         add_shortcode('community_feed', [$this, 'render_feed']);
         
         // Hook MasterStudy profile tab
@@ -375,21 +378,21 @@ class Vision_IA_Community {
     }
 
     /**
-     * Render a single post card
+     * Render a single post card (feed view with thumbnail)
      */
     public function render_single_post($post_id) {
         $author_id = get_post_field('post_author', $post_id);
         $author_name = get_the_author_meta('display_name', $author_id);
-        $post_date = human_time_diff(get_the_time('U', $post_id), current_time('timestamp')) . ' ago';
+        $post_date = human_time_diff(get_the_time('U', $post_id), current_time('timestamp'));
         $likes = (int) get_post_meta($post_id, '_vic_likes', true);
         $user_liked = $this->user_has_liked($post_id);
         $is_pinned = get_post_meta($post_id, '_vic_pinned', true);
         $comment_count = get_comments_number($post_id);
-        
+
         $categories = get_the_terms($post_id, 'community_category');
         $category_name = $categories ? $categories[0]->name : '';
         $category_slug = $categories ? $categories[0]->slug : '';
-        
+
         $category_emojis = [
             'discussion-generale' => '💬',
             'besoin-aide' => '❗',
@@ -397,127 +400,150 @@ class Vision_IA_Community {
             'annonces' => '📢'
         ];
         $emoji = isset($category_emojis[$category_slug]) ? $category_emojis[$category_slug] : '';
+
+        // Get thumbnail (first image, video, or YouTube)
+        $thumbnail = $this->get_post_thumbnail($post_id);
+
+        // Get recent commenters
+        $recent_comments = get_comments([
+            'post_id' => $post_id,
+            'number' => 5,
+            'orderby' => 'comment_date',
+            'order' => 'DESC'
+        ]);
         ?>
         <article class="vic-post-card" data-post-id="<?php echo $post_id; ?>">
             <?php if ($is_pinned) : ?>
                 <div class="vic-pinned-badge">📌 Épinglé</div>
             <?php endif; ?>
-            
-            <div class="vic-post-header">
-                <div class="vic-author-info">
-                    <?php echo get_avatar($author_id, 48); ?>
-                    <div class="vic-author-meta">
-                        <span class="vic-author-name"><?php echo esc_html($author_name); ?></span>
-                        <span class="vic-post-meta">
-                            <?php echo esc_html($post_date); ?> • 
-                            <span class="vic-category-tag"><?php echo esc_html($category_name); ?> <?php echo $emoji; ?></span>
-                        </span>
+
+            <div class="vic-post-body">
+                <div class="vic-post-main">
+                    <div class="vic-post-header">
+                        <div class="vic-author-info">
+                            <?php echo get_avatar($author_id, 40); ?>
+                            <div class="vic-author-meta">
+                                <span class="vic-author-name"><?php echo esc_html($author_name); ?></span>
+                                <span class="vic-post-meta">
+                                    <?php echo esc_html($post_date); ?> •
+                                    <span class="vic-category-tag"><?php echo esc_html($category_name); ?> <?php echo $emoji; ?></span>
+                                </span>
+                            </div>
+                        </div>
                     </div>
+
+                    <h3 class="vic-post-title"><?php echo get_the_title($post_id); ?></h3>
+
+                    <p class="vic-post-excerpt">
+                        <?php
+                        $content = get_post_field('post_content', $post_id);
+                        // Remove URLs for excerpt
+                        $content = preg_replace('/https?:\/\/[^\s]+/', '', $content);
+                        echo wp_trim_words(wp_strip_all_tags($content), 25, '...');
+                        ?>
+                    </p>
                 </div>
+
+                <?php if ($thumbnail) : ?>
+                <div class="vic-post-thumbnail <?php echo $thumbnail['type']; ?>">
+                    <?php if ($thumbnail['type'] === 'vic-post-thumbnail-youtube') : ?>
+                        <img src="https://img.youtube.com/vi/<?php echo esc_attr($thumbnail['youtube_id']); ?>/mqdefault.jpg" alt="YouTube">
+                    <?php elseif ($thumbnail['type'] === 'vic-post-thumbnail-image') : ?>
+                        <img src="<?php echo esc_url($thumbnail['url']); ?>" alt="">
+                    <?php elseif ($thumbnail['type'] === 'vic-post-thumbnail-video') : ?>
+                        <video src="<?php echo esc_url($thumbnail['url']); ?>" muted></video>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
             </div>
-            
-            <h3 class="vic-post-title">
-                <a href="<?php the_permalink($post_id); ?>"><?php echo get_the_title($post_id); ?></a>
-            </h3>
-            
-            <div class="vic-post-content">
-                <?php 
-                $content = get_the_content(null, false, $post_id);
-                $content = wp_trim_words($content, 50, '... <a href="' . get_permalink($post_id) . '" class="vic-read-more">En savoir plus</a>');
-                echo wpautop($content);
-                ?>
-            </div>
-            
-            <?php 
-            // Check for YouTube embed in content
-            $full_content = get_post_field('post_content', $post_id);
-            if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/', $full_content, $matches)) {
-                echo '<div class="vic-video-embed">';
-                echo '<iframe src="https://www.youtube.com/embed/' . esc_attr($matches[1]) . '" frameborder="0" allowfullscreen></iframe>';
-                echo '</div>';
-            }
-            
-            // Display URL if set
-            $post_url = get_post_meta($post_id, '_vic_post_url', true);
-            if ($post_url) {
-                $url_host = parse_url($post_url, PHP_URL_HOST);
-                echo '<div class="vic-post-link">';
-                echo '<a href="' . esc_url($post_url) . '" target="_blank" rel="noopener">';
-                echo '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
-                echo '<span>' . esc_html($url_host) . '</span>';
-                echo '</a>';
-                echo '</div>';
-            }
-            
-            // Display attachments
-            $attachments = get_post_meta($post_id, '_vic_attachments', true);
-            if (!empty($attachments) && is_array($attachments)) {
-                echo '<div class="vic-attachments">';
-                foreach ($attachments as $attachment_id) {
-                    $mime_type = get_post_mime_type($attachment_id);
-                    $url = wp_get_attachment_url($attachment_id);
-                    $filename = basename(get_attached_file($attachment_id));
-                    
-                    if (strpos($mime_type, 'image/') === 0) {
-                        // Image
-                        $thumb = wp_get_attachment_image_src($attachment_id, 'medium');
-                        echo '<div class="vic-attachment vic-attachment-image">';
-                        echo '<a href="' . esc_url($url) . '" target="_blank">';
-                        echo '<img src="' . esc_url($thumb[0]) . '" alt="' . esc_attr($filename) . '">';
-                        echo '</a>';
-                        echo '</div>';
-                    } elseif (strpos($mime_type, 'video/') === 0) {
-                        // Video
-                        echo '<div class="vic-attachment vic-attachment-video">';
-                        echo '<video controls preload="metadata">';
-                        echo '<source src="' . esc_url($url) . '" type="' . esc_attr($mime_type) . '">';
-                        echo '</video>';
-                        echo '</div>';
-                    } elseif (strpos($mime_type, 'audio/') === 0) {
-                        // Audio
-                        echo '<div class="vic-attachment vic-attachment-audio">';
-                        echo '<audio controls preload="metadata">';
-                        echo '<source src="' . esc_url($url) . '" type="' . esc_attr($mime_type) . '">';
-                        echo '</audio>';
-                        echo '<span class="vic-audio-filename">' . esc_html($filename) . '</span>';
-                        echo '</div>';
-                    } elseif ($mime_type === 'application/pdf') {
-                        // PDF
-                        echo '<div class="vic-attachment vic-attachment-pdf">';
-                        echo '<a href="' . esc_url($url) . '" target="_blank" class="vic-pdf-link">';
-                        echo '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>';
-                        echo '<span>' . esc_html($filename) . '</span>';
-                        echo '</a>';
-                        echo '</div>';
-                    }
-                }
-                echo '</div>';
-            }
-            ?>
-            
+
             <div class="vic-post-footer">
                 <button class="vic-like-btn <?php echo $user_liked ? 'liked' : ''; ?>" data-post-id="<?php echo $post_id; ?>">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="<?php echo $user_liked ? 'currentColor' : 'none'; ?>" stroke="currentColor" stroke-width="2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="<?php echo $user_liked ? 'currentColor' : 'none'; ?>" stroke="currentColor" stroke-width="2">
                         <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                     </svg>
                     <span class="vic-like-count"><?php echo $likes; ?></span>
                 </button>
-                
-                <a href="<?php the_permalink($post_id); ?>#comments" class="vic-comment-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+
+                <button class="vic-comment-btn" data-post-id="<?php echo $post_id; ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                     </svg>
                     <span><?php echo $comment_count; ?></span>
-                </a>
-                
+                </button>
+
                 <?php if (current_user_can('manage_options')) : ?>
                 <button class="vic-pin-btn <?php echo $is_pinned ? 'pinned' : ''; ?>" data-post-id="<?php echo $post_id; ?>">
                     📌
                 </button>
                 <?php endif; ?>
+
+                <?php if (!empty($recent_comments)) : ?>
+                <div class="vic-commenters">
+                    <div class="vic-commenters-avatars">
+                        <?php
+                        $shown = 0;
+                        $unique_users = [];
+                        foreach ($recent_comments as $comment) {
+                            if ($shown >= 4) break;
+                            if (in_array($comment->user_id, $unique_users)) continue;
+                            $unique_users[] = $comment->user_id;
+                            echo get_avatar($comment->user_id ?: $comment->comment_author_email, 24);
+                            $shown++;
+                        }
+                        ?>
+                    </div>
+                    <span class="vic-last-comment">
+                        <?php
+                        $last_comment_time = human_time_diff(strtotime($recent_comments[0]->comment_date), current_time('timestamp'));
+                        echo 'New comment ' . $last_comment_time . ' ago';
+                        ?>
+                    </span>
+                </div>
+                <?php endif; ?>
             </div>
         </article>
         <?php
+    }
+
+    /**
+     * Get post thumbnail (image, video, or YouTube)
+     */
+    public function get_post_thumbnail($post_id) {
+        $content = get_post_field('post_content', $post_id);
+        $attachments = get_post_meta($post_id, '_vic_attachments', true);
+
+        // Check for YouTube
+        if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/', $content, $matches)) {
+            return [
+                'type' => 'vic-post-thumbnail-youtube',
+                'youtube_id' => $matches[1]
+            ];
+        }
+
+        // Check attachments
+        if (!empty($attachments) && is_array($attachments)) {
+            foreach ($attachments as $attachment_id) {
+                $mime_type = get_post_mime_type($attachment_id);
+
+                if (strpos($mime_type, 'image/') === 0) {
+                    $thumb = wp_get_attachment_image_src($attachment_id, 'thumbnail');
+                    return [
+                        'type' => 'vic-post-thumbnail-image',
+                        'url' => $thumb[0]
+                    ];
+                }
+
+                if (strpos($mime_type, 'video/') === 0) {
+                    return [
+                        'type' => 'vic-post-thumbnail-video',
+                        'url' => wp_get_attachment_url($attachment_id)
+                    ];
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -805,6 +831,325 @@ class Vision_IA_Community {
             'html' => $html,
             'has_more' => $has_more,
             'found_posts' => $query->found_posts
+        ]);
+    }
+
+    /**
+     * Handle get post modal AJAX
+     */
+    public function handle_get_post_modal() {
+        check_ajax_referer('vic_nonce', 'nonce');
+
+        $post_id = intval($_POST['post_id']);
+        $post = get_post($post_id);
+
+        if (!$post) {
+            wp_send_json_error(['message' => 'Post non trouvé']);
+        }
+
+        $author_id = $post->post_author;
+        $author_name = get_the_author_meta('display_name', $author_id);
+        $post_date = human_time_diff(strtotime($post->post_date), current_time('timestamp'));
+        $likes = (int) get_post_meta($post_id, '_vic_likes', true);
+        $user_liked = $this->user_has_liked($post_id);
+        $comment_count = get_comments_number($post_id);
+
+        $categories = get_the_terms($post_id, 'community_category');
+        $category_name = $categories ? $categories[0]->name : '';
+        $category_slug = $categories ? $categories[0]->slug : '';
+
+        $category_emojis = [
+            'discussion-generale' => '💬',
+            'besoin-aide' => '❗',
+            'victoires' => '🌟',
+            'annonces' => '📢'
+        ];
+        $emoji = isset($category_emojis[$category_slug]) ? $category_emojis[$category_slug] : '';
+
+        ob_start();
+        ?>
+        <!-- Modal Header -->
+        <div class="vic-modal-header">
+            <div class="vic-modal-header-left">
+                <?php echo get_avatar($author_id, 40); ?>
+                <h3 class="vic-modal-title"><?php echo esc_html($author_name); ?></h3>
+            </div>
+            <div class="vic-modal-actions">
+                <button class="vic-modal-action-btn vic-modal-close">✕</button>
+            </div>
+        </div>
+
+        <!-- Modal Content -->
+        <div class="vic-modal-content">
+            <div class="vic-modal-post-meta">
+                <span><?php echo esc_html($post_date); ?> ago</span>
+                <span>•</span>
+                <span class="vic-category-tag"><?php echo esc_html($category_name); ?> <?php echo $emoji; ?></span>
+            </div>
+
+            <h2 class="vic-modal-post-title"><?php echo esc_html($post->post_title); ?></h2>
+
+            <div class="vic-modal-post-content">
+                <?php
+                $content = $post->post_content;
+                // Convert URLs to links
+                $content = make_clickable($content);
+                echo wpautop($content);
+
+                // YouTube embed
+                if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/', $post->post_content, $matches)) {
+                    echo '<div class="vic-video-embed">';
+                    echo '<iframe src="https://www.youtube.com/embed/' . esc_attr($matches[1]) . '" frameborder="0" allowfullscreen></iframe>';
+                    echo '</div>';
+                }
+
+                // Display URL if set
+                $post_url = get_post_meta($post_id, '_vic_post_url', true);
+                if ($post_url) {
+                    $url_host = parse_url($post_url, PHP_URL_HOST);
+                    echo '<div class="vic-post-link">';
+                    echo '<a href="' . esc_url($post_url) . '" target="_blank" rel="noopener">';
+                    echo '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+                    echo '<span>' . esc_html($url_host) . '</span>';
+                    echo '</a>';
+                    echo '</div>';
+                }
+
+                // Display attachments
+                $attachments = get_post_meta($post_id, '_vic_attachments', true);
+                if (!empty($attachments) && is_array($attachments)) {
+                    echo '<div class="vic-attachments">';
+                    foreach ($attachments as $attachment_id) {
+                        $mime_type = get_post_mime_type($attachment_id);
+                        $url = wp_get_attachment_url($attachment_id);
+                        $filename = basename(get_attached_file($attachment_id));
+
+                        if (strpos($mime_type, 'image/') === 0) {
+                            $full = wp_get_attachment_image_src($attachment_id, 'large');
+                            echo '<div class="vic-attachment vic-attachment-image">';
+                            echo '<img src="' . esc_url($full[0]) . '" alt="' . esc_attr($filename) . '">';
+                            echo '</div>';
+                        } elseif (strpos($mime_type, 'video/') === 0) {
+                            echo '<div class="vic-attachment vic-attachment-video">';
+                            echo '<video controls><source src="' . esc_url($url) . '" type="' . esc_attr($mime_type) . '"></video>';
+                            echo '</div>';
+                        } elseif (strpos($mime_type, 'audio/') === 0) {
+                            echo '<div class="vic-attachment vic-attachment-audio">';
+                            echo '<audio controls><source src="' . esc_url($url) . '" type="' . esc_attr($mime_type) . '"></audio>';
+                            echo '<span class="vic-audio-filename">' . esc_html($filename) . '</span>';
+                            echo '</div>';
+                        } elseif ($mime_type === 'application/pdf') {
+                            echo '<div class="vic-attachment vic-attachment-pdf">';
+                            echo '<a href="' . esc_url($url) . '" target="_blank" class="vic-pdf-link">';
+                            echo '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+                            echo '<span>' . esc_html($filename) . '</span>';
+                            echo '</a>';
+                            echo '</div>';
+                        }
+                    }
+                    echo '</div>';
+                }
+                ?>
+            </div>
+
+            <!-- Post Actions -->
+            <div class="vic-modal-post-actions">
+                <button class="vic-like-btn <?php echo $user_liked ? 'liked' : ''; ?>" data-post-id="<?php echo $post_id; ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="<?php echo $user_liked ? 'currentColor' : 'none'; ?>" stroke="currentColor" stroke-width="2">
+                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                    </svg>
+                    <span>Like</span>
+                    <span class="vic-like-count"><?php echo $likes; ?></span>
+                </button>
+
+                <span class="vic-comment-count">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <?php echo $comment_count; ?> comments
+                </span>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="vic-comments-section">
+                <div class="vic-comments-list">
+                    <?php
+                    $comments = get_comments([
+                        'post_id' => $post_id,
+                        'status' => 'approve',
+                        'orderby' => 'comment_date',
+                        'order' => 'ASC'
+                    ]);
+
+                    if ($comments) {
+                        foreach ($comments as $comment) {
+                            $this->render_single_comment($comment);
+                        }
+                    } else {
+                        echo '<p class="vic-no-comments">Soyez le premier à commenter !</p>';
+                    }
+                    ?>
+                </div>
+            </div>
+
+            <!-- Comment Form -->
+            <?php if (is_user_logged_in()) : ?>
+            <div class="vic-comment-form-wrapper">
+                <div class="vic-comment-form">
+                    <?php echo get_avatar(get_current_user_id(), 36, '', '', ['class' => 'vic-comment-form-avatar']); ?>
+                    <div class="vic-comment-input-wrapper">
+                        <textarea class="vic-comment-input" placeholder="Your comment" rows="1"></textarea>
+                        <div class="vic-comment-attachments-preview"></div>
+                        <div class="vic-comment-form-actions">
+                            <div class="vic-comment-form-tools">
+                                <label class="vic-comment-tool-btn" title="Ajouter une image">
+                                    <input type="file" class="vic-comment-file-input" accept="image/*" style="display:none;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                                    </svg>
+                                </label>
+                                <button type="button" class="vic-comment-tool-btn vic-comment-add-link" title="Ajouter un lien">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <button class="vic-comment-submit" data-post-id="<?php echo $post_id; ?>">Envoyer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php else : ?>
+            <div class="vic-comment-form-wrapper">
+                <p style="text-align: center; color: #6B7280;">
+                    <a href="<?php echo wp_login_url(get_permalink($post_id)); ?>">Connectez-vous</a> pour commenter
+                </p>
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php
+        $html = ob_get_clean();
+
+        wp_send_json_success(['html' => $html]);
+    }
+
+    /**
+     * Render a single comment
+     */
+    public function render_single_comment($comment) {
+        $comment_date = human_time_diff(strtotime($comment->comment_date), current_time('timestamp'));
+        ?>
+        <div class="vic-comment" data-comment-id="<?php echo $comment->comment_ID; ?>">
+            <?php echo get_avatar($comment->user_id ?: $comment->comment_author_email, 36, '', '', ['class' => 'vic-comment-avatar']); ?>
+            <div class="vic-comment-body">
+                <div class="vic-comment-header">
+                    <span class="vic-comment-author"><?php echo esc_html($comment->comment_author); ?></span>
+                    <span class="vic-comment-date">• <?php echo $comment_date; ?></span>
+                </div>
+                <div class="vic-comment-content">
+                    <?php
+                    $content = make_clickable($comment->comment_content);
+                    echo wpautop($content);
+
+                    // Display comment attachments if any
+                    $attachments = get_comment_meta($comment->comment_ID, '_vic_comment_attachments', true);
+                    if (!empty($attachments) && is_array($attachments)) {
+                        foreach ($attachments as $attachment_id) {
+                            $url = wp_get_attachment_url($attachment_id);
+                            $mime_type = get_post_mime_type($attachment_id);
+                            if (strpos($mime_type, 'image/') === 0) {
+                                echo '<img src="' . esc_url($url) . '" alt="">';
+                            }
+                        }
+                    }
+                    ?>
+                </div>
+                <div class="vic-comment-actions">
+                    <button class="vic-comment-action">👍 0</button>
+                    <button class="vic-comment-action">Reply</button>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+
+    /**
+     * Handle add comment AJAX
+     */
+    public function handle_add_comment() {
+        check_ajax_referer('vic_nonce', 'nonce');
+
+        if (!is_user_logged_in()) {
+            wp_send_json_error(['message' => 'Vous devez être connecté']);
+        }
+
+        $post_id = intval($_POST['post_id']);
+        $content = sanitize_textarea_field($_POST['content']);
+
+        if (empty($content) && empty($_FILES['comment_attachments'])) {
+            wp_send_json_error(['message' => 'Le commentaire ne peut pas être vide']);
+        }
+
+        $user = wp_get_current_user();
+
+        $comment_data = [
+            'comment_post_ID' => $post_id,
+            'comment_content' => $content,
+            'user_id' => $user->ID,
+            'comment_author' => $user->display_name,
+            'comment_author_email' => $user->user_email,
+            'comment_approved' => 1
+        ];
+
+        $comment_id = wp_insert_comment($comment_data);
+
+        if (!$comment_id) {
+            wp_send_json_error(['message' => 'Erreur lors de l\'ajout du commentaire']);
+        }
+
+        // Handle file uploads for comment
+        if (!empty($_FILES['comment_attachments'])) {
+            require_once(ABSPATH . 'wp-admin/includes/image.php');
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+            require_once(ABSPATH . 'wp-admin/includes/media.php');
+
+            $attachment_ids = [];
+            $files = $_FILES['comment_attachments'];
+
+            for ($i = 0; $i < count($files['name']); $i++) {
+                if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                    $file = [
+                        'name' => $files['name'][$i],
+                        'type' => $files['type'][$i],
+                        'tmp_name' => $files['tmp_name'][$i],
+                        'error' => $files['error'][$i],
+                        'size' => $files['size'][$i]
+                    ];
+
+                    $_FILES['upload_file'] = $file;
+                    $attachment_id = media_handle_upload('upload_file', $post_id);
+
+                    if (!is_wp_error($attachment_id)) {
+                        $attachment_ids[] = $attachment_id;
+                    }
+                }
+            }
+
+            if (!empty($attachment_ids)) {
+                update_comment_meta($comment_id, '_vic_comment_attachments', $attachment_ids);
+            }
+        }
+
+        // Get comment HTML
+        $comment = get_comment($comment_id);
+        ob_start();
+        $this->render_single_comment($comment);
+        $comment_html = ob_get_clean();
+
+        wp_send_json_success([
+            'comment_html' => $comment_html,
+            'comment_id' => $comment_id
         ]);
     }
 
