@@ -17,6 +17,74 @@
         symbols: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','☮️','✝️','☪️','🕉️','☸️','✡️','🔯','🕎','☯️','☦️','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','☢️','☣️','📴','📳','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','🚷','🚯','🚳','🚱','🔞','📵','🚭','❗','❓','‼️','⁉️','⚠️','♻️','✅','❎','🔱','📛','🔰','⚜️']
     };
 
+    // ====== COMPRESSION D'IMAGE CÔTÉ CLIENT ======
+    // Redimensionne et compresse les images avant upload pour accélérer le traitement
+    function compressImage(file, maxWidth, maxHeight, quality) {
+        return new Promise(function(resolve) {
+            // Si ce n'est pas une image, retourner le fichier original
+            if (!file.type.startsWith('image/') || file.type === 'image/gif') {
+                resolve(file);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    // Calculer les nouvelles dimensions en gardant le ratio
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+
+                    // Si l'image est déjà plus petite et < 1MB, ne pas compresser
+                    if (img.width <= maxWidth && img.height <= maxHeight && file.size < 1024 * 1024) {
+                        resolve(file);
+                        return;
+                    }
+
+                    // Créer un canvas pour redimensionner
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Convertir en blob
+                    canvas.toBlob(function(blob) {
+                        if (blob) {
+                            // Créer un nouveau fichier avec le même nom
+                            const compressedFile = new File([blob], file.name, {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            });
+                            console.log('Image compressée: ' + (file.size / 1024 / 1024).toFixed(2) + 'MB -> ' + (compressedFile.size / 1024 / 1024).toFixed(2) + 'MB');
+                            resolve(compressedFile);
+                        } else {
+                            resolve(file);
+                        }
+                    }, 'image/jpeg', quality);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Compresser plusieurs fichiers
+    function compressFiles(files, maxWidth, maxHeight, quality) {
+        return Promise.all(files.map(function(file) {
+            return compressImage(file, maxWidth, maxHeight, quality);
+        }));
+    }
+
     // DOM Ready
     $(document).ready(function() {
         initCreatePostForm();
@@ -522,7 +590,7 @@
             const originalText = $btn.text();
 
             // Désactiver les boutons
-            $btn.text('Publication...').prop('disabled', true);
+            $btn.text('Compression...').prop('disabled', true);
             $cancelBtn.prop('disabled', true);
 
             // Créer/afficher la barre de progression
@@ -535,25 +603,30 @@
             const $progressFill = $progressBar.find('.vic-upload-progress-bar');
             const $progressText = $progressBar.find('.vic-upload-progress-text');
             $progressFill.css('width', '0%');
-            $progressText.text('0%');
+            $progressText.text('Compression...');
 
-            // Create FormData for file upload
-            const formData = new FormData();
-            formData.append('action', 'vic_create_post');
-            formData.append('nonce', vicAjax.nonce);
-            formData.append('post_title', $submitForm.find('input[name="post_title"]').val());
-            formData.append('post_content', $submitForm.find('textarea[name="post_content"]').val());
-            formData.append('post_category', $submitForm.find('select[name="post_category"]').val());
-            formData.append('post_url', $submitForm.find('input[name="post_url"]').val());
-            formData.append('post_gif', $('#vic-post-gif-input').val());
-            formData.append('post_youtube', $('#vic-post-youtube-input').val());
+            // Compresser les images avant envoi (max 1920x1080, qualité 85%)
+            compressFiles(selectedFiles, 1920, 1080, 0.85).then(function(compressedFiles) {
+                $btn.text('Envoi...');
+                $progressText.text('0%');
 
-            // Add files
-            selectedFiles.forEach(function(file) {
-                formData.append('post_attachments[]', file);
-            });
+                // Create FormData for file upload
+                const formData = new FormData();
+                formData.append('action', 'vic_create_post');
+                formData.append('nonce', vicAjax.nonce);
+                formData.append('post_title', $submitForm.find('input[name="post_title"]').val());
+                formData.append('post_content', $submitForm.find('textarea[name="post_content"]').val());
+                formData.append('post_category', $submitForm.find('select[name="post_category"]').val());
+                formData.append('post_url', $submitForm.find('input[name="post_url"]').val());
+                formData.append('post_gif', $('#vic-post-gif-input').val());
+                formData.append('post_youtube', $('#vic-post-youtube-input').val());
 
-            $.ajax({
+                // Add compressed files
+                compressedFiles.forEach(function(file) {
+                    formData.append('post_attachments[]', file);
+                });
+
+                $.ajax({
                 url: vicAjax.ajaxurl,
                 type: 'POST',
                 data: formData,
@@ -619,7 +692,8 @@
                     $btn.text(originalText).prop('disabled', false);
                     $cancelBtn.prop('disabled', false);
                 }
-            });
+                });
+            }); // fin de compressFiles.then()
         });
     }
 

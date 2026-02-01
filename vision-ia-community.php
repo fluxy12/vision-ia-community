@@ -280,7 +280,7 @@ class Vision_IA_Community {
                             
                             <div class="vic-form-submit">
                                 <button type="button" class="vic-btn vic-btn-cancel" id="vic-cancel-form">ANNULER</button>
-                                <button type="submit" class="vic-btn vic-btn-primary">POSTE</button>
+                                <button type="submit" class="vic-btn vic-btn-primary">POSTER</button>
                             </div>
                         </div>
                     </form>
