@@ -15,6 +15,11 @@ define('VIC_VERSION', '1.0.0');
 define('VIC_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('VIC_PLUGIN_URL', plugin_dir_url(__FILE__));
 
+// Load Elementor widget if Elementor is active
+add_action('elementor/init', function() {
+    require_once VIC_PLUGIN_DIR . 'includes/elementor-widget.php';
+});
+
 class Vision_IA_Community {
 
     public function __construct() {
