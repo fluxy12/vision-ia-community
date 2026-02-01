@@ -1046,46 +1046,65 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 12px;
+    padding: 10px 12px;
     background: var(--vic-gray-100);
     border-radius: 8px;
     margin-top: 8px;
 }
 
-.vic-upload-progress-bar {
+.vic-upload-progress-track {
     flex: 1;
-    height: 6px;
+    height: 8px;
     background: var(--vic-gray-200);
-    border-radius: 3px;
+    border-radius: 4px;
     overflow: hidden;
     position: relative;
 }
 
-.vic-upload-progress-bar::after {
+.vic-upload-progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--vic-primary), #8b5cf6);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+/* Animation pulsante pendant le traitement serveur */
+.vic-upload-progress.processing .vic-upload-progress-bar {
+    animation: pulse-progress 1.5s ease-in-out infinite;
+}
+
+.vic-upload-progress.processing .vic-upload-progress-track::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--vic-primary), #8b5cf6);
-    border-radius: 3px;
-    transition: width 0.3s ease;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+        transparent
+    );
+    animation: shimmer 1.5s infinite;
 }
 
-.vic-upload-progress-bar {
-    width: 0%;
-    height: 6px;
-    background: linear-gradient(90deg, var(--vic-primary), #8b5cf6);
-    border-radius: 3px;
-    transition: width 0.3s ease;
+@keyframes pulse-progress {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
 }
 
 .vic-upload-progress-text {
     font-size: 12px;
     font-weight: 600;
     color: var(--vic-primary);
-    min-width: 45px;
+    min-width: 80px;
     text-align: right;
 }
 

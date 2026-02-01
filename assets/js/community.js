@@ -759,12 +759,13 @@
             // Créer la barre de progression
             let $progressBar = $wrapper.find('.vic-upload-progress');
             if (!$progressBar.length) {
-                $progressBar = $('<div class="vic-upload-progress"><div class="vic-upload-progress-bar"></div><span class="vic-upload-progress-text">0%</span></div>');
+                $progressBar = $('<div class="vic-upload-progress"><div class="vic-upload-progress-track"><div class="vic-upload-progress-bar"></div></div><span class="vic-upload-progress-text">0%</span></div>');
                 $wrapper.find('.vic-comment-attachments-preview').before($progressBar);
             }
-            $progressBar.show();
+            $progressBar.show().removeClass('processing');
             const $progressFill = $progressBar.find('.vic-upload-progress-bar');
             const $progressText = $progressBar.find('.vic-upload-progress-text');
+            $progressFill.css('width', '0%');
 
             const formData = new FormData();
             formData.append('action', 'vic_add_comment');
@@ -788,19 +789,27 @@
                 contentType: false,
                 xhr: function() {
                     const xhr = new window.XMLHttpRequest();
-                    // Upload progress
+                    // Upload progress (seulement jusqu'à 90%, les 10% restants pour le traitement serveur)
                     xhr.upload.addEventListener('progress', function(e) {
                         if (e.lengthComputable) {
-                            const percent = Math.round((e.loaded / e.total) * 100);
+                            // Upload = 0-90%, traitement serveur = 90-100%
+                            const percent = Math.round((e.loaded / e.total) * 90);
                             $progressFill.css('width', percent + '%');
                             $progressText.text(percent + '%');
                         }
+                    }, false);
+                    // Quand l'upload est terminé, passer en mode "traitement"
+                    xhr.upload.addEventListener('load', function() {
+                        $progressBar.addClass('processing');
+                        $progressFill.css('width', '90%');
+                        $progressText.text('Traitement...');
                     }, false);
                     return xhr;
                 },
                 success: function(response) {
                     if (response.success) {
                         // Animation de complétion
+                        $progressBar.removeClass('processing');
                         $progressFill.css('width', '100%');
                         $progressText.text('Envoyé !');
 
