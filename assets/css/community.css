@@ -347,6 +347,16 @@ body .vic-community-wrapper,
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+/* Post d'administrateur avec liseré jaune/doré */
+.vic-post-card.vic-admin-post {
+    border: 2px solid #F59E0B;
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2);
+}
+
+.vic-post-card.vic-admin-post:hover {
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+}
+
 /* Badge épinglé - Style Skool exact (juste icône + texte) */
 .vic-pinned-badge {
     display: inline-flex;
@@ -626,11 +636,11 @@ body .vic-community-wrapper,
     color: var(--vic-gray-600);
 }
 
-/* Commenters avatars - Style Skool */
+/* Commenters avatars - Style Skool (à gauche avec likes/comments) */
 .vic-commenters {
     display: flex;
     align-items: center;
-    margin-left: auto;
+    margin-left: 16px;
     gap: 8px;
 }
 
@@ -644,7 +654,7 @@ body .vic-community-wrapper,
     height: 28px;
     border-radius: 50% !important;
     border: 2px solid var(--vic-white);
-    margin-left: -10px;
+    margin-left: -6px;
     object-fit: cover;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     aspect-ratio: 1 / 1;
@@ -656,15 +666,15 @@ body .vic-community-wrapper,
 
 .vic-last-comment {
     font-size: 14px;
-    color: #10B981;
+    color: #3B82F6;
     font-weight: 500;
     white-space: nowrap;
 }
 
-/* Style Skool pour "Nouveau commentaire il y a X" */
+/* Style Skool pour "Nouveau commentaire il y a X" - BLEU */
 .vic-last-comment a,
 .vic-new-comment-link {
-    color: #10B981;
+    color: #3B82F6;
     text-decoration: none;
     font-weight: 500;
 }
