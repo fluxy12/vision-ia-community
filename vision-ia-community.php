@@ -464,8 +464,12 @@ class Vision_IA_Community {
             'orderby' => 'comment_date',
             'order' => 'DESC'
         ]);
+
+        // Check if author is admin
+        $is_admin_post = user_can($author_id, 'administrator');
+        $admin_class = $is_admin_post ? ' vic-admin-post' : '';
         ?>
-        <article class="vic-post-card" data-post-id="<?php echo $post_id; ?>">
+        <article class="vic-post-card<?php echo $admin_class; ?>" data-post-id="<?php echo $post_id; ?>">
             <?php if ($is_pinned) : ?>
                 <div class="vic-pinned-badge">📌 Épinglé</div>
             <?php endif; ?>
