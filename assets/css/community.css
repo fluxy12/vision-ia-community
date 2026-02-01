@@ -937,10 +937,87 @@
     color: var(--vic-gray-700);
 }
 
-/* Comment Form */
+/* Comment Form - Skool Style */
+.vic-comment-form-wrapper-skool {
+    background: var(--vic-white);
+    padding: 12px 20px 16px;
+    border-top: 1px solid var(--vic-gray-200);
+    margin: 20px -20px -20px -20px;
+}
+
+.vic-comment-form-skool {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.vic-comment-avatar-skool {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.vic-comment-input-skool-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: var(--vic-white);
+    border: 1px solid var(--vic-gray-300);
+    border-radius: 24px;
+    padding: 8px 12px;
+    gap: 8px;
+}
+
+.vic-comment-input-skool-wrapper:focus-within {
+    border-color: var(--vic-primary);
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+.vic-comment-input-skool {
+    flex: 1;
+    border: none;
+    background: none;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--vic-gray-900);
+    min-width: 0;
+}
+
+.vic-comment-input-skool:focus {
+    outline: none;
+}
+
+.vic-comment-input-skool::placeholder {
+    color: var(--vic-gray-400);
+}
+
+.vic-comment-tools-skool {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.vic-comment-tool-skool {
+    background: none;
+    border: none;
+    padding: 4px 6px;
+    cursor: pointer;
+    color: var(--vic-gray-400);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vic-comment-tool-skool:hover {
+    color: var(--vic-gray-600);
+}
+
+/* Legacy comment form styles (kept for backwards compatibility) */
 .vic-comment-form-wrapper {
-    position: sticky;
-    bottom: 0;
     background: var(--vic-white);
     padding: 16px 20px;
     border-top: 1px solid var(--vic-gray-200);

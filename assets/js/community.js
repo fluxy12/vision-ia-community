@@ -642,16 +642,97 @@
             });
         });
 
-        // Add link to comment
+        // Add link to comment (legacy)
         $(document).on('click', '.vic-comment-add-link', function() {
             const url = prompt('Entrez l\'URL :');
             if (url && url.trim()) {
-                const $input = $(this).closest('.vic-comment-input-wrapper').find('.vic-comment-input');
+                // Check for Skool-style input first
+                let $input = $(this).closest('.vic-comment-input-skool-wrapper').find('.vic-comment-input-skool');
+                if (!$input.length) {
+                    $input = $(this).closest('.vic-comment-input-wrapper').find('.vic-comment-input');
+                }
                 const currentVal = $input.val();
                 $input.val(currentVal + (currentVal ? ' ' : '') + url.trim());
                 $input.trigger('input');
             }
         });
+
+        // Skool-style comment submission (on Enter key)
+        $(document).on('keypress', '.vic-comment-input-skool', function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                submitSkoolComment($(this));
+            }
+        });
+
+        // Submit Skool-style comment
+        function submitSkoolComment($input) {
+            const content = $input.val().trim();
+            const $wrapper = $input.closest('.vic-comment-form-wrapper-skool');
+            const postId = $('.vic-modal').find('.vic-like-btn[data-post-id]').data('post-id');
+
+            if (!content || !postId) return;
+
+            $input.prop('disabled', true);
+
+            const formData = new FormData();
+            formData.append('action', 'vic_add_comment');
+            formData.append('nonce', vicAjax.nonce);
+            formData.append('post_id', postId);
+            formData.append('content', content);
+
+            // Add files if any
+            const $fileInput = $wrapper.find('.vic-comment-file-input');
+            if ($fileInput.length && $fileInput[0].files.length > 0) {
+                for (let i = 0; i < $fileInput[0].files.length; i++) {
+                    formData.append('comment_attachments[]', $fileInput[0].files[i]);
+                }
+            }
+
+            $.ajax({
+                url: vicAjax.ajaxurl,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        // Add new comment to list
+                        const $noComments = $('.vic-comments-list .vic-no-comments');
+                        if ($noComments.length) {
+                            $noComments.remove();
+                        }
+                        $('.vic-comments-list').append(response.data.comment_html);
+
+                        // Reset form
+                        $input.val('');
+                        $wrapper.find('.vic-comment-attachments-preview').empty();
+                        $fileInput.val('');
+
+                        // Update comment count
+                        const $countEl = $('.vic-post-card[data-post-id="' + postId + '"] .vic-comment-btn span');
+                        if ($countEl.length) {
+                            const newCount = parseInt($countEl.text()) + 1;
+                            $countEl.text(newCount);
+                        }
+
+                        // Scroll to new comment
+                        const $newComment = $('.vic-comments-list .vic-comment').last();
+                        if ($newComment.length) {
+                            $newComment[0].scrollIntoView({ behavior: 'smooth' });
+                        }
+                    } else {
+                        alert(response.data.message || 'Erreur');
+                    }
+                },
+                error: function() {
+                    alert('Erreur de connexion');
+                },
+                complete: function() {
+                    $input.prop('disabled', false).focus();
+                }
+            });
+        }
 
         function openModal(postId) {
             // Show loading

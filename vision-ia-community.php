@@ -188,8 +188,6 @@ class Vision_IA_Community {
         ob_start();
         ?>
         <div class="vic-community-wrapper">
-            <h1 style="text-align: center; font-size: 2.5em; margin-bottom: 30px; color: #333;">🚀 Bienvenue dans la Communauté Vision IA !</h1>
-            
             <?php if ($this->user_can_post()) : ?>
             <!-- Post Creation Form -->
             <div class="vic-create-post-box">
@@ -1018,37 +1016,51 @@ class Vision_IA_Community {
                 </div>
             </div>
 
-            <!-- Comment Form -->
+            <!-- Comment Form (Skool-style) -->
             <?php if (is_user_logged_in()) : ?>
-            <div class="vic-comment-form-wrapper">
-                <div class="vic-comment-form">
-                    <?php echo get_avatar(get_current_user_id(), 36, '', '', ['class' => 'vic-comment-form-avatar']); ?>
-                    <div class="vic-comment-input-wrapper">
-                        <textarea class="vic-comment-input" placeholder="Your comment" rows="1"></textarea>
-                        <div class="vic-comment-attachments-preview"></div>
-                        <div class="vic-comment-form-actions">
-                            <div class="vic-comment-form-tools">
-                                <label class="vic-comment-tool-btn" title="Ajouter une image">
-                                    <input type="file" class="vic-comment-file-input" accept="image/*" style="display:none;">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-                                    </svg>
-                                </label>
-                                <button type="button" class="vic-comment-tool-btn vic-comment-add-link" title="Ajouter un lien">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                                    </svg>
-                                </button>
-                            </div>
-                            <button class="vic-comment-submit" data-post-id="<?php echo $post_id; ?>">Envoyer</button>
+            <div class="vic-comment-form-wrapper-skool">
+                <div class="vic-comment-form-skool">
+                    <?php echo get_avatar(get_current_user_id(), 32, '', '', ['class' => 'vic-comment-avatar-skool']); ?>
+                    <div class="vic-comment-input-skool-wrapper">
+                        <input type="text" class="vic-comment-input-skool" placeholder="Your comment">
+                        <div class="vic-comment-tools-skool">
+                            <label class="vic-comment-tool-skool" title="Pièce jointe">
+                                <input type="file" class="vic-comment-file-input" accept="image/*" style="display:none;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                                </svg>
+                            </label>
+                            <button type="button" class="vic-comment-tool-skool vic-comment-add-link" title="Lien">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="vic-comment-tool-skool" title="YouTube">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="4" width="20" height="16" rx="2"/>
+                                    <polygon points="10,8 16,12 10,16"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="vic-comment-tool-skool" title="Emoji">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                                    <line x1="9" y1="9" x2="9.01" y2="9"/>
+                                    <line x1="15" y1="9" x2="15.01" y2="9"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="vic-comment-tool-skool" title="GIF">
+                                <span style="font-weight: 600; font-size: 12px;">GIF</span>
+                            </button>
                         </div>
                     </div>
                 </div>
+                <div class="vic-comment-attachments-preview"></div>
             </div>
             <?php else : ?>
-            <div class="vic-comment-form-wrapper">
-                <p style="text-align: center; color: #6B7280;">
+            <div class="vic-comment-form-wrapper-skool">
+                <p style="text-align: center; color: #6B7280; padding: 12px;">
                     <a href="<?php echo wp_login_url(get_permalink($post_id)); ?>">Connectez-vous</a> pour commenter
                 </p>
             </div>
