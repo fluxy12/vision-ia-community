@@ -181,6 +181,7 @@ class Vision_IA_Community {
         ob_start();
         ?>
         <div class="vic-community-wrapper">
+            <h1 style="text-align: center; font-size: 2.5em; margin-bottom: 30px; color: #333;">🚀 Bienvenue dans la Communauté Vision IA !</h1>
             
             <?php if ($this->user_can_post()) : ?>
             <!-- Post Creation Form -->
