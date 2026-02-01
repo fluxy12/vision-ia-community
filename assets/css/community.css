@@ -1608,6 +1608,15 @@
     margin-bottom: 16px;
 }
 
+/* Dans la modale, les images prennent toute la largeur */
+.vic-modal-post-content .vic-attachments {
+    display: block;
+}
+
+.vic-modal-post-content .vic-attachment {
+    margin-bottom: 12px;
+}
+
 .vic-attachment {
     border-radius: 8px;
     overflow: hidden;
