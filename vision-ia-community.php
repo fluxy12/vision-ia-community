@@ -206,7 +206,11 @@ class Vision_IA_Community {
                         <input type="text" name="post_title" placeholder="Titre" class="vic-input vic-input-title" required>
                         
                         <textarea name="post_content" placeholder="Écrivez quelque chose..." class="vic-textarea" required></textarea>
-                        
+
+                        <!-- Champs cachés pour GIF et YouTube -->
+                        <input type="hidden" name="post_gif" id="vic-post-gif-input" value="">
+                        <input type="hidden" name="post_youtube" id="vic-post-youtube-input" value="">
+
                         <!-- Champ URL caché -->
                         <div class="vic-url-field" id="vic-url-field" style="display: none;">
                             <input type="url" name="post_url" placeholder="https://example.com" class="vic-input">
@@ -560,8 +564,18 @@ class Vision_IA_Community {
     public function get_post_thumbnail($post_id) {
         $content = get_post_field('post_content', $post_id);
         $attachments = get_post_meta($post_id, '_vic_attachments', true);
+        $post_gif = get_post_meta($post_id, '_vic_post_gif', true);
+        $post_youtube = get_post_meta($post_id, '_vic_post_youtube', true);
 
-        // Check for YouTube
+        // Check for YouTube from meta field first
+        if (!empty($post_youtube) && preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/', $post_youtube, $matches)) {
+            return [
+                'type' => 'vic-post-thumbnail-youtube',
+                'youtube_id' => $matches[1]
+            ];
+        }
+
+        // Check for YouTube in content (legacy support)
         if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/', $content, $matches)) {
             return [
                 'type' => 'vic-post-thumbnail-youtube',
@@ -569,7 +583,15 @@ class Vision_IA_Community {
             ];
         }
 
-        // Check for GIF [gif]url[/gif]
+        // Check for GIF from meta field first
+        if (!empty($post_gif)) {
+            return [
+                'type' => 'vic-post-thumbnail-gif',
+                'url' => $post_gif
+            ];
+        }
+
+        // Check for GIF [gif]url[/gif] in content (legacy support)
         if (preg_match('/\[gif\](.*?)\[\/gif\]/i', $content, $gif_matches)) {
             return [
                 'type' => 'vic-post-thumbnail-gif',
@@ -670,6 +692,8 @@ class Vision_IA_Community {
         $content = wp_kses_post($_POST['post_content']);
         $category_id = intval($_POST['post_category']);
         $post_url = isset($_POST['post_url']) ? esc_url_raw($_POST['post_url']) : '';
+        $post_gif = isset($_POST['post_gif']) ? esc_url_raw($_POST['post_gif']) : '';
+        $post_youtube = isset($_POST['post_youtube']) ? esc_url_raw($_POST['post_youtube']) : '';
         
         // Check if trying to post in "Annonces" without admin rights
         $term = get_term($category_id, 'community_category');
@@ -694,6 +718,16 @@ class Vision_IA_Community {
         // Save URL if provided
         if ($post_url) {
             update_post_meta($post_id, '_vic_post_url', $post_url);
+        }
+
+        // Save GIF if provided
+        if ($post_gif) {
+            update_post_meta($post_id, '_vic_post_gif', $post_gif);
+        }
+
+        // Save YouTube URL if provided
+        if ($post_youtube) {
+            update_post_meta($post_id, '_vic_post_youtube', $post_youtube);
         }
         
         // Handle file uploads

@@ -59,6 +59,8 @@
             selectedFiles = [];
             $preview.empty();
             $urlField.hide();
+            $('#vic-post-gif-input').val('');
+            $('#vic-post-youtube-input').val('');
             $('.vic-upload-btn').removeClass('has-files');
         });
 
@@ -183,17 +185,52 @@
             $field.find('input').val('');
         });
 
-        // YouTube prompt
+        // YouTube prompt avec preview
         $(document).on('click', '#vic-add-youtube', function(e) {
             e.preventDefault();
             e.stopPropagation();
             const url = prompt('Collez l\'URL de la vidéo YouTube :');
             if (url && url.trim()) {
-                const $textarea = $('#vic-new-post-form textarea[name="post_content"]');
-                const currentVal = $textarea.val();
-                $textarea.val(currentVal + (currentVal ? '\n' : '') + url.trim());
-                updateSubmitButton();
+                // Extraire l'ID de la vidéo YouTube
+                const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/;
+                const match = url.trim().match(youtubeRegex);
+
+                if (match && match[1]) {
+                    const videoId = match[1];
+                    const thumbnailUrl = 'https://img.youtube.com/vi/' + videoId + '/mqdefault.jpg';
+
+                    // Stocker l'URL dans le champ caché
+                    $('#vic-post-youtube-input').val(url.trim());
+
+                    // Supprimer les previews YouTube existants (une seule vidéo par post)
+                    $('.vic-youtube-preview-item').remove();
+
+                    // Ajouter une preview
+                    const $preview = $('#vic-attachments-preview');
+                    $preview.append(`
+                        <div class="vic-attachment-item vic-youtube-preview-item">
+                            <img src="${thumbnailUrl}" alt="YouTube">
+                            <span class="vic-youtube-play-icon">▶</span>
+                            <button type="button" class="vic-remove-attachment vic-remove-youtube-preview">✕</button>
+                        </div>
+                    `);
+
+                    updateSubmitButton();
+                } else {
+                    alert('URL YouTube invalide. Formats acceptés:\n- https://www.youtube.com/watch?v=VIDEO_ID\n- https://youtu.be/VIDEO_ID');
+                }
             }
+        });
+
+        // Supprimer la preview YouTube du post
+        $(document).on('click', '.vic-remove-youtube-preview', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Vider le champ caché
+            $('#vic-post-youtube-input').val('');
+
+            $(this).closest('.vic-youtube-preview-item').remove();
         });
 
         // ====== EMOJI PICKER POUR POSTS ======
@@ -442,13 +479,14 @@
 
             const gifUrl = $(this).data('full') || $(this).attr('src');
 
-            // Ajouter le GIF dans le textarea avec le format [gif]url[/gif]
-            const $textarea = $('#vic-new-post-form textarea[name="post_content"]');
-            if ($textarea.length && gifUrl) {
-                const currentVal = $textarea.val() || '';
-                $textarea.val(currentVal + (currentVal ? '\n' : '') + '[gif]' + gifUrl + '[/gif]');
-                $textarea.focus();
+            // Stocker le GIF dans le champ caché (pas dans le textarea)
+            const $gifInput = $('#vic-post-gif-input');
+            if ($gifInput.length && gifUrl) {
+                $gifInput.val(gifUrl);
                 updateSubmitButton();
+
+                // Supprimer les previews GIF existants (un seul GIF par post)
+                $('.vic-gif-preview-item').remove();
 
                 // Ajouter une preview du GIF
                 const $preview = $('#vic-attachments-preview');
@@ -468,14 +506,9 @@
         $(document).on('click', '.vic-remove-gif-preview', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            const gifUrl = $(this).data('gif');
-            const $textarea = $('#vic-new-post-form textarea[name="post_content"]');
 
-            // Retirer le GIF du textarea
-            if ($textarea.length && gifUrl) {
-                const gifTag = '[gif]' + gifUrl + '[/gif]';
-                $textarea.val($textarea.val().replace(gifTag, '').trim());
-            }
+            // Vider le champ caché
+            $('#vic-post-gif-input').val('');
 
             $(this).closest('.vic-gif-preview-item').remove();
         });
@@ -497,6 +530,8 @@
             formData.append('post_content', $submitForm.find('textarea[name="post_content"]').val());
             formData.append('post_category', $submitForm.find('select[name="post_category"]').val());
             formData.append('post_url', $submitForm.find('input[name="post_url"]').val());
+            formData.append('post_gif', $('#vic-post-gif-input').val());
+            formData.append('post_youtube', $('#vic-post-youtube-input').val());
 
             // Add files
             selectedFiles.forEach(function(file) {
@@ -519,6 +554,8 @@
                         selectedFiles = [];
                         $preview.empty();
                         $urlField.hide();
+                        $('#vic-post-gif-input').val('');
+                        $('#vic-post-youtube-input').val('');
                         $('.vic-upload-btn').removeClass('has-files');
                         $form.slideUp(200);
                         $trigger.show();
