@@ -349,12 +349,12 @@ body .vic-community-wrapper,
 
 /* Post d'administrateur avec liseré jaune/doré */
 .vic-post-card.vic-admin-post {
-    border: 2px solid #F59E0B;
-    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2);
+    border: 2px solid #F59E0B !important;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15) !important;
 }
 
 .vic-post-card.vic-admin-post:hover {
-    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+    box-shadow: 0 2px 12px rgba(245, 158, 11, 0.25) !important;
 }
 
 /* Badge épinglé - Style Skool exact (juste icône + texte) */
