@@ -249,7 +249,21 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
                 'type' => \Elementor\Controls_Manager::COLOR,
                 'default' => '#F59E0B',
                 'selectors' => [
-                    '{{WRAPPER}} .vic-post-card.vic-admin-post' => 'border-color: {{VALUE}}; border-width: 2px;',
+                    '{{WRAPPER}} .vic-post-card.vic-admin-post' => 'border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'admin_border_width',
+            [
+                'label' => 'Épaisseur de bordure admin',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 1, 'max' => 10]],
+                'default' => ['unit' => 'px', 'size' => 2],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-card.vic-admin-post' => 'border-width: {{SIZE}}{{UNIT}}; border-style: solid;',
                 ],
             ]
         );
