@@ -1162,45 +1162,82 @@
         $(document).on('click', '.vic-emoji-item', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            const emoji = $(this).text().trim();
+
+            const $emojiItem = $(this);
+            const emoji = $emojiItem.text().trim();
+
+            // DEBUG: Log détaillé de l'emoji
+            console.log('=== DEBUG EMOJI ===');
+            console.log('Emoji cliqué (text):', emoji);
+            console.log('Emoji cliqué (html):', $emojiItem.html());
+            console.log('Emoji length:', emoji.length);
+            console.log('Emoji charCodeAt:', emoji.charCodeAt(0));
 
             // Trouver l'input en remontant dans le DOM depuis le picker
-            const $picker = $(this).closest('.vic-emoji-picker-full, .vic-emoji-picker');
+            const $picker = $emojiItem.closest('.vic-emoji-picker-full, .vic-emoji-picker');
             let $input = null;
+            let methodUsed = '';
+
+            console.log('Picker trouvé:', $picker.length);
+            console.log('Picker parent:', $picker.parent().attr('class'));
 
             // Méthode 1: Remonter vers le wrapper parent et chercher l'input directement
-            // Structure: .vic-comment-input-skool-wrapper > input.vic-comment-input-skool + .vic-comment-tools-skool > picker
             const $wrapper = $picker.closest('.vic-comment-input-skool-wrapper');
+            console.log('Wrapper trouvé (méthode 1):', $wrapper.length);
             if ($wrapper.length) {
                 $input = $wrapper.children('.vic-comment-input-skool');
+                console.log('Input via children:', $input.length);
+                if (!$input.length) {
+                    // Essayer avec find au cas où
+                    $input = $wrapper.find('.vic-comment-input-skool');
+                    console.log('Input via find:', $input.length);
+                }
+                if ($input.length) methodUsed = 'wrapper children/find';
             }
 
             // Méthode 2: Chercher dans la modale visible
             if (!$input || !$input.length) {
                 const $modal = $('.vic-modal:visible');
+                console.log('Modal visible trouvée:', $modal.length);
                 if ($modal.length) {
                     $input = $modal.find('.vic-comment-input-skool');
+                    console.log('Input dans modal:', $input.length);
+                    if ($input.length) methodUsed = 'modal';
                 }
             }
 
             // Méthode 3: Chercher dans le formulaire principal de la page
             if (!$input || !$input.length) {
                 $input = $('.vic-comment-form-wrapper-skool .vic-comment-input-skool').first();
+                console.log('Input dans form wrapper:', $input.length);
+                if ($input.length) methodUsed = 'form wrapper';
             }
 
             // Méthode 4: Chercher globalement (fallback)
             if (!$input || !$input.length) {
                 $input = $('.vic-comment-input-skool').first();
+                console.log('Input global:', $input.length);
+                if ($input.length) methodUsed = 'global';
             }
 
-            console.log('Emoji - Input trouvé:', $input.length, 'Valeur actuelle:', $input.val());
+            console.log('=== RESULTAT ===');
+            console.log('Méthode utilisée:', methodUsed);
+            console.log('Input trouvé:', $input.length);
+            console.log('Input element:', $input[0]);
+            console.log('Valeur actuelle:', $input.val());
 
             if ($input && $input.length) {
                 const currentVal = $input.val() || '';
                 const newVal = currentVal + emoji;
 
+                console.log('Ancienne valeur:', currentVal);
+                console.log('Nouvelle valeur à définir:', newVal);
+
                 // Utiliser la méthode native pour changer la valeur
                 $input[0].value = newVal;
+
+                // Aussi via jQuery pour être sûr
+                $input.val(newVal);
 
                 // Trigger les événements
                 $input.trigger('input').trigger('change');
@@ -1208,10 +1245,13 @@
                 // Focus et curseur à la fin
                 $input[0].focus();
                 const len = newVal.length;
-                $input[0].selectionStart = len;
-                $input[0].selectionEnd = len;
+                $input[0].setSelectionRange(len, len);
 
-                console.log('Emoji inséré, nouvelle valeur:', $input.val());
+                console.log('Valeur après insertion:', $input.val());
+                console.log('Valeur native après insertion:', $input[0].value);
+                console.log('=================');
+            } else {
+                console.error('ERREUR: Aucun input trouvé!');
             }
 
             // Fermer le picker
