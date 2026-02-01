@@ -1573,44 +1573,145 @@
 }
 
 /* ========================================
-   JUMP TO LATEST COMMENT
+   JUMP TO LATEST COMMENT - STICKY
    ======================================== */
 
-.vic-jump-latest-wrapper {
+.vic-jump-latest-sticky {
+    position: sticky;
+    bottom: 80px;
     display: flex;
     justify-content: center;
     padding: 12px 0;
-    border-bottom: 1px solid var(--vic-gray-200);
-    margin-bottom: 16px;
+    z-index: 50;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.vic-jump-latest-sticky.hidden {
+    opacity: 0;
+    visibility: hidden;
 }
 
 .vic-jump-latest {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
-    background: none;
+    padding: 10px 20px;
+    background: var(--vic-white);
     border: 1px solid var(--vic-gray-300);
-    border-radius: 20px;
+    border-radius: 24px;
     color: var(--vic-gray-600);
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
+    pointer-events: auto;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
 }
 
 .vic-jump-latest:hover {
-    background: var(--vic-gray-100);
+    background: var(--vic-gray-50);
     border-color: var(--vic-gray-400);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .vic-jump-latest svg {
-    transform: rotate(180deg);
+    /* Flèche vers le bas - pas de rotation */
 }
 
 /* ========================================
-   EMOJI PICKER
+   EMOJI PICKER - FULL VERSION
    ======================================== */
 
+.vic-emoji-picker-full {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    background: var(--vic-white);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    width: 320px;
+    max-height: 380px;
+    z-index: 1000;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.vic-emoji-search {
+    padding: 12px;
+    border-bottom: 1px solid var(--vic-gray-200);
+}
+
+.vic-emoji-search-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--vic-gray-300);
+    border-radius: 8px;
+    font-size: 13px;
+    background: var(--vic-gray-50);
+}
+
+.vic-emoji-search-input:focus {
+    outline: none;
+    border-color: var(--vic-primary);
+    background: var(--vic-white);
+}
+
+.vic-emoji-categories {
+    display: flex;
+    padding: 8px 12px;
+    gap: 4px;
+    border-bottom: 1px solid var(--vic-gray-100);
+    overflow-x: auto;
+}
+
+.vic-emoji-categories button {
+    padding: 6px 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 18px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.vic-emoji-categories button:hover {
+    background: var(--vic-gray-100);
+}
+
+.vic-emoji-categories button.active {
+    background: var(--vic-gray-200);
+}
+
+.vic-emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 2px;
+    padding: 8px;
+    overflow-y: auto;
+    max-height: 250px;
+}
+
+.vic-emoji-item {
+    cursor: pointer;
+    padding: 6px;
+    font-size: 22px;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+}
+
+.vic-emoji-item:hover {
+    background: var(--vic-gray-100);
+}
+
+/* Legacy simple picker */
 .vic-emoji-picker {
     position: absolute;
     bottom: calc(100% + 8px);
@@ -1626,22 +1727,84 @@
     z-index: 100;
 }
 
-.vic-emoji-item {
-    cursor: pointer;
-    padding: 6px;
-    font-size: 20px;
-    border-radius: 6px;
-    transition: background 0.2s ease;
-    text-align: center;
-    width: 36px;
-    height: 36px;
+/* ========================================
+   GIF PICKER
+   ======================================== */
+
+.vic-gif-picker {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    width: 340px;
+    max-height: 420px;
+    background: var(--vic-white);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    overflow: hidden;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
 }
 
-.vic-emoji-item:hover {
-    background: var(--vic-gray-100);
+.vic-gif-header {
+    padding: 12px;
+    border-bottom: 1px solid var(--vic-gray-200);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.vic-gif-search-input {
+    flex: 1;
+    border: 1px solid var(--vic-gray-300);
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 13px;
+    background: var(--vic-gray-50);
+}
+
+.vic-gif-search-input:focus {
+    outline: none;
+    border-color: var(--vic-primary);
+    background: var(--vic-white);
+}
+
+.vic-gif-powered {
+    font-size: 10px;
+    color: var(--vic-gray-400);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.vic-gif-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+    padding: 8px;
+    overflow-y: auto;
+    max-height: 340px;
+}
+
+.vic-gif-grid img {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.vic-gif-grid img:hover {
+    transform: scale(1.03);
+    opacity: 0.9;
+}
+
+.vic-gif-loading {
+    text-align: center;
+    padding: 20px;
+    color: var(--vic-gray-500);
+    font-size: 13px;
 }
 
 /* ========================================

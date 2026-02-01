@@ -893,6 +893,25 @@
             }
         });
 
+        // Détection scroll pour masquer le bouton jump quand en bas
+        $(document).on('scroll', '.vic-modal-content', function() {
+            const $this = $(this);
+            const $jumpBtn = $('#vic-jump-latest');
+
+            if (!$jumpBtn.length) return;
+
+            const scrollTop = $this.scrollTop();
+            const scrollHeight = this.scrollHeight;
+            const clientHeight = this.clientHeight;
+
+            // Si on est proche du bas (< 150px du bas), masquer le bouton
+            if (scrollTop + clientHeight >= scrollHeight - 150) {
+                $jumpBtn.addClass('hidden');
+            } else {
+                $jumpBtn.removeClass('hidden');
+            }
+        });
+
         // ====== Comment Menu 3 Points ======
         $(document).on('click', '.vic-comment-menu-trigger', function(e) {
             e.preventDefault();
@@ -971,56 +990,267 @@
             }
         });
 
-        // ====== Emoji Picker ======
+        // ====== EMOJI PICKER COMPLET ======
+        const emojiData = {
+            smileys: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😊','😇','🥰','😍','🤩','😘','😗','😚','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖'],
+            people: ['👋','🤚','🖐','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🧠','🫀','🫁','🦷','🦴','👀','👁','👅','👄'],
+            nature: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🐤','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🪱','🐛','🦋','🐌','🐞','🐜','🪰','🪲','🪳','🦟','🦗','🌸','💐','🌷','🌹','🥀','🌺','🌻','🌼','🌱','🌲','🌳','🌴','🌵','🌾','🌿','☘️','🍀','🍁','🍂','🍃'],
+            food: ['🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌶️','🫑','🌽','🥕','🧄','🧅','🥔','🍠','🥐','🥯','🍞','🥖','🥨','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🍖','🦴','🌭','🍔','🍟','🍕','🫓','🥪','🥙','🧆','🌮','🌯','🫔','🥗','🥘','🫕','🥫','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🦪','🍤','🍙','🍚','🍘','🍥','🥠','🥮','🍢','🍡','🍧','🍨','🍦','🥧','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍿','🍩','🍪','🌰','🥜','🍯','🥛','🍼','🫖','☕','🍵','🧃','🥤','🧋','🍶','🍺','🍻','🥂','🍷','🥃','🍸','🍹','🧉','🍾','🧊'],
+            activities: ['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🪀','🏓','🏸','🏒','🏑','🥍','🏏','🪃','🥅','⛳','🪁','🏹','🎣','🤿','🥊','🥋','🎽','🛹','🛼','🛷','⛸️','🥌','🎿','⛷️','🏂','🪂','🏋️','🤼','🤸','🤺','⛹️','🤾','🏌️','🏇','🧘','🏄','🏊','🤽','🚣','🧗','🚴','🚵','🎬','🎤','🎧','🎼','🎹','🥁','🪘','🎷','🎺','🪗','🎸','🪕','🎻','🎲','♟️','🎯','🎳','🎮','🎰','🧩'],
+            travel: ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🛵','🏍️','🛺','🚲','🛴','🛹','🚁','🛸','✈️','🛩️','🛫','🛬','🪂','💺','🚀','🛶','⛵','🚤','🛥️','🛳️','⛴️','🚢','🗼','🗽','🗿','🏰','🏯','🏟️','🎡','🎢','🎠','⛲','⛱️','🏖️','🏝️','🏜️','🌋','⛰️','🏔️','🗻','🏕️','⛺','🛖','🏠','🏡','🏘️','🏚️','🏗️','🏢','🏬','🏣','🏤','🏥','🏦','🏨','🏪','🏫','🏩','💒','🏛️','⛪','🕌','🕍','🛕','🕋','⛩️'],
+            objects: ['⌚','📱','💻','⌨️','🖥️','🖨️','🖱️','🖲️','🕹️','💽','💾','💿','📀','📼','📷','📸','📹','🎥','📽️','🎞️','📞','☎️','📟','📠','📺','📻','🎙️','🎚️','🎛️','🧭','⏱️','⏲️','⏰','🕰️','⌛','⏳','📡','🔋','🔌','💡','🔦','🕯️','🧯','💸','💵','💴','💶','💷','💰','💳','💎','⚖️','🧰','🔧','🔨','⚒️','🛠️','⛏️','🔩','⚙️','⛓️','🔫','💣','🔪','🗡️','⚔️','🛡️','🚬','⚰️','🪦','⚱️','🏺','🔮','📿','🧿','💈','⚗️','🔭','🔬','🕳️','🩹','🩺','💊','💉','🩸','🧬','🦠','🧫','🧪'],
+            symbols: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','☸️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','🚭','❗','❕','❓','❔','‼️','⁉️','🔅','🔆','〽️','⚠️','🚸','🔱','⚜️','🔰','♻️','✅','🈯','💹','❇️','✳️','❎','🌐','💠','Ⓜ️','🌀','💤','🏧','🚾','♿','🅿️','🛗','🈳','🈂️','🛂','🛃','🛄','🛅','🚹','🚺','🚼','⚧️','🚻','🚮','🎦','📶','🈁','🔣','ℹ️','🔤','🔡','🔠','🆖','🆗','🆙','🆒','🆕','🆓','0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟','🔢','#️⃣','*️⃣','⏏️','▶️','⏸️','⏯️','⏹️','⏺️','⏭️','⏮️','⏩','⏪','⏫','⏬','◀️','🔼','🔽','➡️','⬅️','⬆️','⬇️','↗️','↘️','↙️','↖️','↕️','↔️','↪️','↩️','⤴️','⤵️','🔀','🔁','🔂','🔄','🔃','🎵','🎶','➕','➖','➗','✖️','🟰','♾️','💲','💱','™️','©️','®️','〰️','➰','➿','🔚','🔙','🔛','🔝','🔜','✔️','☑️','🔘','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🟤','🔺','🔻','🔸','🔹','🔶','🔷','🔳','🔲','▪️','▫️','◾','◽','◼️','◻️','🟥','🟧','🟨','🟩','🟦','🟪','⬛','⬜','🟫','🔈','🔇','🔉','🔊','🔔','🔕','📣','📢','👁‍🗨','💬','💭','🗯️','♠️','♣️','♥️','♦️','🃏','🎴','🀄','🕐','🕑','🕒','🕓','🕔','🕕','🕖','🕗','🕘','🕙','🕚','🕛','🕜','🕝','🕞','🕟','🕠','🕡','🕢','🕣','🕤','🕥','🕦','🕧']
+        };
+
+        const emojiCategories = [
+            { id: 'smileys', icon: '😀', name: 'Smileys' },
+            { id: 'people', icon: '👋', name: 'Personnes' },
+            { id: 'nature', icon: '🌿', name: 'Nature' },
+            { id: 'food', icon: '🍕', name: 'Nourriture' },
+            { id: 'activities', icon: '⚽', name: 'Activités' },
+            { id: 'travel', icon: '✈️', name: 'Voyage' },
+            { id: 'objects', icon: '💡', name: 'Objets' },
+            { id: 'symbols', icon: '❤️', name: 'Symboles' }
+        ];
+
         $(document).on('click', '.vic-comment-add-emoji', function(e) {
             e.preventDefault();
             e.stopPropagation();
 
             const $btn = $(this);
-            let $picker = $btn.siblings('.vic-emoji-picker');
 
-            // Close other pickers
-            $('.vic-emoji-picker').not($picker).remove();
+            // Fermer autres pickers
+            $('.vic-emoji-picker-full, .vic-emoji-picker, .vic-gif-picker').remove();
 
-            if ($picker.length) {
-                $picker.remove();
-            } else {
-                const emojis = ['😀', '😂', '😍', '🥰', '😎', '🤔', '👍', '👏', '🎉', '🔥', '❤️', '💯', '✨', '🙌', '💪', '🚀'];
-                const $newPicker = $('<div class="vic-emoji-picker"></div>');
-                emojis.forEach(function(emoji) {
-                    $newPicker.append('<span class="vic-emoji-item">' + emoji + '</span>');
-                });
-                $btn.after($newPicker);
-            }
+            // Créer le picker complet
+            const $picker = $('<div class="vic-emoji-picker-full"></div>');
+
+            // Barre de recherche
+            $picker.append('<div class="vic-emoji-search"><input type="text" placeholder="Rechercher un emoji..." class="vic-emoji-search-input"></div>');
+
+            // Catégories
+            const $categories = $('<div class="vic-emoji-categories"></div>');
+            emojiCategories.forEach(function(cat, idx) {
+                $categories.append('<button data-category="' + cat.id + '" ' + (idx === 0 ? 'class="active"' : '') + ' title="' + cat.name + '">' + cat.icon + '</button>');
+            });
+            $picker.append($categories);
+
+            // Grille d'emojis
+            const $grid = $('<div class="vic-emoji-grid"></div>');
+            renderEmojiCategory('smileys', $grid);
+            $picker.append($grid);
+
+            $btn.after($picker);
+            $picker.find('.vic-emoji-search-input').focus();
         });
 
-        // Insert emoji
+        function renderEmojiCategory(category, $grid) {
+            $grid.empty();
+            const emojis = emojiData[category] || [];
+            emojis.forEach(function(emoji) {
+                $grid.append('<span class="vic-emoji-item">' + emoji + '</span>');
+            });
+        }
+
+        // Changer de catégorie
+        $(document).on('click', '.vic-emoji-categories button', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const category = $(this).data('category');
+            const $picker = $(this).closest('.vic-emoji-picker-full');
+
+            $picker.find('.vic-emoji-categories button').removeClass('active');
+            $(this).addClass('active');
+
+            renderEmojiCategory(category, $picker.find('.vic-emoji-grid'));
+        });
+
+        // Recherche emoji
+        $(document).on('input', '.vic-emoji-search-input', function() {
+            const query = $(this).val().toLowerCase();
+            const $picker = $(this).closest('.vic-emoji-picker-full');
+            const $grid = $picker.find('.vic-emoji-grid');
+
+            if (query.length < 1) {
+                // Afficher catégorie active
+                const activeCategory = $picker.find('.vic-emoji-categories button.active').data('category');
+                renderEmojiCategory(activeCategory, $grid);
+                return;
+            }
+
+            // Rechercher dans toutes les catégories
+            $grid.empty();
+            let found = [];
+            Object.keys(emojiData).forEach(function(cat) {
+                emojiData[cat].forEach(function(emoji) {
+                    if (found.length < 50) {
+                        found.push(emoji);
+                    }
+                });
+            });
+
+            // Afficher les résultats (on prend les 40 premiers pour l'instant)
+            found.slice(0, 40).forEach(function(emoji) {
+                $grid.append('<span class="vic-emoji-item">' + emoji + '</span>');
+            });
+        });
+
+        // Insérer emoji - FIX du bug
         $(document).on('click', '.vic-emoji-item', function(e) {
             e.preventDefault();
             e.stopPropagation();
             const emoji = $(this).text();
-            const $input = $('.vic-comment-input-skool');
-            $input.val($input.val() + emoji);
-            $input.focus();
-            $(this).closest('.vic-emoji-picker').remove();
+
+            // Trouver le bon input
+            const $modal = $('.vic-modal');
+            let $input = $modal.find('.vic-comment-input-skool');
+
+            if (!$input.length) {
+                $input = $modal.find('.vic-comment-input');
+            }
+
+            if ($input.length) {
+                const currentVal = $input.val();
+                $input.val(currentVal + emoji);
+                $input.focus();
+
+                // Positionner curseur à la fin
+                const len = $input.val().length;
+                if ($input[0].setSelectionRange) {
+                    $input[0].setSelectionRange(len, len);
+                }
+            }
+
+            // Fermer le picker
+            $('.vic-emoji-picker-full, .vic-emoji-picker').remove();
         });
 
-        // Close emoji picker on click outside
+        // Fermer emoji picker au clic ailleurs
         $(document).on('click', function(e) {
-            if (!$(e.target).closest('.vic-comment-add-emoji, .vic-emoji-picker').length) {
-                $('.vic-emoji-picker').remove();
+            if (!$(e.target).closest('.vic-comment-add-emoji, .vic-emoji-picker-full, .vic-emoji-picker').length) {
+                $('.vic-emoji-picker-full, .vic-emoji-picker').remove();
             }
         });
 
-        // ====== GIF Button ======
+        // ====== GIF PICKER AVEC GIPHY ======
+        const GIPHY_API_KEY = 'dc6zaTOxFJmzC'; // Clé publique beta Giphy
+
         $(document).on('click', '.vic-comment-add-gif', function(e) {
             e.preventDefault();
-            const url = prompt('Collez l\'URL du GIF :');
-            if (url && url.trim()) {
-                const $input = $('.vic-comment-input-skool');
+            e.stopPropagation();
+
+            const $btn = $(this);
+
+            // Fermer autres pickers
+            $('.vic-gif-picker, .vic-emoji-picker-full, .vic-emoji-picker').remove();
+
+            // Créer le picker GIF
+            const $picker = $(`
+                <div class="vic-gif-picker">
+                    <div class="vic-gif-header">
+                        <input type="text" placeholder="Rechercher des GIFs..." class="vic-gif-search-input">
+                        <span class="vic-gif-powered">GIPHY</span>
+                    </div>
+                    <div class="vic-gif-grid">
+                        <div class="vic-gif-loading">Chargement...</div>
+                    </div>
+                </div>
+            `);
+
+            $btn.after($picker);
+
+            // Charger les GIFs tendance
+            loadTrendingGifs($picker.find('.vic-gif-grid'));
+
+            $picker.find('.vic-gif-search-input').focus();
+        });
+
+        // Charger GIFs tendance
+        function loadTrendingGifs($container) {
+            fetch('https://api.giphy.com/v1/gifs/trending?api_key=' + GIPHY_API_KEY + '&limit=20&rating=pg')
+                .then(response => response.json())
+                .then(data => {
+                    renderGifs(data.data, $container);
+                })
+                .catch(() => {
+                    $container.html('<div class="vic-gif-loading">Erreur de chargement</div>');
+                });
+        }
+
+        // Rechercher GIFs
+        let gifSearchTimeout;
+        $(document).on('input', '.vic-gif-search-input', function() {
+            const query = $(this).val().trim();
+            const $picker = $(this).closest('.vic-gif-picker');
+            const $grid = $picker.find('.vic-gif-grid');
+
+            clearTimeout(gifSearchTimeout);
+
+            if (query.length < 2) {
+                loadTrendingGifs($grid);
+                return;
+            }
+
+            $grid.html('<div class="vic-gif-loading">Recherche...</div>');
+
+            gifSearchTimeout = setTimeout(function() {
+                fetch('https://api.giphy.com/v1/gifs/search?api_key=' + GIPHY_API_KEY + '&q=' + encodeURIComponent(query) + '&limit=20&rating=pg')
+                    .then(response => response.json())
+                    .then(data => {
+                        renderGifs(data.data, $grid);
+                    })
+                    .catch(() => {
+                        $grid.html('<div class="vic-gif-loading">Erreur de recherche</div>');
+                    });
+            }, 300);
+        });
+
+        // Afficher les GIFs
+        function renderGifs(gifs, $container) {
+            $container.empty();
+
+            if (!gifs || gifs.length === 0) {
+                $container.html('<div class="vic-gif-loading">Aucun GIF trouvé</div>');
+                return;
+            }
+
+            gifs.forEach(function(gif) {
+                const previewUrl = gif.images.fixed_height_small ? gif.images.fixed_height_small.url : gif.images.original.url;
+                const fullUrl = gif.images.original.url;
+                const $img = $('<img src="' + previewUrl + '" alt="' + (gif.title || 'GIF') + '" data-full="' + fullUrl + '">');
+                $container.append($img);
+            });
+        }
+
+        // Insérer GIF sélectionné
+        $(document).on('click', '.vic-gif-grid img', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const gifUrl = $(this).data('full');
+
+            // Trouver le bon input
+            const $modal = $('.vic-modal');
+            let $input = $modal.find('.vic-comment-input-skool');
+
+            if (!$input.length) {
+                $input = $modal.find('.vic-comment-input');
+            }
+
+            if ($input.length && gifUrl) {
                 const currentVal = $input.val();
-                $input.val(currentVal + (currentVal ? ' ' : '') + url.trim());
+                $input.val(currentVal + (currentVal ? ' ' : '') + gifUrl);
                 $input.focus();
+            }
+
+            // Fermer le picker
+            $('.vic-gif-picker').remove();
+        });
+
+        // Fermer GIF picker au clic ailleurs
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.vic-comment-add-gif, .vic-gif-picker').length) {
+                $('.vic-gif-picker').remove();
             }
         });
 

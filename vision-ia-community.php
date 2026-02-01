@@ -993,18 +993,6 @@ class Vision_IA_Community {
                 </span>
             </div>
 
-            <!-- Jump to Latest Comment -->
-            <?php if ($comment_count > 0) : ?>
-            <div class="vic-jump-latest-wrapper">
-                <button class="vic-jump-latest" type="button">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 5v14M5 12l7 7 7-7"/>
-                    </svg>
-                    Aller au dernier commentaire
-                </button>
-            </div>
-            <?php endif; ?>
-
             <!-- Comments Section -->
             <div class="vic-comments-section">
                 <div class="vic-comments-list">
@@ -1028,6 +1016,18 @@ class Vision_IA_Community {
                     ?>
                 </div>
             </div>
+
+            <!-- Jump to Latest Comment - Sticky -->
+            <?php if ($comment_count > 1) : ?>
+            <div class="vic-jump-latest-sticky" id="vic-jump-latest">
+                <button class="vic-jump-latest" type="button">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12l-7 7-7-7"/>
+                    </svg>
+                    Aller au dernier commentaire
+                </button>
+            </div>
+            <?php endif; ?>
 
             <!-- Comment Form (Skool-style) -->
             <?php if (is_user_logged_in()) : ?>
