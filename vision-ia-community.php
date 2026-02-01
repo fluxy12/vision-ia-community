@@ -26,6 +26,8 @@ class Vision_IA_Community {
         add_action('wp_ajax_vic_load_posts', [$this, 'handle_load_posts']);
         add_action('wp_ajax_nopriv_vic_load_posts', [$this, 'handle_load_posts']);
         add_action('wp_ajax_vic_pin_post', [$this, 'handle_pin_post']);
+        add_action('wp_ajax_vic_search_posts', [$this, 'handle_search_posts']);
+        add_action('wp_ajax_nopriv_vic_search_posts', [$this, 'handle_search_posts']);
         add_shortcode('community_feed', [$this, 'render_feed']);
         
         // Hook MasterStudy profile tab
@@ -262,6 +264,18 @@ class Vision_IA_Community {
                 </div>
             </div>
             <?php endif; ?>
+
+            <!-- Search Bar -->
+            <div class="vic-search-box">
+                <div class="vic-search-wrapper">
+                    <svg class="vic-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="vic-search-input" class="vic-search-input" placeholder="Rechercher dans la communauté...">
+                    <button type="button" id="vic-search-clear" class="vic-search-clear" style="display: none;">✕</button>
+                </div>
+            </div>
 
             <!-- Category Filters -->
             <div class="vic-filters">
@@ -710,14 +724,14 @@ class Vision_IA_Community {
      */
     public function handle_pin_post() {
         check_ajax_referer('vic_nonce', 'nonce');
-        
+
         if (!current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'Permission refusée']);
         }
-        
+
         $post_id = intval($_POST['post_id']);
         $is_pinned = get_post_meta($post_id, '_vic_pinned', true);
-        
+
         if ($is_pinned) {
             delete_post_meta($post_id, '_vic_pinned');
             $pinned = false;
@@ -725,9 +739,72 @@ class Vision_IA_Community {
             update_post_meta($post_id, '_vic_pinned', '1');
             $pinned = true;
         }
-        
+
         wp_send_json_success([
             'pinned' => $pinned
+        ]);
+    }
+
+    /**
+     * Handle search posts AJAX
+     */
+    public function handle_search_posts() {
+        check_ajax_referer('vic_nonce', 'nonce');
+
+        $search = sanitize_text_field($_POST['search']);
+        $category = sanitize_text_field($_POST['category']);
+        $posts_per_page = 10;
+
+        $args = [
+            'post_type' => 'community_post',
+            'posts_per_page' => $posts_per_page,
+            'orderby' => 'date',
+            'order' => 'DESC'
+        ];
+
+        // Add search parameter
+        if (!empty($search)) {
+            $args['s'] = $search;
+        }
+
+        // Add category filter
+        if ($category && $category !== 'all') {
+            $args['tax_query'] = [
+                [
+                    'taxonomy' => 'community_category',
+                    'field' => 'slug',
+                    'terms' => $category
+                ]
+            ];
+        }
+
+        $query = new WP_Query($args);
+
+        ob_start();
+
+        if ($query->have_posts()) {
+            while ($query->have_posts()) {
+                $query->the_post();
+                $this->render_single_post(get_the_ID());
+            }
+            wp_reset_postdata();
+        } else {
+            if (!empty($search)) {
+                echo '<p class="vic-no-posts">Aucun résultat pour "' . esc_html($search) . '"</p>';
+            } else {
+                echo '<p class="vic-no-posts">Aucun post pour le moment.</p>';
+            }
+        }
+
+        $html = ob_get_clean();
+
+        // Check if there are more posts
+        $has_more = $query->max_num_pages > 1;
+
+        wp_send_json_success([
+            'html' => $html,
+            'has_more' => $has_more,
+            'found_posts' => $query->found_posts
         ]);
     }
 

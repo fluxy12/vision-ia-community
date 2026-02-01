@@ -12,6 +12,7 @@
         initFilters();
         initLoadMore();
         initPinning();
+        initSearch();
     });
 
     /**
@@ -148,26 +149,36 @@
             return base + '...' + ext;
         }
         
-        // URL field toggle
-        $('#vic-add-url').on('click', function() {
-            $urlField.slideToggle(200);
-            if ($urlField.is(':visible')) {
-                $urlField.find('input').focus();
-            }
+        // URL field toggle - utiliser délégation d'événements
+        $(document).on('click', '#vic-add-url', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const $field = $('#vic-url-field');
+            $field.slideToggle(200);
+            setTimeout(function() {
+                if ($field.is(':visible')) {
+                    $field.find('input').focus();
+                }
+            }, 210);
         });
-        
+
         // Remove URL field
-        $urlField.find('.vic-btn-remove-field').on('click', function() {
-            $urlField.slideUp(200);
-            $urlField.find('input').val('');
+        $(document).on('click', '#vic-url-field .vic-btn-remove-field', function(e) {
+            e.preventDefault();
+            const $field = $('#vic-url-field');
+            $field.slideUp(200);
+            $field.find('input').val('');
         });
-        
-        // YouTube prompt
-        $('#vic-add-youtube').on('click', function() {
+
+        // YouTube prompt - utiliser délégation d'événements
+        $(document).on('click', '#vic-add-youtube', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             const url = prompt('Collez l\'URL de la vidéo YouTube :');
-            if (url) {
-                const $textarea = $submitForm.find('textarea[name="post_content"]');
-                $textarea.val($textarea.val() + '\n' + url);
+            if (url && url.trim()) {
+                const $textarea = $('#vic-new-post-form textarea[name="post_content"]');
+                const currentVal = $textarea.val();
+                $textarea.val(currentVal + (currentVal ? '\n' : '') + url.trim());
                 updateSubmitButton();
             }
         });
@@ -356,12 +367,12 @@
     function initPinning() {
         $(document).on('click', '.vic-pin-btn', function(e) {
             e.preventDefault();
-            
+
             const $btn = $(this);
             const postId = $btn.data('post-id');
-            
+
             $btn.prop('disabled', true);
-            
+
             $.ajax({
                 url: vicAjax.ajaxurl,
                 type: 'POST',
@@ -386,6 +397,86 @@
                 }
             });
         });
+    }
+
+    /**
+     * Search functionality
+     */
+    function initSearch() {
+        let searchTimeout;
+        const $searchInput = $('#vic-search-input');
+        const $searchClear = $('#vic-search-clear');
+        const $feed = $('#vic-feed');
+        const $loadMore = $('#vic-load-more');
+
+        // Search on input with debounce
+        $searchInput.on('input', function() {
+            const query = $(this).val().trim();
+
+            // Show/hide clear button
+            if (query.length > 0) {
+                $searchClear.show();
+            } else {
+                $searchClear.hide();
+            }
+
+            // Debounce search
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                performSearch(query);
+            }, 300);
+        });
+
+        // Clear search
+        $searchClear.on('click', function() {
+            $searchInput.val('');
+            $(this).hide();
+            performSearch('');
+        });
+
+        // Search on enter
+        $searchInput.on('keypress', function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                clearTimeout(searchTimeout);
+                performSearch($(this).val().trim());
+            }
+        });
+
+        function performSearch(query) {
+            const category = $('.vic-filter-btn.active').data('category');
+
+            $feed.addClass('vic-loading');
+
+            $.ajax({
+                url: vicAjax.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'vic_search_posts',
+                    nonce: vicAjax.nonce,
+                    search: query,
+                    category: category
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $feed.html(response.data.html);
+
+                        // Hide load more when searching
+                        if (query.length > 0) {
+                            $loadMore.hide();
+                        } else if (response.data.has_more) {
+                            $loadMore.show();
+                        }
+
+                        // Reset page counter
+                        $loadMore.data('page', 1);
+                    }
+                },
+                complete: function() {
+                    $feed.removeClass('vic-loading');
+                }
+            });
+        }
     }
 
 })(jQuery);
