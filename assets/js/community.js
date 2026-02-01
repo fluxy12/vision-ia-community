@@ -884,6 +884,146 @@
             this.style.height = Math.min(this.scrollHeight, 100) + 'px';
         });
 
+        // ====== Jump to Latest Comment ======
+        $(document).on('click', '.vic-jump-latest', function(e) {
+            e.preventDefault();
+            const $lastComment = $('.vic-comments-list > .vic-comment:last-child');
+            if ($lastComment.length) {
+                $lastComment[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+
+        // ====== Comment Menu 3 Points ======
+        $(document).on('click', '.vic-comment-menu-trigger', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const $menu = $(this).closest('.vic-comment-menu');
+            $('.vic-comment-menu').not($menu).removeClass('active');
+            $menu.toggleClass('active');
+        });
+
+        // Close menu on click outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.vic-comment-menu').length) {
+                $('.vic-comment-menu').removeClass('active');
+            }
+        });
+
+        // Copy comment link
+        $(document).on('click', '.vic-copy-link', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const postId = $(this).data('post-id');
+            const commentId = $(this).data('comment-id');
+            const url = window.location.origin + window.location.pathname + '?p=' + postId + '#comment-' + commentId;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(function() {
+                    alert('Lien copié !');
+                }).catch(function() {
+                    prompt('Copiez ce lien:', url);
+                });
+            } else {
+                prompt('Copiez ce lien:', url);
+            }
+            $('.vic-comment-menu').removeClass('active');
+        });
+
+        // Report comment
+        $(document).on('click', '.vic-report-comment', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const commentId = $(this).data('comment-id');
+
+            if (confirm('Voulez-vous signaler ce commentaire aux administrateurs ?')) {
+                $.ajax({
+                    url: vicAjax.ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'vic_report_comment',
+                        nonce: vicAjax.nonce,
+                        comment_id: commentId
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Commentaire signalé aux administrateurs.');
+                        } else {
+                            alert(response.data.message || 'Erreur lors du signalement');
+                        }
+                    },
+                    error: function() {
+                        alert('Erreur de connexion');
+                    }
+                });
+            }
+            $('.vic-comment-menu').removeClass('active');
+        });
+
+        // ====== YouTube Button in Comment Form ======
+        $(document).on('click', '.vic-comment-add-youtube', function(e) {
+            e.preventDefault();
+            const url = prompt('Collez l\'URL de la vidéo YouTube :');
+            if (url && url.trim()) {
+                const $input = $('.vic-comment-input-skool');
+                const currentVal = $input.val();
+                $input.val(currentVal + (currentVal ? ' ' : '') + url.trim());
+                $input.focus();
+            }
+        });
+
+        // ====== Emoji Picker ======
+        $(document).on('click', '.vic-comment-add-emoji', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $btn = $(this);
+            let $picker = $btn.siblings('.vic-emoji-picker');
+
+            // Close other pickers
+            $('.vic-emoji-picker').not($picker).remove();
+
+            if ($picker.length) {
+                $picker.remove();
+            } else {
+                const emojis = ['😀', '😂', '😍', '🥰', '😎', '🤔', '👍', '👏', '🎉', '🔥', '❤️', '💯', '✨', '🙌', '💪', '🚀'];
+                const $newPicker = $('<div class="vic-emoji-picker"></div>');
+                emojis.forEach(function(emoji) {
+                    $newPicker.append('<span class="vic-emoji-item">' + emoji + '</span>');
+                });
+                $btn.after($newPicker);
+            }
+        });
+
+        // Insert emoji
+        $(document).on('click', '.vic-emoji-item', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const emoji = $(this).text();
+            const $input = $('.vic-comment-input-skool');
+            $input.val($input.val() + emoji);
+            $input.focus();
+            $(this).closest('.vic-emoji-picker').remove();
+        });
+
+        // Close emoji picker on click outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.vic-comment-add-emoji, .vic-emoji-picker').length) {
+                $('.vic-emoji-picker').remove();
+            }
+        });
+
+        // ====== GIF Button ======
+        $(document).on('click', '.vic-comment-add-gif', function(e) {
+            e.preventDefault();
+            const url = prompt('Collez l\'URL du GIF :');
+            if (url && url.trim()) {
+                const $input = $('.vic-comment-input-skool');
+                const currentVal = $input.val();
+                $input.val(currentVal + (currentVal ? ' ' : '') + url.trim());
+                $input.focus();
+            }
+        });
+
         // Submit reply
         $(document).on('click', '.vic-reply-submit', function(e) {
             e.preventDefault();

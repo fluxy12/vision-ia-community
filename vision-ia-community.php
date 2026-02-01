@@ -33,6 +33,7 @@ class Vision_IA_Community {
         add_action('wp_ajax_vic_add_comment', [$this, 'handle_add_comment']);
         add_action('wp_ajax_vic_like_comment', [$this, 'handle_like_comment']);
         add_action('wp_ajax_vic_reply_comment', [$this, 'handle_reply_comment']);
+        add_action('wp_ajax_vic_report_comment', [$this, 'handle_report_comment']);
         add_shortcode('community_feed', [$this, 'render_feed']);
         
         // Hook MasterStudy profile tab
@@ -204,7 +205,7 @@ class Vision_IA_Community {
                         
                         <input type="text" name="post_title" placeholder="Titre" class="vic-input vic-input-title" required>
                         
-                        <textarea name="post_content" placeholder="Write something..." class="vic-textarea" required></textarea>
+                        <textarea name="post_content" placeholder="Écrivez quelque chose..." class="vic-textarea" required></textarea>
                         
                         <!-- Champ URL caché -->
                         <div class="vic-url-field" id="vic-url-field" style="display: none;">
@@ -518,7 +519,7 @@ class Vision_IA_Community {
                     <span class="vic-last-comment">
                         <?php
                         $last_comment_time = human_time_diff(strtotime($recent_comments[0]->comment_date), current_time('timestamp'));
-                        echo 'New comment ' . $last_comment_time . ' ago';
+                        echo 'Nouveau commentaire il y a ' . $last_comment_time;
                         ?>
                     </span>
                 </div>
@@ -904,7 +905,7 @@ class Vision_IA_Community {
         <!-- Modal Content -->
         <div class="vic-modal-content">
             <div class="vic-modal-post-meta">
-                <span><?php echo esc_html($post_date); ?> ago</span>
+                <span>il y a <?php echo esc_html($post_date); ?></span>
                 <span>•</span>
                 <span class="vic-category-tag"><?php echo esc_html($category_name); ?> <?php echo $emoji; ?></span>
             </div>
@@ -980,7 +981,7 @@ class Vision_IA_Community {
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="<?php echo $user_liked ? 'currentColor' : 'none'; ?>" stroke="currentColor" stroke-width="2">
                         <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                     </svg>
-                    <span>Like</span>
+                    <span>J'aime</span>
                     <span class="vic-like-count"><?php echo $likes; ?></span>
                 </button>
 
@@ -988,9 +989,21 @@ class Vision_IA_Community {
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                     </svg>
-                    <?php echo $comment_count; ?> comments
+                    <?php echo $comment_count; ?> commentaires
                 </span>
             </div>
+
+            <!-- Jump to Latest Comment -->
+            <?php if ($comment_count > 0) : ?>
+            <div class="vic-jump-latest-wrapper">
+                <button class="vic-jump-latest" type="button">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12l7 7 7-7"/>
+                    </svg>
+                    Aller au dernier commentaire
+                </button>
+            </div>
+            <?php endif; ?>
 
             <!-- Comments Section -->
             <div class="vic-comments-section">
@@ -1022,7 +1035,7 @@ class Vision_IA_Community {
                 <div class="vic-comment-form-skool">
                     <?php echo get_avatar(get_current_user_id(), 32, '', '', ['class' => 'vic-comment-avatar-skool']); ?>
                     <div class="vic-comment-input-skool-wrapper">
-                        <input type="text" class="vic-comment-input-skool" placeholder="Your comment">
+                        <input type="text" class="vic-comment-input-skool" placeholder="Votre commentaire">
                         <div class="vic-comment-tools-skool">
                             <label class="vic-comment-tool-skool" title="Pièce jointe">
                                 <input type="file" class="vic-comment-file-input" accept="image/*" style="display:none;">
@@ -1036,13 +1049,13 @@ class Vision_IA_Community {
                                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                                 </svg>
                             </button>
-                            <button type="button" class="vic-comment-tool-skool" title="YouTube">
+                            <button type="button" class="vic-comment-tool-skool vic-comment-add-youtube" title="YouTube">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <rect x="2" y="4" width="20" height="16" rx="2"/>
                                     <polygon points="10,8 16,12 10,16"/>
                                 </svg>
                             </button>
-                            <button type="button" class="vic-comment-tool-skool" title="Emoji">
+                            <button type="button" class="vic-comment-tool-skool vic-comment-add-emoji" title="Emoji">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="12" cy="12" r="10"/>
                                     <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
@@ -1050,7 +1063,7 @@ class Vision_IA_Community {
                                     <line x1="15" y1="9" x2="15.01" y2="9"/>
                                 </svg>
                             </button>
-                            <button type="button" class="vic-comment-tool-skool" title="GIF">
+                            <button type="button" class="vic-comment-tool-skool vic-comment-add-gif" title="GIF">
                                 <span style="font-weight: 600; font-size: 12px;">GIF</span>
                             </button>
                         </div>
@@ -1108,11 +1121,23 @@ class Vision_IA_Community {
                 </div>
                 <div class="vic-comment-actions">
                     <button class="vic-comment-like-btn <?php echo $user_liked ? 'liked' : ''; ?>" data-comment-id="<?php echo $comment->comment_ID; ?>">
-                        👍 <span class="vic-comment-like-count"><?php echo $likes; ?></span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="<?php echo $user_liked ? 'currentColor' : 'none'; ?>" stroke="currentColor" stroke-width="2">
+                            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                        </svg>
+                        <span class="vic-comment-like-count"><?php echo $likes; ?></span>
                     </button>
                     <?php if ($depth < $max_depth && is_user_logged_in()) : ?>
-                    <button class="vic-comment-reply-btn" data-comment-id="<?php echo $comment->comment_ID; ?>" data-post-id="<?php echo $comment->comment_post_ID; ?>">Reply</button>
+                    <button class="vic-comment-reply-btn" data-comment-id="<?php echo $comment->comment_ID; ?>" data-post-id="<?php echo $comment->comment_post_ID; ?>">Répondre</button>
                     <?php endif; ?>
+
+                    <!-- Menu 3 points -->
+                    <div class="vic-comment-menu">
+                        <button class="vic-comment-menu-trigger" type="button">•••</button>
+                        <div class="vic-comment-menu-dropdown">
+                            <button type="button" class="vic-copy-link" data-comment-id="<?php echo $comment->comment_ID; ?>" data-post-id="<?php echo $comment->comment_post_ID; ?>">Copier le lien</button>
+                            <button type="button" class="vic-report-comment" data-comment-id="<?php echo $comment->comment_ID; ?>">Signaler aux admins</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Reply Form (hidden by default) -->
@@ -1341,6 +1366,38 @@ class Vision_IA_Community {
             'comment_html' => $comment_html,
             'comment_id' => $comment_id
         ]);
+    }
+
+    /**
+     * Handle report comment AJAX
+     */
+    public function handle_report_comment() {
+        check_ajax_referer('vic_nonce', 'nonce');
+
+        if (!is_user_logged_in()) {
+            wp_send_json_error(['message' => 'Vous devez être connecté']);
+        }
+
+        $comment_id = intval($_POST['comment_id']);
+        $user = wp_get_current_user();
+        $comment = get_comment($comment_id);
+
+        if (!$comment) {
+            wp_send_json_error(['message' => 'Commentaire non trouvé']);
+        }
+
+        // Send email to admin
+        $admin_email = get_option('admin_email');
+        $subject = '[Vision IA] Commentaire signalé #' . $comment_id;
+        $message = "Un commentaire a été signalé sur la communauté Vision IA.\n\n";
+        $message .= "Signalé par: " . $user->display_name . " (" . $user->user_email . ")\n\n";
+        $message .= "Auteur du commentaire: " . $comment->comment_author . "\n";
+        $message .= "Contenu du commentaire:\n" . $comment->comment_content . "\n\n";
+        $message .= "Lien vers le post: " . get_permalink($comment->comment_post_ID);
+
+        wp_mail($admin_email, $subject, $message);
+
+        wp_send_json_success(['message' => 'Commentaire signalé']);
     }
 
     /**
