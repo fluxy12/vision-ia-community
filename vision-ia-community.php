@@ -1103,7 +1103,15 @@ class Vision_IA_Community {
                 </div>
                 <div class="vic-comment-content">
                     <?php
-                    $content = make_clickable($comment->comment_content);
+                    $content = $comment->comment_content;
+
+                    // Parser les GIFs [gif]url[/gif] et les transformer en images
+                    $content = preg_replace_callback('/\[gif\](.*?)\[\/gif\]/i', function($matches) {
+                        $gif_url = esc_url($matches[1]);
+                        return '<img src="' . $gif_url . '" alt="GIF" class="vic-comment-gif">';
+                    }, $content);
+
+                    $content = make_clickable($content);
                     echo wpautop($content);
 
                     // Display comment attachments if any

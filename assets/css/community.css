@@ -1849,3 +1849,54 @@
 .vic-comment-tools-skool {
     position: relative;
 }
+
+/* ========================================
+   GIF PREVIEW IN COMMENT FORM
+   ======================================== */
+
+.vic-gif-preview-item {
+    position: relative;
+    display: inline-block;
+    margin-top: 8px;
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 200px;
+}
+
+.vic-gif-preview-item img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.vic-gif-preview-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.vic-gif-preview-remove:hover {
+    background: rgba(239, 68, 68, 0.9);
+}
+
+/* GIF in comments */
+.vic-comment-gif {
+    max-width: 300px;
+    max-height: 200px;
+    border-radius: 8px;
+    margin-top: 8px;
+    display: block;
+}

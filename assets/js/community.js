@@ -667,9 +667,18 @@
 
         // Submit Skool-style comment
         function submitSkoolComment($input) {
-            const content = $input.val().trim();
+            let content = $input.val().trim();
             const $wrapper = $input.closest('.vic-comment-form-wrapper-skool');
             const postId = $('.vic-modal').find('.vic-like-btn[data-post-id]').data('post-id');
+
+            // Récupérer le GIF sélectionné s'il y en a un
+            const selectedGif = $wrapper.data('selected-gif') || '';
+
+            // Ajouter le GIF au contenu s'il existe
+            if (selectedGif) {
+                // Format markdown pour l'image GIF
+                content = content + (content ? '\n' : '') + '[gif]' + selectedGif + '[/gif]';
+            }
 
             if (!content || !postId) return;
 
@@ -707,6 +716,7 @@
                         // Reset form
                         $input.val('');
                         $wrapper.find('.vic-comment-attachments-preview').empty();
+                        $wrapper.data('selected-gif', '');
                         $fileInput.val('');
 
                         // Update comment count
@@ -1154,47 +1164,48 @@
             e.stopPropagation();
             const emoji = $(this).text().trim();
 
-            // Trouver le bon input - chercher de manière plus précise
+            // Trouver l'input en remontant dans le DOM depuis le picker
+            const $picker = $(this).closest('.vic-emoji-picker-full, .vic-emoji-picker');
             let $input = null;
 
-            // D'abord chercher dans la modale
-            const $modal = $('.vic-modal');
-            if ($modal.length) {
-                // Chercher l'input skool-style d'abord
-                $input = $modal.find('input.vic-comment-input-skool');
+            // Méthode 1: Remonter vers le wrapper parent et chercher l'input
+            const $wrapper = $picker.closest('.vic-comment-input-skool-wrapper');
+            if ($wrapper.length) {
+                $input = $wrapper.find('.vic-comment-input-skool');
+            }
 
-                // Si pas trouvé, chercher le textarea classique
-                if (!$input.length) {
-                    $input = $modal.find('textarea.vic-comment-input');
+            // Méthode 2: Chercher dans la modale
+            if (!$input || !$input.length) {
+                const $modal = $('.vic-modal');
+                if ($modal.length) {
+                    $input = $modal.find('.vic-comment-input-skool');
                 }
             }
 
-            // Fallback global
+            // Méthode 3: Chercher globalement
             if (!$input || !$input.length) {
-                $input = $('input.vic-comment-input-skool');
+                $input = $('.vic-comment-input-skool');
             }
 
-            console.log('Emoji input found:', $input.length, 'Emoji:', emoji);
+            console.log('Emoji - Input trouvé:', $input.length, 'Valeur actuelle:', $input.val());
 
             if ($input && $input.length) {
                 const currentVal = $input.val() || '';
                 const newVal = currentVal + emoji;
-                $input.val(newVal);
 
-                // Trigger input event pour activer le bouton si nécessaire
-                $input.trigger('input');
+                // Utiliser la méthode native pour changer la valeur
+                $input[0].value = newVal;
 
-                // Focus sur l'input
-                $input.focus();
+                // Trigger les événements
+                $input.trigger('input').trigger('change');
 
-                // Positionner curseur à la fin
-                const inputEl = $input[0];
+                // Focus et curseur à la fin
+                $input[0].focus();
                 const len = newVal.length;
-                if (inputEl.setSelectionRange) {
-                    setTimeout(function() {
-                        inputEl.setSelectionRange(len, len);
-                    }, 0);
-                }
+                $input[0].selectionStart = len;
+                $input[0].selectionEnd = len;
+
+                console.log('Emoji inséré, nouvelle valeur:', $input.val());
             }
 
             // Fermer le picker
@@ -1343,30 +1354,61 @@
             });
         }
 
-        // Insérer GIF sélectionné
+        // Insérer GIF sélectionné - Afficher comme image dans la preview
         $(document).on('click', '.vic-gif-grid img', function(e) {
             e.preventDefault();
             e.stopPropagation();
 
             const gifUrl = $(this).data('full');
+            if (!gifUrl) return;
 
-            // Trouver le bon input
-            const $modal = $('.vic-modal');
-            let $input = $modal.find('input.vic-comment-input-skool');
+            // Trouver le wrapper de preview des attachements
+            const $picker = $(this).closest('.vic-gif-picker');
+            let $previewContainer = null;
+            let $input = null;
 
-            if (!$input.length) {
-                $input = $modal.find('textarea.vic-comment-input');
+            // Trouver le form wrapper parent
+            const $formWrapper = $('.vic-comment-form-wrapper-skool');
+            if ($formWrapper.length) {
+                $previewContainer = $formWrapper.find('.vic-comment-attachments-preview');
+                $input = $formWrapper.find('.vic-comment-input-skool');
             }
 
-            if ($input.length && gifUrl) {
-                const currentVal = $input.val() || '';
-                $input.val(currentVal + (currentVal ? ' ' : '') + gifUrl);
-                $input.trigger('input');
-                $input.focus();
+            // Ajouter le GIF à la preview
+            if ($previewContainer && $previewContainer.length) {
+                // Supprimer les GIFs précédents (on n'en garde qu'un)
+                $previewContainer.find('.vic-gif-preview-item').remove();
+
+                // Créer l'élément de preview du GIF
+                const $gifPreview = $(`
+                    <div class="vic-gif-preview-item" data-gif-url="${gifUrl}">
+                        <img src="${gifUrl}" alt="GIF sélectionné">
+                        <button type="button" class="vic-gif-preview-remove">✕</button>
+                    </div>
+                `);
+                $previewContainer.append($gifPreview);
+
+                // Stocker l'URL du GIF dans un data attribute sur le form
+                $formWrapper.data('selected-gif', gifUrl);
             }
 
             // Fermer le picker
             $('.vic-gif-picker').remove();
+
+            // Focus sur l'input
+            if ($input && $input.length) {
+                $input.focus();
+            }
+        });
+
+        // Supprimer le GIF de la preview
+        $(document).on('click', '.vic-gif-preview-remove', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const $item = $(this).closest('.vic-gif-preview-item');
+            const $formWrapper = $item.closest('.vic-comment-form-wrapper-skool');
+            $formWrapper.data('selected-gif', '');
+            $item.remove();
         });
 
         // Fermer GIF picker au clic ailleurs

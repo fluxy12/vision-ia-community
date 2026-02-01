@@ -3,7 +3,9 @@
     "allow": [
       "Bash(git add:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nAjout barre de recherche + fix boutons URL/YouTube\n\n- Correction boutons URL et YouTube \\(délégation d''événements\\)\n- Ajout barre de recherche avec autocomplétion\n- Recherche combinée avec filtres de catégorie\n- Handler AJAX pour la recherche\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nRefonte design Skool + popup modal pour commentaires\n\n- Nouveau design des posts avec miniature à droite \\(image/vidéo/YouTube\\)\n- Popup modal pour afficher le post complet avec commentaires\n- Formulaire de commentaire enrichi \\(pièces jointes, liens\\)\n- Avatars des derniers commenteurs dans le footer des posts\n- Système de commentaires AJAX complet\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit:*)"
     ]
   }
 }
