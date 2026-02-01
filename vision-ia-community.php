@@ -983,7 +983,7 @@ class Vision_IA_Community {
                 <?php
                 $content = $post->post_content;
 
-                // Parser les GIFs [gif]url[/gif] et les transformer en images
+                // Parser les GIFs [gif]url[/gif] et les transformer en images (legacy)
                 $content = preg_replace_callback('/\[gif\](.*?)\[\/gif\]/i', function($matches) {
                     $gif_url = esc_url($matches[1]);
                     return '<img src="' . $gif_url . '" alt="GIF" class="vic-post-gif">';
@@ -993,8 +993,23 @@ class Vision_IA_Community {
                 $content = make_clickable($content);
                 echo wpautop($content);
 
-                // YouTube embed
-                if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/', $post->post_content, $matches)) {
+                // Display GIF from meta field
+                $post_gif = get_post_meta($post_id, '_vic_post_gif', true);
+                if (!empty($post_gif)) {
+                    echo '<div class="vic-modal-media">';
+                    echo '<img src="' . esc_url($post_gif) . '" alt="GIF" class="vic-post-gif">';
+                    echo '</div>';
+                }
+
+                // YouTube embed from meta field first
+                $post_youtube = get_post_meta($post_id, '_vic_post_youtube', true);
+                if (!empty($post_youtube) && preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/', $post_youtube, $matches)) {
+                    echo '<div class="vic-video-embed">';
+                    echo '<iframe src="https://www.youtube.com/embed/' . esc_attr($matches[1]) . '" frameborder="0" allowfullscreen></iframe>';
+                    echo '</div>';
+                }
+                // YouTube embed from content (legacy)
+                elseif (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/', $post->post_content, $matches)) {
                     echo '<div class="vic-video-embed">';
                     echo '<iframe src="https://www.youtube.com/embed/' . esc_attr($matches[1]) . '" frameborder="0" allowfullscreen></iframe>';
                     echo '</div>';
