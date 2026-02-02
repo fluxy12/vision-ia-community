@@ -3963,9 +3963,15 @@
     window.openActivityModal = function(userId) {
         console.log('openActivityModal called with userId:', userId);
 
-        // Show loading - with inline styles to ensure visibility
-        var loadingHtml = '<div class="vic-modal-overlay vic-activity-modal-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">' +
-            '<div class="vic-activity-modal" style="background:#ffffff;border-radius:16px;width:100%;max-width:600px;max-height:80vh;overflow:hidden;min-height:200px;box-shadow:0 25px 50px rgba(0,0,0,0.25);display:flex;flex-direction:column;">' +
+        // Close profile popup first
+        $('.vic-profile-popup').removeClass('active');
+
+        // Remove any existing activity modal
+        $('.vic-activity-modal-overlay').remove();
+
+        // Show loading - with inline styles to ensure visibility (z-index higher than profile popup which is 100001)
+        var loadingHtml = '<div class="vic-modal-overlay vic-activity-modal-overlay" style="position:fixed !important;top:0 !important;left:0 !important;width:100% !important;height:100% !important;background:rgba(0,0,0,0.7) !important;z-index:2000000 !important;display:flex !important;align-items:center !important;justify-content:center !important;padding:20px !important;box-sizing:border-box !important;visibility:visible !important;opacity:1 !important;">' +
+            '<div class="vic-activity-modal" style="background:#ffffff !important;border-radius:16px !important;width:100% !important;max-width:600px !important;max-height:80vh !important;overflow:hidden !important;min-height:200px !important;box-shadow:0 25px 50px rgba(0,0,0,0.25) !important;display:flex !important;flex-direction:column !important;visibility:visible !important;opacity:1 !important;position:relative !important;">' +
             '<div class="vic-activity-modal-loading" style="display:flex;align-items:center;justify-content:center;padding:60px;"><div class="vic-profile-popup-spinner"></div></div>' +
             '</div></div>';
 
