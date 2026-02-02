@@ -121,6 +121,53 @@ class Vision_IA_Community {
     }
 
     /**
+     * Get user level based on points (Skool-style)
+     * Returns level 1-9 based on points thresholds
+     */
+    public static function get_user_level($user_id) {
+        $points = self::get_user_points($user_id);
+
+        // Level thresholds (customize as needed)
+        $levels = [
+            9 => 5000,
+            8 => 2500,
+            7 => 1500,
+            6 => 1000,
+            5 => 500,
+            4 => 250,
+            3 => 100,
+            2 => 50,
+            1 => 0
+        ];
+
+        foreach ($levels as $level => $threshold) {
+            if ($points >= $threshold) {
+                return $level;
+            }
+        }
+
+        return 1;
+    }
+
+    /**
+     * Get level badge color based on level
+     */
+    public static function get_level_color($level) {
+        $colors = [
+            1 => '#9CA3AF', // Gray
+            2 => '#6B7280', // Dark gray
+            3 => '#3B82F6', // Blue
+            4 => '#8B5CF6', // Purple
+            5 => '#EC4899', // Pink
+            6 => '#F59E0B', // Orange
+            7 => '#EF4444', // Red
+            8 => '#10B981', // Green
+            9 => '#F59E0B', // Gold
+        ];
+        return isset($colors[$level]) ? $colors[$level] : '#9CA3AF';
+    }
+
+    /**
      * Allow additional mime types for uploads
      */
     public function allow_additional_mimes($mimes) {
@@ -546,15 +593,20 @@ class Vision_IA_Community {
                 <div class="vic-post-main">
                     <div class="vic-post-header">
                         <div class="vic-author-info">
-                            <?php echo self::get_user_avatar($author_id, 40); ?>
+                            <div class="vic-avatar-with-level">
+                                <?php echo self::get_user_avatar($author_id, 40); ?>
+                                <?php $user_level = self::get_user_level($author_id); ?>
+                                <span class="vic-level-badge" style="background-color: <?php echo self::get_level_color($user_level); ?>"><?php echo $user_level; ?></span>
+                            </div>
                             <div class="vic-author-meta">
-                                <span class="vic-author-name"><?php echo esc_html($author_name); ?></span>
-                                <?php $user_points = self::get_user_points($author_id); if ($user_points > 0) : ?>
-                                <span class="vic-user-points">🏆 <?php echo number_format($user_points); ?></span>
-                                <?php endif; ?>
+                                <div class="vic-author-name-row">
+                                    <span class="vic-author-name"><?php echo esc_html($author_name); ?></span>
+                                    <?php if ($user_level >= 7) : ?>
+                                    <span class="vic-status-icon">🔥</span>
+                                    <?php endif; ?>
+                                </div>
                                 <span class="vic-post-meta">
-                                    <?php echo esc_html($post_date); ?> •
-                                    <span class="vic-category-tag"><?php echo esc_html($category_name); ?> <?php echo $emoji; ?></span>
+                                    <?php echo esc_html($post_date); ?> • <span class="vic-category-tag"><?php echo esc_html($category_name); ?> <?php echo $emoji; ?></span>
                                 </span>
                             </div>
                         </div>
@@ -1349,11 +1401,20 @@ class Vision_IA_Community {
         <!-- Modal Header -->
         <div class="vic-modal-header">
             <div class="vic-modal-header-left">
-                <?php echo self::get_user_avatar($author_id, 40); ?>
-                <h3 class="vic-modal-title"><?php echo esc_html($author_name); ?></h3>
-                <?php $user_points = self::get_user_points($author_id); if ($user_points > 0) : ?>
-                <span class="vic-user-points">🏆 <?php echo number_format($user_points); ?></span>
-                <?php endif; ?>
+                <div class="vic-avatar-with-level">
+                    <?php echo self::get_user_avatar($author_id, 40); ?>
+                    <?php $user_level = self::get_user_level($author_id); ?>
+                    <span class="vic-level-badge" style="background-color: <?php echo self::get_level_color($user_level); ?>"><?php echo $user_level; ?></span>
+                </div>
+                <div class="vic-modal-author-info">
+                    <div class="vic-author-name-row">
+                        <h3 class="vic-modal-title"><?php echo esc_html($author_name); ?></h3>
+                        <?php if ($user_level >= 7) : ?>
+                        <span class="vic-status-icon">🔥</span>
+                        <?php endif; ?>
+                    </div>
+                    <span class="vic-post-meta"><?php echo esc_html($post_date); ?> • <span class="vic-category-tag"><?php echo esc_html($category_name); ?> <?php echo $emoji; ?></span></span>
+                </div>
             </div>
             <div class="vic-modal-actions">
                 <div class="vic-post-menu vic-modal-post-menu">

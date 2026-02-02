@@ -452,6 +452,44 @@ body .vic-community-wrapper,
     display: inline-block;
 }
 
+/* Avatar with level badge - Skool style */
+.vic-avatar-with-level {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.vic-level-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #3B82F6;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Author name row with status icon */
+.vic-author-name-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.vic-status-icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+/* Legacy - keep for backwards compatibility */
 .vic-author-level-badge {
     position: absolute;
     bottom: -2px;
@@ -467,7 +505,7 @@ body .vic-community-wrapper,
     line-height: 1.2;
 }
 
-/* User points badge */
+/* User points badge - legacy */
 .vic-user-points {
     display: inline-flex;
     align-items: center;
@@ -771,6 +809,22 @@ body .vic-community-wrapper,
     width: 40px;
     height: 40px;
     border-radius: 50%;
+}
+
+.vic-modal-author-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.vic-modal-author-info .vic-modal-title {
+    margin: 0;
+    font-size: 15px;
+}
+
+.vic-modal-author-info .vic-post-meta {
+    font-size: 13px;
+    color: #6B7280;
 }
 
 .vic-modal-title {

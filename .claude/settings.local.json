@@ -7,7 +7,9 @@
       "Bash(git commit -m \"$\\(cat <<''EOF''\nRefonte design Skool + popup modal pour commentaires\n\n- Nouveau design des posts avec miniature à droite \\(image/vidéo/YouTube\\)\n- Popup modal pour afficher le post complet avec commentaires\n- Formulaire de commentaire enrichi \\(pièces jointes, liens\\)\n- Avatars des derniers commenteurs dans le footer des posts\n- Système de commentaires AJAX complet\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git commit:*)",
       "Bash(tree:*)",
-      "Bash(ls -la \"C:\\\\Users\\\\Jean\\\\vision-ia-community\\\\assets\\\\css\"\" && ls -la \"C:UsersJeanvision-ia-communityassetsjs\"\")"
+      "Bash(ls -la \"C:\\\\Users\\\\Jean\\\\vision-ia-community\\\\assets\\\\css\"\" && ls -la \"C:UsersJeanvision-ia-communityassetsjs\"\")",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nIntégration avatars MasterStudy LMS + affichage points utilisateur\n\n- Ajout fonction get_user_avatar\\(\\) compatible MasterStudy LMS\n- Récupère l''avatar depuis stm_lms_user_avatar en priorité\n- Fallback vers BuddyPress puis Gravatar\n- Affichage des points utilisateur \\(stm_lms_points\\) à côté du nom\n- Style badge points avec dégradé doré\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "WebFetch(domain:docs.stylemixthemes.com)"
     ]
   }
 }
