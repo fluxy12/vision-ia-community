@@ -2589,6 +2589,252 @@ body .vic-community-wrapper,
     cursor: not-allowed;
 }
 
+/* ====== FULL EDIT MODAL (like creation form) ====== */
+.vic-edit-modal-full {
+    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.vic-edit-modal-full .vic-edit-post-form {
+    padding: 20px;
+}
+
+.vic-edit-modal-full .vic-textarea {
+    min-height: 120px;
+}
+
+/* Edit form footer */
+.vic-edit-form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #E5E7EB;
+}
+
+.vic-edit-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    position: relative;
+}
+
+.vic-edit-form-actions .vic-btn-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: #F3F4F6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+    color: #6B7280;
+}
+
+.vic-edit-form-actions .vic-btn-icon:hover {
+    background: #E5E7EB;
+    color: #374151;
+}
+
+.vic-edit-form-actions .vic-upload-btn {
+    cursor: pointer;
+}
+
+.vic-edit-form-actions .vic-upload-btn.has-files {
+    background: #DBEAFE;
+    color: #2563EB;
+}
+
+/* URL field in edit modal */
+.vic-edit-url-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+.vic-edit-url-field .vic-input {
+    flex: 1;
+    padding: 10px 14px;
+    font-size: 14px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+}
+
+.vic-edit-url-field .vic-btn-remove-field {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #9CA3AF;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.vic-edit-url-field .vic-btn-remove-field:hover {
+    color: #EF4444;
+}
+
+/* Current attachments in edit modal */
+.vic-edit-current-attachments {
+    margin: 16px 0;
+}
+
+.vic-edit-attachments-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #6B7280;
+    margin-bottom: 10px;
+}
+
+.vic-edit-attachment-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.vic-edit-attachment-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.vic-edit-attachment-item .vic-file-icon {
+    font-size: 32px;
+}
+
+.vic-edit-attachment-name {
+    font-size: 12px;
+    color: #6B7280;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vic-remove-existing-attachment,
+.vic-remove-edit-gif,
+.vic-remove-edit-youtube {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    background: #EF4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.vic-remove-existing-attachment:hover,
+.vic-remove-edit-gif:hover,
+.vic-remove-edit-youtube:hover {
+    background: #DC2626;
+}
+
+/* YouTube preview in edit */
+.vic-edit-youtube-preview {
+    position: relative;
+}
+
+.vic-edit-youtube-preview .vic-youtube-play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    pointer-events: none;
+}
+
+/* New attachments preview in edit */
+.vic-edit-attachments-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.vic-edit-attachments-preview .vic-preview-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 8px;
+    position: relative;
+}
+
+.vic-edit-attachments-preview .vic-preview-item img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.vic-edit-attachments-preview .vic-remove-edit-new-file {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 18px;
+    height: 18px;
+    background: #EF4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Loading and error states */
+.vic-edit-loading,
+.vic-edit-error {
+    padding: 20px;
+    text-align: center;
+    color: #9CA3AF;
+    font-size: 14px;
+}
+
+.vic-edit-error {
+    color: #EF4444;
+}
+
+/* Emoji and GIF pickers in edit modal */
+.vic-edit-form-actions .vic-emoji-picker-full,
+.vic-edit-form-actions .vic-gif-picker {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 8px;
+    z-index: 10001;
+}
+
 /* ====== EDIT COMMENT INLINE ====== */
 .vic-edit-comment-form {
     display: flex;

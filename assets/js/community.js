@@ -2219,7 +2219,7 @@
             });
         });
 
-        // Edit post - open edit modal
+        // Edit post - open full edit modal (like creation form)
         $(document).on('click', '.vic-edit-post', function(e) {
             e.stopPropagation();
             const postId = $(this).data('post-id');
@@ -2228,10 +2228,10 @@
             // Get current post data
             const currentTitle = $postCard.find('.vic-post-title').text().trim();
 
-            // Create edit modal
+            // Create full edit modal (similar to creation form)
             const editModal = `
                 <div class="vic-edit-modal-overlay">
-                    <div class="vic-edit-modal">
+                    <div class="vic-edit-modal vic-edit-modal-full">
                         <div class="vic-edit-modal-header">
                             <h3>Modifier le post</h3>
                             <button class="vic-edit-modal-close">✕</button>
@@ -2239,9 +2239,72 @@
                         <form class="vic-edit-post-form" data-post-id="${postId}">
                             <input type="text" name="edit_post_title" class="vic-input vic-input-title" value="${escapeHtml(currentTitle)}" placeholder="Titre" required>
                             <textarea name="edit_post_content" class="vic-textarea" placeholder="Contenu..." required></textarea>
-                            <div class="vic-edit-modal-footer">
-                                <button type="button" class="vic-btn vic-btn-cancel vic-edit-modal-close">ANNULER</button>
-                                <button type="submit" class="vic-btn vic-btn-primary">ENREGISTRER</button>
+
+                            <!-- Hidden fields for GIF and YouTube -->
+                            <input type="hidden" name="edit_post_gif" id="vic-edit-post-gif-input" value="">
+                            <input type="hidden" name="edit_post_youtube" id="vic-edit-post-youtube-input" value="">
+                            <input type="hidden" name="edit_attachments_to_remove" id="vic-edit-attachments-to-remove" value="">
+
+                            <!-- URL field -->
+                            <div class="vic-url-field vic-edit-url-field" id="vic-edit-url-field" style="display: none;">
+                                <input type="url" name="edit_post_url" placeholder="https://example.com" class="vic-input">
+                                <button type="button" class="vic-btn-remove-field" data-target="vic-edit-url-field">✕</button>
+                            </div>
+
+                            <!-- Current attachments preview -->
+                            <div class="vic-edit-current-attachments" id="vic-edit-current-attachments">
+                                <div class="vic-edit-loading">Chargement des médias...</div>
+                            </div>
+
+                            <!-- New attachments preview -->
+                            <div class="vic-attachments-preview vic-edit-attachments-preview" id="vic-edit-attachments-preview"></div>
+
+                            <div class="vic-form-footer vic-edit-form-footer">
+                                <div class="vic-form-actions vic-edit-form-actions">
+                                    <!-- Attachment button -->
+                                    <label class="vic-btn-icon vic-upload-btn vic-edit-upload-btn" title="Ajouter une pièce jointe">
+                                        <input type="file" name="edit_post_attachments[]" multiple accept="image/*,video/*,audio/*,.pdf" style="display:none;" id="vic-edit-file-input">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                                        </svg>
+                                    </label>
+
+                                    <!-- Link button -->
+                                    <button type="button" class="vic-btn-icon vic-edit-add-url" title="Ajouter un lien">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                                        </svg>
+                                    </button>
+
+                                    <!-- YouTube button -->
+                                    <button type="button" class="vic-btn-icon vic-edit-add-youtube" title="Ajouter une vidéo YouTube">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="2" y="4" width="20" height="16" rx="2"/>
+                                            <polygon points="10,8 16,12 10,16"/>
+                                        </svg>
+                                    </button>
+
+                                    <!-- Emoji button -->
+                                    <button type="button" class="vic-btn-icon vic-edit-add-emoji" title="Ajouter un emoji">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                                            <line x1="9" y1="9" x2="9.01" y2="9"/>
+                                            <line x1="15" y1="9" x2="15.01" y2="9"/>
+                                        </svg>
+                                    </button>
+
+                                    <!-- GIF button -->
+                                    <button type="button" class="vic-btn-icon vic-edit-add-gif" title="Ajouter un GIF">
+                                        <span style="font-weight: 600; font-size: 11px;">GIF</span>
+                                    </button>
+                                </div>
+
+                                <div class="vic-form-submit">
+                                    <button type="button" class="vic-btn vic-btn-cancel vic-edit-modal-close">ANNULER</button>
+                                    <button type="submit" class="vic-btn vic-btn-primary">ENREGISTRER</button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -2250,27 +2313,481 @@
 
             $('body').append(editModal);
 
-            // Load current content via AJAX
+            // Initialize edit modal state
+            window.vicEditSelectedFiles = [];
+            window.vicEditAttachmentsToRemove = [];
+
+            // Load current post data via AJAX
             $.ajax({
                 url: vicAjax.ajaxurl,
                 type: 'POST',
                 data: {
-                    action: 'vic_get_post_modal',
+                    action: 'vic_get_post_data_for_edit',
                     nonce: vicAjax.nonce,
                     post_id: postId
                 },
                 success: function(response) {
                     if (response.success) {
-                        // Extract content from modal HTML
-                        const $temp = $('<div>').html(response.data.html);
+                        const data = response.data;
+
+                        // Fill content
+                        $('.vic-edit-post-form textarea[name="edit_post_content"]').val(data.content);
+
+                        // Fill URL if exists
+                        if (data.url) {
+                            $('#vic-edit-url-field').show().find('input').val(data.url);
+                        }
+
+                        // Fill GIF if exists
+                        if (data.gif) {
+                            $('#vic-edit-post-gif-input').val(data.gif);
+                        }
+
+                        // Fill YouTube if exists
+                        if (data.youtube) {
+                            $('#vic-edit-post-youtube-input').val(data.youtube);
+                        }
+
+                        // Display current attachments
+                        const $attachmentsContainer = $('#vic-edit-current-attachments');
+                        $attachmentsContainer.empty();
+
+                        if (data.attachments && data.attachments.length > 0) {
+                            $attachmentsContainer.append('<div class="vic-edit-attachments-label">Médias actuels :</div>');
+                            data.attachments.forEach(function(att) {
+                                let preview = '';
+                                if (att.type === 'image') {
+                                    preview = `<img src="${att.url}" alt="">`;
+                                } else if (att.type === 'video') {
+                                    preview = `<span class="vic-file-icon">🎬</span>`;
+                                } else if (att.type === 'audio') {
+                                    preview = `<span class="vic-file-icon">🎵</span>`;
+                                } else {
+                                    preview = `<span class="vic-file-icon">📄</span>`;
+                                }
+
+                                $attachmentsContainer.append(`
+                                    <div class="vic-edit-attachment-item" data-attachment-id="${att.id}">
+                                        ${preview}
+                                        <span class="vic-edit-attachment-name">${att.filename || 'Fichier'}</span>
+                                        <button type="button" class="vic-remove-existing-attachment" data-attachment-id="${att.id}">✕</button>
+                                    </div>
+                                `);
+                            });
+                        }
+
+                        // Display GIF preview if exists
+                        if (data.gif) {
+                            $attachmentsContainer.append(`
+                                <div class="vic-edit-attachment-item vic-edit-gif-preview" data-type="gif">
+                                    <img src="${data.gif}" alt="GIF">
+                                    <span class="vic-edit-attachment-name">GIF</span>
+                                    <button type="button" class="vic-remove-edit-gif">✕</button>
+                                </div>
+                            `);
+                        }
+
+                        // Display YouTube preview if exists
+                        if (data.youtube) {
+                            const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/;
+                            const match = data.youtube.match(youtubeRegex);
+                            if (match && match[1]) {
+                                const thumbnailUrl = 'https://img.youtube.com/vi/' + match[1] + '/mqdefault.jpg';
+                                $attachmentsContainer.append(`
+                                    <div class="vic-edit-attachment-item vic-edit-youtube-preview" data-type="youtube">
+                                        <img src="${thumbnailUrl}" alt="YouTube">
+                                        <span class="vic-youtube-play-icon">▶</span>
+                                        <span class="vic-edit-attachment-name">YouTube</span>
+                                        <button type="button" class="vic-remove-edit-youtube">✕</button>
+                                    </div>
+                                `);
+                            }
+                        }
+
+                    } else {
+                        // Fallback: extract content from post card
+                        const $temp = $('<div>').html(response.data.html || '');
                         const content = $temp.find('.vic-modal-post-content').text().trim();
                         $('.vic-edit-post-form textarea[name="edit_post_content"]').val(content);
+                        $('#vic-edit-current-attachments').empty();
                     }
+                },
+                error: function() {
+                    $('#vic-edit-current-attachments').html('<div class="vic-edit-error">Erreur de chargement</div>');
                 }
             });
 
             // Close any open post menu dropdown
             $('.vic-post-menu-dropdown').removeClass('show');
+        });
+
+        // ====== EDIT MODAL: File input handling ======
+        $(document).on('change', '#vic-edit-file-input', function(e) {
+            const files = Array.from(e.target.files);
+            const $preview = $('#vic-edit-attachments-preview');
+
+            files.forEach(function(file) {
+                // Check file size (10MB max)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('Le fichier "' + file.name + '" est trop volumineux (max 10MB)');
+                    return;
+                }
+
+                // Check file type
+                const allowedTypes = [
+                    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+                    'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
+                    'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3',
+                    'application/pdf'
+                ];
+
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Type de fichier non autorisé: ' + file.type);
+                    return;
+                }
+
+                window.vicEditSelectedFiles.push(file);
+
+                // Add preview
+                const index = window.vicEditSelectedFiles.length - 1;
+                const $item = $('<div class="vic-preview-item vic-edit-new-file" data-index="' + index + '"></div>');
+
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        $item.prepend('<img src="' + e.target.result + '" alt="">');
+                    };
+                    reader.readAsDataURL(file);
+                } else if (file.type.startsWith('video/')) {
+                    $item.prepend('<span>🎬</span>');
+                } else if (file.type.startsWith('audio/')) {
+                    $item.prepend('<span>🎵</span>');
+                } else if (file.type === 'application/pdf') {
+                    $item.prepend('<span>📄</span>');
+                }
+
+                const truncatedName = file.name.length > 20 ? file.name.substring(0, 17) + '...' + file.name.split('.').pop() : file.name;
+                $item.append('<span class="vic-filename">' + truncatedName + '</span>');
+                $item.append('<button type="button" class="vic-remove-edit-new-file" data-index="' + index + '">✕</button>');
+
+                $preview.append($item);
+            });
+
+            if (window.vicEditSelectedFiles.length > 0) {
+                $('.vic-edit-upload-btn').addClass('has-files');
+            }
+        });
+
+        // Remove new file from edit form
+        $(document).on('click', '.vic-remove-edit-new-file', function() {
+            const index = parseInt($(this).data('index'));
+            window.vicEditSelectedFiles.splice(index, 1);
+            $(this).closest('.vic-preview-item').remove();
+
+            // Update indices
+            $('#vic-edit-attachments-preview .vic-preview-item').each(function(i) {
+                $(this).attr('data-index', i);
+                $(this).find('.vic-remove-edit-new-file').attr('data-index', i);
+            });
+
+            if (window.vicEditSelectedFiles.length === 0) {
+                $('.vic-edit-upload-btn').removeClass('has-files');
+            }
+        });
+
+        // Remove existing attachment
+        $(document).on('click', '.vic-remove-existing-attachment', function() {
+            const attachmentId = $(this).data('attachment-id');
+            window.vicEditAttachmentsToRemove.push(attachmentId);
+            $('#vic-edit-attachments-to-remove').val(window.vicEditAttachmentsToRemove.join(','));
+            $(this).closest('.vic-edit-attachment-item').fadeOut(200, function() {
+                $(this).remove();
+            });
+        });
+
+        // Remove GIF from edit
+        $(document).on('click', '.vic-remove-edit-gif', function() {
+            $('#vic-edit-post-gif-input').val('');
+            $(this).closest('.vic-edit-gif-preview').fadeOut(200, function() {
+                $(this).remove();
+            });
+        });
+
+        // Remove YouTube from edit
+        $(document).on('click', '.vic-remove-edit-youtube', function() {
+            $('#vic-edit-post-youtube-input').val('');
+            $(this).closest('.vic-edit-youtube-preview').fadeOut(200, function() {
+                $(this).remove();
+            });
+        });
+
+        // ====== EDIT MODAL: URL field toggle ======
+        $(document).on('click', '.vic-edit-add-url', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const $field = $('#vic-edit-url-field');
+            $field.slideToggle(200);
+            setTimeout(function() {
+                if ($field.is(':visible')) {
+                    $field.find('input').focus();
+                }
+            }, 210);
+        });
+
+        // Remove URL field in edit modal
+        $(document).on('click', '#vic-edit-url-field .vic-btn-remove-field', function(e) {
+            e.preventDefault();
+            const $field = $('#vic-edit-url-field');
+            $field.slideUp(200);
+            $field.find('input').val('');
+        });
+
+        // ====== EDIT MODAL: YouTube ======
+        $(document).on('click', '.vic-edit-add-youtube', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const url = prompt('Collez l\'URL de la vidéo YouTube :');
+            if (url && url.trim()) {
+                const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/;
+                const match = url.trim().match(youtubeRegex);
+
+                if (match && match[1]) {
+                    const videoId = match[1];
+                    const thumbnailUrl = 'https://img.youtube.com/vi/' + videoId + '/mqdefault.jpg';
+
+                    $('#vic-edit-post-youtube-input').val(url.trim());
+
+                    // Remove existing YouTube preview
+                    $('.vic-edit-youtube-preview').remove();
+
+                    // Add preview
+                    $('#vic-edit-current-attachments').append(`
+                        <div class="vic-edit-attachment-item vic-edit-youtube-preview" data-type="youtube">
+                            <img src="${thumbnailUrl}" alt="YouTube">
+                            <span class="vic-youtube-play-icon">▶</span>
+                            <span class="vic-edit-attachment-name">YouTube</span>
+                            <button type="button" class="vic-remove-edit-youtube">✕</button>
+                        </div>
+                    `);
+                } else {
+                    alert('URL YouTube invalide.');
+                }
+            }
+        });
+
+        // ====== EDIT MODAL: Emoji picker ======
+        $(document).on('click', '.vic-edit-add-emoji', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $btn = $(this);
+            const $formActions = $btn.closest('.vic-edit-form-actions');
+
+            // Close other pickers
+            $('.vic-emoji-picker-full, .vic-emoji-picker, .vic-gif-picker').remove();
+
+            // Create emoji picker
+            const $picker = $('<div class="vic-emoji-picker-full vic-edit-emoji-picker"></div>');
+            $picker.append('<div class="vic-emoji-search"><input type="text" placeholder="Rechercher un emoji..." class="vic-emoji-search-input"></div>');
+
+            const editEmojiCategories = [
+                { id: 'smileys', icon: '😀', name: 'Smileys' },
+                { id: 'people', icon: '👋', name: 'Personnes' },
+                { id: 'nature', icon: '🌿', name: 'Nature' },
+                { id: 'food', icon: '🍕', name: 'Nourriture' },
+                { id: 'activities', icon: '⚽', name: 'Activités' },
+                { id: 'travel', icon: '✈️', name: 'Voyage' },
+                { id: 'objects', icon: '💡', name: 'Objets' },
+                { id: 'symbols', icon: '❤️', name: 'Symboles' }
+            ];
+
+            const $categories = $('<div class="vic-emoji-categories"></div>');
+            editEmojiCategories.forEach(function(cat, idx) {
+                $categories.append('<button data-category="' + cat.id + '" ' + (idx === 0 ? 'class="active"' : '') + ' title="' + cat.name + '">' + cat.icon + '</button>');
+            });
+            $picker.append($categories);
+
+            const $grid = $('<div class="vic-emoji-grid"></div>');
+            if (typeof emojiData !== 'undefined') {
+                const emojis = emojiData['smileys'] || [];
+                emojis.forEach(function(emoji) {
+                    $grid.append('<span class="vic-emoji-item vic-edit-emoji-item">' + emoji + '</span>');
+                });
+            }
+            $picker.append($grid);
+
+            $formActions.append($picker);
+
+            setTimeout(function() {
+                $picker.find('.vic-emoji-search-input').focus();
+            }, 10);
+        });
+
+        // Insert emoji in edit textarea
+        $(document).on('click', '.vic-edit-emoji-item', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            let emoji = '';
+            const $img = $(this).find('img.emoji');
+            if ($img.length) {
+                emoji = $img.attr('alt') || '';
+            } else {
+                emoji = $(this).text().trim();
+            }
+
+            if (!emoji) return;
+
+            const $textarea = $('.vic-edit-post-form textarea[name="edit_post_content"]');
+            if ($textarea.length) {
+                const currentVal = $textarea.val() || '';
+                $textarea.val(currentVal + emoji);
+                $textarea.focus();
+            }
+
+            $('.vic-emoji-picker-full, .vic-emoji-picker').remove();
+        });
+
+        // Change category in edit emoji picker
+        $(document).on('click', '.vic-edit-emoji-picker .vic-emoji-categories button', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const category = $(this).data('category');
+            const $picker = $(this).closest('.vic-emoji-picker-full');
+
+            $picker.find('.vic-emoji-categories button').removeClass('active');
+            $(this).addClass('active');
+
+            const $grid = $picker.find('.vic-emoji-grid');
+            $grid.empty();
+            if (typeof emojiData !== 'undefined' && emojiData[category]) {
+                emojiData[category].forEach(function(emoji) {
+                    $grid.append('<span class="vic-emoji-item vic-edit-emoji-item">' + emoji + '</span>');
+                });
+            }
+        });
+
+        // ====== EDIT MODAL: GIF picker ======
+        $(document).on('click', '.vic-edit-add-gif', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $btn = $(this);
+            const $formActions = $btn.closest('.vic-edit-form-actions');
+
+            // Close other pickers
+            $('.vic-gif-picker, .vic-emoji-picker-full, .vic-emoji-picker').remove();
+
+            // Create GIF picker
+            const $picker = $(`
+                <div class="vic-gif-picker vic-edit-gif-picker">
+                    <div class="vic-gif-header">
+                        <input type="text" placeholder="Rechercher des GIFs..." class="vic-gif-search-input">
+                    </div>
+                    <div class="vic-gif-grid">
+                        <div class="vic-gif-loading">Recherchez un GIF...</div>
+                    </div>
+                </div>
+            `);
+
+            $formActions.append($picker);
+
+            setTimeout(function() {
+                $picker.find('.vic-gif-search-input').focus();
+            }, 10);
+
+            // Load trending GIFs
+            loadEditTrendingGifs($picker.find('.vic-gif-grid'));
+        });
+
+        // Load trending GIFs for edit
+        function loadEditTrendingGifs($grid) {
+            const TENOR_API_KEY = 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ';
+            $grid.html('<div class="vic-gif-loading">Chargement...</div>');
+
+            fetch(`https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&limit=20&media_filter=gif,tinygif`)
+                .then(response => response.json())
+                .then(data => {
+                    $grid.empty();
+                    if (data.results && data.results.length > 0) {
+                        data.results.forEach(gif => {
+                            const gifUrl = gif.media_formats.gif?.url || gif.media_formats.tinygif?.url;
+                            const previewUrl = gif.media_formats.tinygif?.url || gif.media_formats.nanogif?.url || gifUrl;
+                            if (gifUrl) {
+                                $grid.append(`<img src="${previewUrl}" data-full="${gifUrl}" class="vic-gif-item vic-edit-gif-item" alt="${gif.content_description || 'GIF'}">`);
+                            }
+                        });
+                    } else {
+                        $grid.html('<div class="vic-gif-loading">Aucun GIF trouvé</div>');
+                    }
+                })
+                .catch(() => {
+                    $grid.html('<div class="vic-gif-loading">Erreur de chargement</div>');
+                });
+        }
+
+        // Search GIFs in edit modal
+        let editGifSearchTimeout;
+        $(document).on('input', '.vic-edit-gif-picker .vic-gif-search-input', function() {
+            const query = $(this).val().trim();
+            const $grid = $(this).closest('.vic-gif-picker').find('.vic-gif-grid');
+
+            clearTimeout(editGifSearchTimeout);
+
+            if (query.length < 2) {
+                loadEditTrendingGifs($grid);
+                return;
+            }
+
+            editGifSearchTimeout = setTimeout(function() {
+                const TENOR_API_KEY = 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ';
+                $grid.html('<div class="vic-gif-loading">Recherche...</div>');
+
+                fetch(`https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=${TENOR_API_KEY}&limit=20&media_filter=gif,tinygif`)
+                    .then(response => response.json())
+                    .then(data => {
+                        $grid.empty();
+                        if (data.results && data.results.length > 0) {
+                            data.results.forEach(gif => {
+                                const gifUrl = gif.media_formats.gif?.url || gif.media_formats.tinygif?.url;
+                                const previewUrl = gif.media_formats.tinygif?.url || gif.media_formats.nanogif?.url || gifUrl;
+                                if (gifUrl) {
+                                    $grid.append(`<img src="${previewUrl}" data-full="${gifUrl}" class="vic-gif-item vic-edit-gif-item" alt="${gif.content_description || 'GIF'}">`);
+                                }
+                            });
+                        } else {
+                            $grid.html('<div class="vic-gif-loading">Aucun GIF trouvé</div>');
+                        }
+                    })
+                    .catch(() => {
+                        $grid.html('<div class="vic-gif-loading">Erreur de recherche</div>');
+                    });
+            }, 300);
+        });
+
+        // Select GIF in edit modal
+        $(document).on('click', '.vic-edit-gif-item', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const gifUrl = $(this).data('full') || $(this).attr('src');
+
+            $('#vic-edit-post-gif-input').val(gifUrl);
+
+            // Remove existing GIF preview
+            $('.vic-edit-gif-preview').remove();
+
+            // Add preview
+            $('#vic-edit-current-attachments').append(`
+                <div class="vic-edit-attachment-item vic-edit-gif-preview" data-type="gif">
+                    <img src="${gifUrl}" alt="GIF">
+                    <span class="vic-edit-attachment-name">GIF</span>
+                    <button type="button" class="vic-remove-edit-gif">✕</button>
+                </div>
+            `);
+
+            // Close picker
+            $('.vic-gif-picker').remove();
         });
 
         // Close edit modal
@@ -2287,7 +2804,7 @@
             e.stopPropagation();
         });
 
-        // Submit edit form
+        // Submit edit form (full version with attachments)
         $(document).on('submit', '.vic-edit-post-form', function(e) {
             e.preventDefault();
 
@@ -2302,46 +2819,73 @@
             }
 
             const $submitBtn = $form.find('button[type="submit"]');
-            $submitBtn.text('...').prop('disabled', true);
+            const $cancelBtn = $form.find('.vic-btn-cancel');
+            const originalText = $submitBtn.text();
 
-            $.ajax({
-                url: vicAjax.ajaxurl,
-                type: 'POST',
-                data: {
-                    action: 'vic_edit_post',
-                    nonce: vicAjax.nonce,
-                    post_id: postId,
-                    post_title: title,
-                    post_content: content
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // Replace post card in feed
-                        const $oldCard = $('.vic-post-card[data-post-id="' + postId + '"]');
-                        if ($oldCard.length) {
-                            $oldCard.replaceWith(response.data.post_html);
+            $submitBtn.text('Envoi...').prop('disabled', true);
+            $cancelBtn.prop('disabled', true);
+
+            // Compress new files if any
+            const filesToCompress = window.vicEditSelectedFiles || [];
+
+            compressFiles(filesToCompress, 1920, 1080, 0.85).then(function(compressedFiles) {
+                // Create FormData
+                const formData = new FormData();
+                formData.append('action', 'vic_edit_post');
+                formData.append('nonce', vicAjax.nonce);
+                formData.append('post_id', postId);
+                formData.append('post_title', title);
+                formData.append('post_content', content);
+                formData.append('post_url', $form.find('input[name="edit_post_url"]').val() || '');
+                formData.append('post_gif', $('#vic-edit-post-gif-input').val() || '');
+                formData.append('post_youtube', $('#vic-edit-post-youtube-input').val() || '');
+                formData.append('attachments_to_remove', $('#vic-edit-attachments-to-remove').val() || '');
+
+                // Add new compressed files
+                compressedFiles.forEach(function(file) {
+                    formData.append('new_attachments[]', file);
+                });
+
+                $.ajax({
+                    url: vicAjax.ajaxurl,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            // Replace post card in feed
+                            const $oldCard = $('.vic-post-card[data-post-id="' + postId + '"]');
+                            if ($oldCard.length) {
+                                $oldCard.replaceWith(response.data.post_html);
+                            }
+
+                            // Close edit modal
+                            $('.vic-edit-modal-overlay').fadeOut(200, function() {
+                                $(this).remove();
+                            });
+
+                            // Close post modal if open
+                            $('.vic-modal-overlay').fadeOut(200, function() {
+                                $(this).remove();
+                            });
+                            $('body').removeClass('vic-modal-open');
+
+                            // Clean up
+                            window.vicEditSelectedFiles = [];
+                            window.vicEditAttachmentsToRemove = [];
+                        } else {
+                            alert(response.data.message || 'Erreur lors de la modification');
                         }
-
-                        // Close edit modal
-                        $('.vic-edit-modal-overlay').fadeOut(200, function() {
-                            $(this).remove();
-                        });
-
-                        // Close post modal if open
-                        $('.vic-modal-overlay').fadeOut(200, function() {
-                            $(this).remove();
-                        });
-                        $('body').removeClass('vic-modal-open');
-                    } else {
-                        alert(response.data.message || 'Erreur lors de la modification');
+                    },
+                    error: function() {
+                        alert('Erreur de connexion');
+                    },
+                    complete: function() {
+                        $submitBtn.text(originalText).prop('disabled', false);
+                        $cancelBtn.prop('disabled', false);
                     }
-                },
-                error: function() {
-                    alert('Erreur de connexion');
-                },
-                complete: function() {
-                    $submitBtn.text('ENREGISTRER').prop('disabled', false);
-                }
+                });
             });
         });
     }

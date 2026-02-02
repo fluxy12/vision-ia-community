@@ -33,6 +33,7 @@ class Vision_IA_Community {
         add_action('wp_ajax_vic_pin_post', [$this, 'handle_pin_post']);
         add_action('wp_ajax_vic_delete_post', [$this, 'handle_delete_post']);
         add_action('wp_ajax_vic_edit_post', [$this, 'handle_edit_post']);
+        add_action('wp_ajax_vic_get_post_data_for_edit', [$this, 'handle_get_post_data_for_edit']);
         add_action('wp_ajax_vic_search_posts', [$this, 'handle_search_posts']);
         add_action('wp_ajax_nopriv_vic_search_posts', [$this, 'handle_search_posts']);
         add_action('wp_ajax_vic_get_post_modal', [$this, 'handle_get_post_modal']);
@@ -942,7 +943,7 @@ class Vision_IA_Community {
     }
 
     /**
-     * Handle edit post AJAX
+     * Handle edit post AJAX (full version with media support)
      * Only post owner can edit
      */
     public function handle_edit_post() {
@@ -974,6 +975,7 @@ class Vision_IA_Community {
             wp_send_json_error(['message' => 'Le titre et le contenu sont requis']);
         }
 
+        // Update post content
         $updated = wp_update_post([
             'ID' => $post_id,
             'post_title' => $title,
@@ -984,6 +986,111 @@ class Vision_IA_Community {
             wp_send_json_error(['message' => 'Erreur lors de la modification']);
         }
 
+        // Update URL
+        $post_url = isset($_POST['post_url']) ? esc_url_raw($_POST['post_url']) : '';
+        if (!empty($post_url)) {
+            update_post_meta($post_id, '_vic_post_url', $post_url);
+        } else {
+            delete_post_meta($post_id, '_vic_post_url');
+        }
+
+        // Update GIF
+        $post_gif = isset($_POST['post_gif']) ? esc_url_raw($_POST['post_gif']) : '';
+        if (!empty($post_gif)) {
+            update_post_meta($post_id, '_vic_post_gif', $post_gif);
+        } else {
+            delete_post_meta($post_id, '_vic_post_gif');
+        }
+
+        // Update YouTube
+        $post_youtube = isset($_POST['post_youtube']) ? esc_url_raw($_POST['post_youtube']) : '';
+        if (!empty($post_youtube)) {
+            update_post_meta($post_id, '_vic_post_youtube', $post_youtube);
+        } else {
+            delete_post_meta($post_id, '_vic_post_youtube');
+        }
+
+        // Handle attachments to remove
+        $attachments_to_remove = isset($_POST['attachments_to_remove']) ? sanitize_text_field($_POST['attachments_to_remove']) : '';
+        if (!empty($attachments_to_remove)) {
+            $ids_to_remove = array_map('intval', explode(',', $attachments_to_remove));
+            $current_attachments = get_post_meta($post_id, '_vic_attachments', true);
+            if (is_array($current_attachments)) {
+                // Remove specified attachments
+                foreach ($ids_to_remove as $att_id) {
+                    // Optionally delete the attachment from media library
+                    // wp_delete_attachment($att_id, true);
+                    $current_attachments = array_diff($current_attachments, [$att_id]);
+                }
+                // Update the attachments list
+                if (!empty($current_attachments)) {
+                    update_post_meta($post_id, '_vic_attachments', array_values($current_attachments));
+                } else {
+                    delete_post_meta($post_id, '_vic_attachments');
+                }
+            }
+        }
+
+        // Handle new file uploads
+        if (!empty($_FILES['new_attachments'])) {
+            require_once(ABSPATH . 'wp-admin/includes/image.php');
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+            require_once(ABSPATH . 'wp-admin/includes/media.php');
+
+            $current_attachments = get_post_meta($post_id, '_vic_attachments', true);
+            if (!is_array($current_attachments)) {
+                $current_attachments = [];
+            }
+
+            $files = $_FILES['new_attachments'];
+
+            // Allowed file types
+            $allowed_types = [
+                'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+                'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
+                'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3',
+                'application/pdf'
+            ];
+
+            // Max file size (10MB)
+            $max_size = 10 * 1024 * 1024;
+
+            for ($i = 0; $i < count($files['name']); $i++) {
+                if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                    // Check file type
+                    $file_type = $files['type'][$i];
+                    if (!in_array($file_type, $allowed_types)) {
+                        continue;
+                    }
+
+                    // Check file size
+                    if ($files['size'][$i] > $max_size) {
+                        continue;
+                    }
+
+                    $file = [
+                        'name' => $files['name'][$i],
+                        'type' => $files['type'][$i],
+                        'tmp_name' => $files['tmp_name'][$i],
+                        'error' => $files['error'][$i],
+                        'size' => $files['size'][$i]
+                    ];
+
+                    $_FILES['upload_file'] = $file;
+
+                    $attachment_id = media_handle_upload('upload_file', $post_id);
+
+                    if (!is_wp_error($attachment_id)) {
+                        $current_attachments[] = $attachment_id;
+                    }
+                }
+            }
+
+            if (!empty($current_attachments)) {
+                update_post_meta($post_id, '_vic_attachments', $current_attachments);
+            }
+        }
+
         // Get updated post HTML
         ob_start();
         $this->render_single_post($post_id);
@@ -992,6 +1099,83 @@ class Vision_IA_Community {
         wp_send_json_success([
             'message' => 'Post modifié avec succès',
             'post_html' => $post_html
+        ]);
+    }
+
+    /**
+     * Handle get post data for edit AJAX
+     * Returns all post data including attachments, GIF, YouTube, URL
+     */
+    public function handle_get_post_data_for_edit() {
+        check_ajax_referer('vic_nonce', 'nonce');
+
+        if (!is_user_logged_in()) {
+            wp_send_json_error(['message' => 'Vous devez être connecté']);
+        }
+
+        $post_id = intval($_POST['post_id']);
+        $post = get_post($post_id);
+
+        if (!$post || $post->post_type !== 'community_post') {
+            wp_send_json_error(['message' => 'Post non trouvé']);
+        }
+
+        $current_user_id = get_current_user_id();
+        $is_owner = (int) $post->post_author === $current_user_id;
+
+        // Only owner can get edit data
+        if (!$is_owner) {
+            wp_send_json_error(['message' => 'Vous ne pouvez modifier que vos propres posts']);
+        }
+
+        // Get post content
+        $content = $post->post_content;
+
+        // Get URL
+        $url = get_post_meta($post_id, '_vic_post_url', true);
+
+        // Get GIF
+        $gif = get_post_meta($post_id, '_vic_post_gif', true);
+
+        // Get YouTube
+        $youtube = get_post_meta($post_id, '_vic_post_youtube', true);
+
+        // Get attachments
+        $attachment_ids = get_post_meta($post_id, '_vic_attachments', true);
+        $attachments = [];
+
+        if (!empty($attachment_ids) && is_array($attachment_ids)) {
+            foreach ($attachment_ids as $att_id) {
+                $att_url = wp_get_attachment_url($att_id);
+                $att_type = wp_check_filetype($att_url);
+                $mime = get_post_mime_type($att_id);
+                $filename = basename($att_url);
+
+                $type = 'file';
+                if (strpos($mime, 'image') !== false) {
+                    $type = 'image';
+                } elseif (strpos($mime, 'video') !== false) {
+                    $type = 'video';
+                } elseif (strpos($mime, 'audio') !== false) {
+                    $type = 'audio';
+                }
+
+                $attachments[] = [
+                    'id' => $att_id,
+                    'url' => $att_url,
+                    'type' => $type,
+                    'mime' => $mime,
+                    'filename' => $filename
+                ];
+            }
+        }
+
+        wp_send_json_success([
+            'content' => $content,
+            'url' => $url,
+            'gif' => $gif,
+            'youtube' => $youtube,
+            'attachments' => $attachments
         ]);
     }
 
