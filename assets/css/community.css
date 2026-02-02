@@ -3779,14 +3779,21 @@ body .vic-community-wrapper,
 
 /* Highlighted comment (when navigating from activity) */
 .vic-comment-highlighted {
-    animation: vic-highlight-pulse 2s ease-out;
     background: #FEF3C7 !important;
     border-radius: 8px;
+    border-left: 3px solid #F59E0B !important;
+    padding-left: 12px !important;
+    margin-left: -15px !important;
+}
+
+.vic-comment-flash {
+    animation: vic-highlight-pulse 2s ease-out;
 }
 
 @keyframes vic-highlight-pulse {
-    0% { background: #FDE68A; }
-    100% { background: transparent; }
+    0% { background: #FDE68A; box-shadow: 0 0 20px rgba(245, 158, 11, 0.5); }
+    50% { background: #FEF3C7; box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
+    100% { background: #FEF3C7; box-shadow: none; }
 }
 
 /* =====================================================

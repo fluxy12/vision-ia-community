@@ -2110,7 +2110,7 @@ class Vision_IA_Community {
         $user_liked = $this->user_has_liked_comment($comment->comment_ID);
         $max_depth = 3; // Maximum reply depth
         ?>
-        <div class="vic-comment <?php echo $depth > 0 ? 'vic-comment-reply' : ''; ?>" data-comment-id="<?php echo $comment->comment_ID; ?>" data-depth="<?php echo $depth; ?>">
+        <div class="vic-comment <?php echo $depth > 0 ? 'vic-comment-reply' : ''; ?>" id="comment-<?php echo $comment->comment_ID; ?>" data-comment-id="<?php echo $comment->comment_ID; ?>" data-depth="<?php echo $depth; ?>">
             <div class="vic-comment-avatar-wrapper vic-profile-hover" data-user-id="<?php echo $comment->user_id; ?>">
                 <?php echo $comment->user_id ? self::get_user_avatar($comment->user_id, 36, 'vic-comment-avatar') : get_avatar($comment->comment_author_email, 36, '', '', ['class' => 'vic-comment-avatar']); ?>
             </div>

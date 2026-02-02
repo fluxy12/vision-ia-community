@@ -3920,7 +3920,12 @@
     }
 
     // Make openPostModal available globally for activity page
-    window.openPostModal = function(postId) {
+    window.openPostModal = function(postId, scrollToCommentId) {
+        // Store comment ID if provided as parameter
+        if (scrollToCommentId) {
+            sessionStorage.setItem('vic_scroll_to_comment', scrollToCommentId);
+        }
+
         $.ajax({
             url: vicAjax.ajaxurl,
             type: 'POST',
@@ -3936,23 +3941,42 @@
 
                     // Add new modal
                     $('body').append(response.data.html);
-
-                    // Initialize modal functionality
-                    initModalFunctions();
+                    $('body').addClass('vic-modal-open');
 
                     // Check if we need to scroll to a comment
                     var scrollToComment = sessionStorage.getItem('vic_scroll_to_comment');
                     if (scrollToComment) {
                         sessionStorage.removeItem('vic_scroll_to_comment');
+                        // Wait for modal to be fully rendered
                         setTimeout(function() {
                             var $comment = $('#comment-' + scrollToComment);
-                            if ($comment.length) {
+                            var $modalContent = $('.vic-modal-content');
+
+                            console.log('Looking for comment:', scrollToComment);
+                            console.log('Comment found:', $comment.length);
+
+                            if ($comment.length && $modalContent.length) {
+                                // Highlight the comment
                                 $comment.addClass('vic-comment-highlighted');
-                                $('.vic-modal-content').animate({
-                                    scrollTop: $comment.offset().top - $('.vic-modal-content').offset().top + $('.vic-modal-content').scrollTop() - 100
-                                }, 500);
+
+                                // Calculate scroll position within the modal
+                                var commentTop = $comment.position().top;
+                                var modalScrollTop = $modalContent.scrollTop();
+                                var scrollTo = modalScrollTop + commentTop - 150;
+
+                                console.log('Scrolling to position:', scrollTo);
+
+                                $modalContent.animate({
+                                    scrollTop: scrollTo
+                                }, 500, function() {
+                                    // Flash effect after scroll
+                                    $comment.addClass('vic-comment-flash');
+                                    setTimeout(function() {
+                                        $comment.removeClass('vic-comment-flash');
+                                    }, 2000);
+                                });
                             }
-                        }, 300);
+                        }, 500);
                     }
                 }
             }
