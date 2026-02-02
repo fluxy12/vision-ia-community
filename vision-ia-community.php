@@ -2580,12 +2580,28 @@ class Vision_IA_Community {
             if ($points_to_next < 0) $points_to_next = 0;
         }
 
-        // Get user profile URL (MasterStudy LMS)
+        // Get user profile URL (MasterStudy LMS public profile)
         $profile_url = '';
-        if (function_exists('STM_LMS_User')) {
-            $profile_url = STM_LMS_User::get_current_user_url($user_id);
+
+        // Check if user is an instructor or student
+        $is_instructor = user_can($user_id, 'stm_lms_instructor') || user_can($user_id, 'administrator');
+
+        // Get the LMS settings for profile pages
+        $instructor_page = get_option('stm_lms_instructor_public_page', '');
+        $student_page = get_option('stm_lms_student_public_page', '');
+
+        if ($is_instructor && $instructor_page) {
+            $profile_url = get_permalink($instructor_page) . $user_id . '/';
+        } elseif ($student_page) {
+            $profile_url = get_permalink($student_page) . $user_id . '/';
         } else {
-            $profile_url = get_author_posts_url($user_id);
+            // Fallback: try to construct URL based on common MasterStudy patterns
+            $site_url = home_url();
+            if ($is_instructor) {
+                $profile_url = $site_url . '/instructor-public-account/' . $user_id . '/';
+            } else {
+                $profile_url = $site_url . '/student-public-account/' . $user_id . '/';
+            }
         }
 
         // Check active status (last activity within 24 hours)
