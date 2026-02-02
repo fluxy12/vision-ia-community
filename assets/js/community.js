@@ -1765,12 +1765,25 @@
             });
         }
 
-        // Changer de catégorie
+        // Changer de catégorie (general handler - skip for specific modals)
         $(document).on('click', '.vic-emoji-categories button', function(e) {
+            const $picker = $(this).closest('.vic-emoji-picker-full');
+
+            // Skip if this is for edit comment modal (has its own handler)
+            if ($picker.hasClass('vic-edit-comment-emoji-picker')) {
+                console.log('SKIP general category handler - edit comment modal');
+                return;
+            }
+
+            // Skip if this is for edit post modal (has its own handler)
+            if ($picker.hasClass('vic-edit-emoji-picker')) {
+                console.log('SKIP general category handler - edit post modal');
+                return;
+            }
+
             e.preventDefault();
             e.stopPropagation();
             const category = $(this).data('category');
-            const $picker = $(this).closest('.vic-emoji-picker-full');
 
             $picker.find('.vic-emoji-categories button').removeClass('active');
             $(this).addClass('active');
@@ -1778,10 +1791,21 @@
             renderEmojiCategory(category, $picker.find('.vic-emoji-grid'));
         });
 
-        // Recherche emoji
+        // Recherche emoji (general handler - skip for specific modals)
         $(document).on('input', '.vic-emoji-search-input', function() {
-            const query = $(this).val().toLowerCase();
             const $picker = $(this).closest('.vic-emoji-picker-full');
+
+            // Skip if this is for edit comment modal
+            if ($picker.hasClass('vic-edit-comment-emoji-picker')) {
+                return;
+            }
+
+            // Skip if this is for edit post modal
+            if ($picker.hasClass('vic-edit-emoji-picker')) {
+                return;
+            }
+
+            const query = $(this).val().toLowerCase();
             const $grid = $picker.find('.vic-emoji-grid');
 
             if (query.length < 1) {
