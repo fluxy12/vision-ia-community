@@ -3961,15 +3961,23 @@
 
     // Open Activity Modal - make it global
     window.openActivityModal = function(userId) {
+        console.log('openActivityModal called with userId:', userId);
+
         // Show loading
         var loadingHtml = '<div class="vic-modal-overlay vic-activity-modal-overlay">' +
             '<div class="vic-activity-modal">' +
             '<div class="vic-activity-modal-loading"><div class="vic-profile-popup-spinner"></div></div>' +
             '</div></div>';
+
+        console.log('Appending modal to body');
         $('body').append(loadingHtml);
         $('body').addClass('vic-modal-open');
 
+        console.log('Modal overlay exists:', $('.vic-activity-modal-overlay').length);
+        console.log('Modal exists:', $('.vic-activity-modal').length);
+
         // Fetch activity data
+        console.log('Starting AJAX request to:', vicAjax.ajaxurl);
         $.ajax({
             url: vicAjax.ajaxurl,
             type: 'POST',
@@ -3979,14 +3987,19 @@
                 user_id: userId
             },
             success: function(response) {
+                console.log('AJAX success, response:', response);
                 if (response.success) {
+                    console.log('Response success, HTML length:', response.data.html.length);
                     $('.vic-activity-modal').html(response.data.html);
                 } else {
-                    $('.vic-activity-modal').html('<p style="padding:20px;">Erreur de chargement.</p>');
+                    console.log('Response error:', response);
+                    $('.vic-activity-modal').html('<p style="padding:20px;">Erreur de chargement: ' + (response.data ? response.data.message : 'Unknown') + '</p>');
                 }
             },
-            error: function() {
-                $('.vic-activity-modal').html('<p style="padding:20px;">Erreur de connexion.</p>');
+            error: function(xhr, status, error) {
+                console.log('AJAX error:', status, error);
+                console.log('XHR response:', xhr.responseText);
+                $('.vic-activity-modal').html('<p style="padding:20px;">Erreur de connexion: ' + error + '</p>');
             }
         });
 
