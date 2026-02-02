@@ -3827,9 +3827,8 @@
             if (data.profile_url) {
                 html += '<a href="' + data.profile_url + '" class="vic-profile-popup-btn">PROFIL</a>';
             }
-            // Activity button - links to community filtered by user
-            var activityUrl = window.location.pathname.split('?')[0] + '?vic_author=' + data.user_id;
-            html += '<a href="' + activityUrl + '" class="vic-profile-popup-btn">ACTIVITÉS</a>';
+            // Activity button - opens activity modal
+            html += '<button type="button" class="vic-profile-popup-btn vic-activity-btn" data-user-id="' + data.user_id + '">ACTIVITÉS</button>';
             html += '</div>';
 
             $popup.html(html);
@@ -3851,5 +3850,164 @@
 
     // Initialize profile popup
     initProfilePopup();
+
+    // Initialize user activity page
+    initUserActivityPage();
+
+    /**
+     * User Activity Page & Modal
+     */
+    function initUserActivityPage() {
+        // Handle click on Activities button in profile popup
+        $(document).on('click', '.vic-activity-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var userId = $(this).data('user-id');
+            if (userId) {
+                openActivityModal(userId);
+            }
+        });
+
+        // Activity tabs
+        $(document).on('click', '.vic-activity-tab', function() {
+            var $tab = $(this);
+            var tabName = $tab.data('tab');
+
+            // Update active tab
+            $('.vic-activity-tab').removeClass('active');
+            $tab.addClass('active');
+
+            // Show corresponding content
+            $('.vic-activity-content').hide();
+            $('#vic-activity-' + tabName).show();
+        });
+
+        // Click on post activity item - open modal
+        $(document).on('click', '.vic-activity-post', function() {
+            var postId = $(this).data('post-id');
+            if (postId && typeof openPostModal === 'function') {
+                openPostModal(postId);
+            } else if (postId) {
+                // Fallback: trigger the modal via custom event or redirect
+                window.location.href = '?vic_post=' + postId;
+            }
+        });
+
+        // Click on comment activity item - open modal and scroll to comment
+        $(document).on('click', '.vic-activity-comment', function() {
+            var postId = $(this).data('post-id');
+            var commentId = $(this).data('comment-id');
+
+            if (postId) {
+                // Store comment ID to scroll to after modal opens
+                if (commentId) {
+                    sessionStorage.setItem('vic_scroll_to_comment', commentId);
+                }
+
+                if (typeof openPostModal === 'function') {
+                    openPostModal(postId);
+                } else {
+                    window.location.href = '?vic_post=' + postId + '&comment=' + commentId;
+                }
+            }
+        });
+    }
+
+    // Make openPostModal available globally for activity page
+    window.openPostModal = function(postId) {
+        $.ajax({
+            url: vicAjax.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'vic_get_post_modal',
+                nonce: vicAjax.nonce,
+                post_id: postId
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Remove existing modal
+                    $('.vic-modal-overlay').remove();
+
+                    // Add new modal
+                    $('body').append(response.data.html);
+
+                    // Initialize modal functionality
+                    initModalFunctions();
+
+                    // Check if we need to scroll to a comment
+                    var scrollToComment = sessionStorage.getItem('vic_scroll_to_comment');
+                    if (scrollToComment) {
+                        sessionStorage.removeItem('vic_scroll_to_comment');
+                        setTimeout(function() {
+                            var $comment = $('#comment-' + scrollToComment);
+                            if ($comment.length) {
+                                $comment.addClass('vic-comment-highlighted');
+                                $('.vic-modal-content').animate({
+                                    scrollTop: $comment.offset().top - $('.vic-modal-content').offset().top + $('.vic-modal-content').scrollTop() - 100
+                                }, 500);
+                            }
+                        }, 300);
+                    }
+                }
+            }
+        });
+    };
+
+    // Open Activity Modal
+    function openActivityModal(userId) {
+        // Show loading
+        var loadingHtml = '<div class="vic-modal-overlay vic-activity-modal-overlay">' +
+            '<div class="vic-activity-modal">' +
+            '<div class="vic-activity-modal-loading"><div class="vic-profile-popup-spinner"></div></div>' +
+            '</div></div>';
+        $('body').append(loadingHtml);
+        $('body').addClass('vic-modal-open');
+
+        // Fetch activity data
+        $.ajax({
+            url: vicAjax.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'vic_get_user_activity',
+                nonce: vicAjax.nonce,
+                user_id: userId
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('.vic-activity-modal').html(response.data.html);
+                } else {
+                    $('.vic-activity-modal').html('<p style="padding:20px;">Erreur de chargement.</p>');
+                }
+            },
+            error: function() {
+                $('.vic-activity-modal').html('<p style="padding:20px;">Erreur de connexion.</p>');
+            }
+        });
+
+        // Close modal on overlay click
+        $(document).on('click', '.vic-activity-modal-overlay', function(e) {
+            if ($(e.target).hasClass('vic-activity-modal-overlay')) {
+                closeActivityModal();
+            }
+        });
+
+        // Close button
+        $(document).on('click', '.vic-activity-modal-close', function() {
+            closeActivityModal();
+        });
+
+        // ESC key to close
+        $(document).on('keydown.activityModal', function(e) {
+            if (e.key === 'Escape') {
+                closeActivityModal();
+            }
+        });
+    }
+
+    function closeActivityModal() {
+        $('.vic-activity-modal-overlay').remove();
+        $('body').removeClass('vic-modal-open');
+        $(document).off('keydown.activityModal');
+    }
 
 })(jQuery);

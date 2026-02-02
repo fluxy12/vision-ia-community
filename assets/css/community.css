@@ -3484,3 +3484,452 @@ body .vic-community-wrapper,
         font-size: 16px;
     }
 }
+
+/* =====================================================
+   USER ACTIVITY PAGE STYLES
+   ===================================================== */
+
+.vic-user-activity-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Activity Header */
+.vic-activity-header {
+    margin-bottom: 24px;
+}
+
+.vic-activity-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--vic-gray-600);
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 16px;
+    transition: color 0.2s;
+}
+
+.vic-activity-back:hover {
+    color: var(--vic-gray-900);
+}
+
+.vic-activity-user-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.vic-activity-user-info img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.vic-activity-user-details h2 {
+    margin: 0 0 4px 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--vic-gray-900);
+}
+
+.vic-activity-user-level {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+}
+
+/* Activity Tabs */
+.vic-activity-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--vic-gray-200);
+    padding-bottom: 0;
+}
+
+.vic-activity-tab {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--vic-gray-500);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.vic-activity-tab:hover {
+    color: var(--vic-gray-700);
+}
+
+.vic-activity-tab.active {
+    color: var(--vic-gray-900);
+}
+
+.vic-activity-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--vic-gray-900);
+}
+
+.vic-tab-count {
+    background: var(--vic-gray-100);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    margin-left: 6px;
+}
+
+.vic-activity-tab.active .vic-tab-count {
+    background: var(--vic-gray-900);
+    color: white;
+}
+
+/* Activity Items */
+.vic-activity-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.vic-activity-item {
+    background: var(--vic-white);
+    border: 1px solid var(--vic-gray-200);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.vic-activity-item:hover {
+    border-color: var(--vic-gray-300);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.vic-activity-item-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.vic-activity-item-header img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.vic-activity-item-meta {
+    flex: 1;
+    font-size: 14px;
+    color: var(--vic-gray-600);
+}
+
+.vic-activity-author {
+    font-weight: 600;
+    color: var(--vic-gray-900);
+}
+
+.vic-activity-context {
+    color: var(--vic-gray-500);
+}
+
+.vic-activity-context strong {
+    color: var(--vic-gray-700);
+}
+
+.vic-activity-date {
+    color: var(--vic-gray-400);
+}
+
+.vic-activity-category {
+    background: var(--vic-gray-100);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--vic-gray-600);
+}
+
+/* Post Item */
+.vic-activity-post-title {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--vic-gray-900);
+    line-height: 1.4;
+}
+
+.vic-activity-post-excerpt {
+    margin: 0;
+    font-size: 14px;
+    color: var(--vic-gray-600);
+    line-height: 1.5;
+}
+
+.vic-activity-item-stats {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--vic-gray-100);
+    font-size: 13px;
+    color: var(--vic-gray-500);
+}
+
+/* Comment Item - Parent Post Preview */
+.vic-activity-parent-post {
+    background: var(--vic-gray-50);
+    border: 1px solid var(--vic-gray-200);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.vic-activity-parent-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.vic-activity-parent-header img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+}
+
+.vic-activity-parent-author {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--vic-gray-700);
+}
+
+.vic-activity-parent-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--vic-gray-800);
+}
+
+/* Comment Content */
+.vic-activity-comment-content {
+    padding-left: 50px;
+}
+
+.vic-activity-comment-content p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--vic-gray-700);
+    line-height: 1.5;
+    background: var(--vic-gray-50);
+    padding: 10px 14px;
+    border-radius: 8px;
+    border-left: 3px solid var(--vic-primary);
+}
+
+/* No Activity */
+.vic-no-activity {
+    text-align: center;
+    padding: 40px;
+    color: var(--vic-gray-500);
+    font-size: 14px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+    .vic-user-activity-page {
+        padding: 16px;
+    }
+
+    .vic-activity-user-info img {
+        width: 48px;
+        height: 48px;
+    }
+
+    .vic-activity-user-details h2 {
+        font-size: 20px;
+    }
+
+    .vic-activity-tab {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    .vic-activity-item-header img {
+        width: 32px;
+        height: 32px;
+    }
+
+    .vic-activity-comment-content {
+        padding-left: 0;
+    }
+}
+
+/* Highlighted comment (when navigating from activity) */
+.vic-comment-highlighted {
+    animation: vic-highlight-pulse 2s ease-out;
+    background: #FEF3C7 !important;
+    border-radius: 8px;
+}
+
+@keyframes vic-highlight-pulse {
+    0% { background: #FDE68A; }
+    100% { background: transparent; }
+}
+
+/* =====================================================
+   ACTIVITY MODAL STYLES
+   ===================================================== */
+
+.vic-activity-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 100002;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.vic-activity-modal {
+    background: var(--vic-white);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.vic-activity-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: var(--vic-gray-100);
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vic-gray-600);
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.vic-activity-modal-close:hover {
+    background: var(--vic-gray-200);
+    color: var(--vic-gray-900);
+}
+
+.vic-activity-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--vic-gray-100);
+}
+
+.vic-activity-modal-header img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.vic-activity-modal-user-info h3 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--vic-gray-900);
+}
+
+.vic-activity-modal .vic-activity-tabs {
+    padding: 0 20px;
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--vic-gray-200);
+}
+
+.vic-activity-modal .vic-activity-content {
+    padding: 16px 20px;
+    overflow-y: auto;
+    max-height: calc(80vh - 180px);
+}
+
+.vic-activity-modal .vic-activity-item {
+    margin-bottom: 12px;
+}
+
+.vic-activity-modal .vic-activity-item:last-child {
+    margin-bottom: 0;
+}
+
+.vic-activity-modal .vic-activity-item-header img {
+    width: 36px;
+    height: 36px;
+}
+
+.vic-activity-modal .vic-activity-post-title {
+    font-size: 15px;
+    margin: 0 0 6px;
+}
+
+.vic-activity-modal .vic-activity-post-excerpt {
+    font-size: 13px;
+}
+
+.vic-activity-modal-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+    .vic-activity-modal-overlay {
+        padding: 10px;
+    }
+
+    .vic-activity-modal {
+        max-height: 90vh;
+    }
+
+    .vic-activity-modal .vic-activity-content {
+        max-height: calc(90vh - 180px);
+    }
+
+    .vic-activity-modal-header {
+        padding: 16px;
+    }
+
+    .vic-activity-modal .vic-activity-tabs {
+        padding: 0 16px;
+    }
+
+    .vic-activity-modal .vic-activity-content {
+        padding: 12px 16px;
+    }
+}

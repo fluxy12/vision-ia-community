@@ -48,7 +48,10 @@ class Vision_IA_Community {
         add_action('wp_ajax_vic_get_comment_data_for_edit', [$this, 'handle_get_comment_data_for_edit']);
         add_action('wp_ajax_vic_get_user_profile', [$this, 'handle_get_user_profile']);
         add_action('wp_ajax_nopriv_vic_get_user_profile', [$this, 'handle_get_user_profile']);
+        add_action('wp_ajax_vic_get_user_activity', [$this, 'handle_get_user_activity']);
+        add_action('wp_ajax_nopriv_vic_get_user_activity', [$this, 'handle_get_user_activity']);
         add_shortcode('community_feed', [$this, 'render_feed']);
+        add_shortcode('community_user_activity', [$this, 'render_user_activity']);
         
         // Hook MasterStudy profile tab
         add_filter('stm_lms_profile_tabs', [$this, 'add_profile_tab']);
@@ -731,6 +734,164 @@ class Vision_IA_Community {
                 <button class="vic-btn vic-btn-load-more" id="vic-load-more" data-page="1">
                     Charger plus
                 </button>
+            </div>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    /**
+     * Render user activity page
+     */
+    public function render_user_activity($atts) {
+        $atts = shortcode_atts([
+            'user_id' => 0
+        ], $atts);
+
+        // Get user ID from URL parameter if not set
+        $user_id = $atts['user_id'] ? intval($atts['user_id']) : (isset($_GET['user_id']) ? intval($_GET['user_id']) : 0);
+
+        if (!$user_id) {
+            return '<p>Utilisateur non spécifié.</p>';
+        }
+
+        $user = get_user_by('ID', $user_id);
+        if (!$user) {
+            return '<p>Utilisateur non trouvé.</p>';
+        }
+
+        // Get user info
+        $display_name = $user->display_name;
+        $avatar = $this->get_user_avatar($user_id, 64);
+        $level_info = $this->get_user_level_info($user_id);
+
+        // Get posts by user
+        $posts = get_posts([
+            'post_type' => 'community_post',
+            'author' => $user_id,
+            'posts_per_page' => 20,
+            'orderby' => 'date',
+            'order' => 'DESC'
+        ]);
+
+        // Get comments by user on community posts
+        $comments = get_comments([
+            'user_id' => $user_id,
+            'post_type' => 'community_post',
+            'number' => 50,
+            'orderby' => 'comment_date',
+            'order' => 'DESC'
+        ]);
+
+        ob_start();
+        ?>
+        <div class="vic-user-activity-page">
+            <!-- User Header -->
+            <div class="vic-activity-header">
+                <a href="javascript:history.back()" class="vic-activity-back">← Retour</a>
+                <div class="vic-activity-user-info">
+                    <?php echo $avatar; ?>
+                    <div class="vic-activity-user-details">
+                        <h2><?php echo esc_html($display_name); ?></h2>
+                        <span class="vic-activity-user-level" style="background: <?php echo esc_attr($level_info['color']); ?>">
+                            <?php echo esc_html($level_info['emoji'] . ' ' . $level_info['name']); ?>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Tabs -->
+            <div class="vic-activity-tabs">
+                <button class="vic-activity-tab active" data-tab="posts">
+                    Posts <span class="vic-tab-count"><?php echo count($posts); ?></span>
+                </button>
+                <button class="vic-activity-tab" data-tab="comments">
+                    Commentaires <span class="vic-tab-count"><?php echo count($comments); ?></span>
+                </button>
+            </div>
+
+            <!-- Posts Tab Content -->
+            <div class="vic-activity-content" id="vic-activity-posts">
+                <?php if ($posts) : ?>
+                    <?php foreach ($posts as $post) :
+                        $post_date = human_time_diff(strtotime($post->post_date), current_time('timestamp'));
+                        $categories = wp_get_object_terms($post->ID, 'community_category');
+                        $category_name = !empty($categories) ? $categories[0]->name : '';
+                        $likes = (int) get_post_meta($post->ID, '_vic_likes', true);
+                        $comment_count = get_comments_number($post->ID);
+                    ?>
+                        <div class="vic-activity-item vic-activity-post" data-post-id="<?php echo $post->ID; ?>">
+                            <div class="vic-activity-item-header">
+                                <?php echo $avatar; ?>
+                                <div class="vic-activity-item-meta">
+                                    <span class="vic-activity-author"><?php echo esc_html($display_name); ?></span>
+                                    <span class="vic-activity-context">a publié un post</span>
+                                    <span class="vic-activity-date">· <?php echo $post_date; ?></span>
+                                </div>
+                                <?php if ($category_name) : ?>
+                                    <span class="vic-activity-category"><?php echo esc_html($category_name); ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="vic-activity-item-content">
+                                <h3 class="vic-activity-post-title"><?php echo esc_html($post->post_title); ?></h3>
+                                <p class="vic-activity-post-excerpt"><?php echo wp_trim_words(strip_tags($post->post_content), 30, '...'); ?></p>
+                            </div>
+                            <div class="vic-activity-item-stats">
+                                <span>❤️ <?php echo $likes; ?></span>
+                                <span>💬 <?php echo $comment_count; ?></span>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <p class="vic-no-activity">Aucun post pour le moment.</p>
+                <?php endif; ?>
+            </div>
+
+            <!-- Comments Tab Content -->
+            <div class="vic-activity-content" id="vic-activity-comments" style="display: none;">
+                <?php if ($comments) : ?>
+                    <?php foreach ($comments as $comment) :
+                        $comment_date = human_time_diff(strtotime($comment->comment_date), current_time('timestamp'));
+                        $parent_post = get_post($comment->comment_post_ID);
+                        if (!$parent_post) continue;
+                        $post_author = get_user_by('ID', $parent_post->post_author);
+                        $post_author_name = $post_author ? $post_author->display_name : 'Utilisateur';
+                        $post_author_avatar = $post_author ? $this->get_user_avatar($post_author->ID, 24) : '';
+                        $is_own_post = ($parent_post->post_author == $user_id);
+                    ?>
+                        <div class="vic-activity-item vic-activity-comment" data-post-id="<?php echo $comment->comment_post_ID; ?>" data-comment-id="<?php echo $comment->comment_ID; ?>">
+                            <div class="vic-activity-item-header">
+                                <?php echo $avatar; ?>
+                                <div class="vic-activity-item-meta">
+                                    <span class="vic-activity-author"><?php echo esc_html($display_name); ?></span>
+                                    <span class="vic-activity-context">
+                                        a commenté <?php echo $is_own_post ? 'son post' : 'le post de'; ?>
+                                        <?php if (!$is_own_post) : ?>
+                                            <strong><?php echo esc_html($post_author_name); ?></strong>
+                                        <?php endif; ?>
+                                    </span>
+                                    <span class="vic-activity-date">· <?php echo $comment_date; ?></span>
+                                </div>
+                            </div>
+
+                            <!-- Parent Post Preview -->
+                            <div class="vic-activity-parent-post">
+                                <div class="vic-activity-parent-header">
+                                    <?php echo $post_author_avatar; ?>
+                                    <span class="vic-activity-parent-author"><?php echo esc_html($post_author_name); ?></span>
+                                </div>
+                                <h4 class="vic-activity-parent-title"><?php echo esc_html($parent_post->post_title); ?></h4>
+                            </div>
+
+                            <!-- Comment Content -->
+                            <div class="vic-activity-comment-content">
+                                <p><?php echo wp_trim_words(strip_tags($comment->comment_content), 40, '...'); ?></p>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <p class="vic-no-activity">Aucun commentaire pour le moment.</p>
+                <?php endif; ?>
             </div>
         </div>
         <?php
@@ -2766,6 +2927,159 @@ class Vision_IA_Community {
             'last_activity' => $last_activity_formatted,
             'profile_url' => $profile_url
         ]);
+    }
+
+    /**
+     * Handle get user activity AJAX
+     */
+    public function handle_get_user_activity() {
+        check_ajax_referer('vic_nonce', 'nonce');
+
+        $user_id = intval($_POST['user_id']);
+        if (!$user_id) {
+            wp_send_json_error(['message' => 'ID utilisateur manquant']);
+        }
+
+        $user = get_user_by('ID', $user_id);
+        if (!$user) {
+            wp_send_json_error(['message' => 'Utilisateur non trouvé']);
+        }
+
+        // Get user info
+        $display_name = $user->display_name;
+        $avatar = self::get_user_avatar($user_id, 48);
+        $level_info = $this->get_user_level_info($user_id);
+
+        // Get posts by user
+        $posts = get_posts([
+            'post_type' => 'community_post',
+            'author' => $user_id,
+            'posts_per_page' => 20,
+            'orderby' => 'date',
+            'order' => 'DESC'
+        ]);
+
+        // Get comments by user on community posts
+        $comments = get_comments([
+            'user_id' => $user_id,
+            'post_type' => 'community_post',
+            'number' => 50,
+            'orderby' => 'comment_date',
+            'order' => 'DESC'
+        ]);
+
+        ob_start();
+        ?>
+        <button class="vic-activity-modal-close">&times;</button>
+
+        <!-- User Header -->
+        <div class="vic-activity-modal-header">
+            <?php echo $avatar; ?>
+            <div class="vic-activity-modal-user-info">
+                <h3><?php echo esc_html($display_name); ?></h3>
+                <span class="vic-activity-user-level" style="background: <?php echo esc_attr($level_info['color']); ?>">
+                    <?php echo esc_html($level_info['emoji'] . ' ' . $level_info['name']); ?>
+                </span>
+            </div>
+        </div>
+
+        <!-- Activity Tabs -->
+        <div class="vic-activity-tabs">
+            <button class="vic-activity-tab active" data-tab="posts">
+                Posts <span class="vic-tab-count"><?php echo count($posts); ?></span>
+            </button>
+            <button class="vic-activity-tab" data-tab="comments">
+                Commentaires <span class="vic-tab-count"><?php echo count($comments); ?></span>
+            </button>
+        </div>
+
+        <!-- Posts Tab Content -->
+        <div class="vic-activity-content" id="vic-activity-posts">
+            <?php if ($posts) : ?>
+                <?php foreach ($posts as $post) :
+                    $post_date = human_time_diff(strtotime($post->post_date), current_time('timestamp'));
+                    $categories = wp_get_object_terms($post->ID, 'community_category');
+                    $category_name = !empty($categories) ? $categories[0]->name : '';
+                    $likes = (int) get_post_meta($post->ID, '_vic_likes', true);
+                    $comment_count = get_comments_number($post->ID);
+                ?>
+                    <div class="vic-activity-item vic-activity-post" data-post-id="<?php echo $post->ID; ?>">
+                        <div class="vic-activity-item-header">
+                            <?php echo $avatar; ?>
+                            <div class="vic-activity-item-meta">
+                                <span class="vic-activity-author"><?php echo esc_html($display_name); ?></span>
+                                <span class="vic-activity-context">a publié un post</span>
+                                <span class="vic-activity-date">· <?php echo $post_date; ?></span>
+                            </div>
+                            <?php if ($category_name) : ?>
+                                <span class="vic-activity-category"><?php echo esc_html($category_name); ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="vic-activity-item-content">
+                            <h4 class="vic-activity-post-title"><?php echo esc_html($post->post_title); ?></h4>
+                            <p class="vic-activity-post-excerpt"><?php echo wp_trim_words(strip_tags($post->post_content), 25, '...'); ?></p>
+                        </div>
+                        <div class="vic-activity-item-stats">
+                            <span>❤️ <?php echo $likes; ?></span>
+                            <span>💬 <?php echo $comment_count; ?></span>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else : ?>
+                <p class="vic-no-activity">Aucun post pour le moment.</p>
+            <?php endif; ?>
+        </div>
+
+        <!-- Comments Tab Content -->
+        <div class="vic-activity-content" id="vic-activity-comments" style="display: none;">
+            <?php if ($comments) : ?>
+                <?php foreach ($comments as $comment) :
+                    $comment_date = human_time_diff(strtotime($comment->comment_date), current_time('timestamp'));
+                    $parent_post = get_post($comment->comment_post_ID);
+                    if (!$parent_post) continue;
+                    $post_author = get_user_by('ID', $parent_post->post_author);
+                    $post_author_name = $post_author ? $post_author->display_name : 'Utilisateur';
+                    $post_author_avatar = $post_author ? self::get_user_avatar($post_author->ID, 24) : '';
+                    $is_own_post = ($parent_post->post_author == $user_id);
+                ?>
+                    <div class="vic-activity-item vic-activity-comment" data-post-id="<?php echo $comment->comment_post_ID; ?>" data-comment-id="<?php echo $comment->comment_ID; ?>">
+                        <div class="vic-activity-item-header">
+                            <?php echo $avatar; ?>
+                            <div class="vic-activity-item-meta">
+                                <span class="vic-activity-author"><?php echo esc_html($display_name); ?></span>
+                                <span class="vic-activity-context">
+                                    a commenté <?php echo $is_own_post ? 'son post' : 'le post de'; ?>
+                                    <?php if (!$is_own_post) : ?>
+                                        <strong><?php echo esc_html($post_author_name); ?></strong>
+                                    <?php endif; ?>
+                                </span>
+                                <span class="vic-activity-date">· <?php echo $comment_date; ?></span>
+                            </div>
+                        </div>
+
+                        <!-- Parent Post Preview -->
+                        <div class="vic-activity-parent-post">
+                            <div class="vic-activity-parent-header">
+                                <?php echo $post_author_avatar; ?>
+                                <span class="vic-activity-parent-author"><?php echo esc_html($post_author_name); ?></span>
+                            </div>
+                            <h4 class="vic-activity-parent-title"><?php echo esc_html($parent_post->post_title); ?></h4>
+                        </div>
+
+                        <!-- Comment Content -->
+                        <div class="vic-activity-comment-content">
+                            <p><?php echo wp_trim_words(strip_tags($comment->comment_content), 35, '...'); ?></p>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else : ?>
+                <p class="vic-no-activity">Aucun commentaire pour le moment.</p>
+            <?php endif; ?>
+        </div>
+        <?php
+
+        $html = ob_get_clean();
+        wp_send_json_success(['html' => $html]);
     }
 
     /**
