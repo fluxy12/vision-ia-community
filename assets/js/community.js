@@ -1810,20 +1810,22 @@
 
         // Insérer emoji - FIX du bug
         $(document).on('click', '.vic-emoji-item', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
             const $emojiItem = $(this);
 
-            // Skip if this is for edit comment modal (handled separately)
+            // Skip if this is for edit comment modal (handled by specific handler)
             if ($emojiItem.hasClass('vic-edit-comment-emoji-item')) {
+                // Let the specific handler deal with it
                 return;
             }
 
-            // Skip if this is for edit post modal (handled separately)
+            // Skip if this is for edit post modal (handled by specific handler)
             if ($emojiItem.hasClass('vic-edit-emoji-item')) {
+                // Let the specific handler deal with it
                 return;
             }
+
+            e.preventDefault();
+            e.stopPropagation();
 
             // WordPress/Twemoji convertit les emojis en images <img>
             // On doit récupérer l'emoji depuis l'attribut alt de l'image
@@ -2036,6 +2038,11 @@
 
         // Insérer GIF sélectionné - Afficher comme image dans la preview
         $(document).on('click', '.vic-gif-grid img', function(e) {
+            // Skip if handled by specific handlers (let them deal with it)
+            if ($(this).hasClass('vic-edit-comment-gif-item')) return;
+            if ($(this).hasClass('vic-edit-gif-item')) return;
+            if ($(this).hasClass('vic-post-gif-item')) return;
+
             e.preventDefault();
             e.stopPropagation();
 
