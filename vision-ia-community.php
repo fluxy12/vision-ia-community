@@ -2571,13 +2571,25 @@ class Vision_IA_Community {
             $user_id
         ));
 
-        // Calculate points to next level
+        // Calculate points to next level and progress percentage
         $levels_config = self::get_levels_config();
         $next_level = $user_level + 1;
         $points_to_next = 0;
+        $progress_percent = 100; // Default to 100% if max level
+
+        $current_level_points = isset($levels_config[$user_level]) ? $levels_config[$user_level]['points'] : 0;
+        $next_level_points = isset($levels_config[$next_level]) ? $levels_config[$next_level]['points'] : 0;
+
         if (isset($levels_config[$next_level])) {
-            $points_to_next = $levels_config[$next_level]['points'] - $points;
+            $points_to_next = $next_level_points - $points;
             if ($points_to_next < 0) $points_to_next = 0;
+
+            // Calculate progress percentage within current level
+            $level_range = $next_level_points - $current_level_points;
+            $points_in_level = $points - $current_level_points;
+            if ($level_range > 0) {
+                $progress_percent = min(100, max(0, ($points_in_level / $level_range) * 100));
+            }
         }
 
         // Get user profile URL (MasterStudy LMS public profile)
@@ -2625,6 +2637,7 @@ class Vision_IA_Community {
             'level_emoji' => $level_emoji,
             'points' => $points,
             'points_to_next' => $points_to_next,
+            'progress_percent' => round($progress_percent, 1),
             'post_count' => intval($post_count),
             'comment_count' => intval($comment_count),
             'is_admin' => $is_admin,

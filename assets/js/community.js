@@ -3743,19 +3743,57 @@
         }
 
         function renderProfilePopup(data) {
-            var html = '<div class="vic-profile-popup-header">';
+            // Calculate SVG progress ring values
+            var radius = 46;
+            var circumference = 2 * Math.PI * radius;
+            var progressPercent = data.progress_percent || 0;
+            var dashOffset = circumference - (progressPercent / 100) * circumference;
 
-            // Avatar with level badge
+            var html = '<div class="vic-profile-popup-content">';
+
+            // LEFT COLUMN - Avatar with progress ring
+            html += '<div class="vic-profile-popup-left">';
             html += '<div class="vic-profile-popup-avatar">';
+
+            // SVG Progress Ring
+            html += '<svg class="vic-profile-popup-progress-ring" viewBox="0 0 100 100">';
+            html += '<circle class="progress-bg" cx="50" cy="50" r="' + radius + '"/>';
+            html += '<circle class="progress-bar" cx="50" cy="50" r="' + radius + '" ';
+            html += 'stroke="' + data.level_color + '" ';
+            html += 'stroke-dasharray="' + circumference + '" ';
+            html += 'stroke-dashoffset="' + dashOffset + '"/>';
+            html += '</svg>';
+
+            // Avatar image
             html += data.avatar_html;
+
+            // Level badge
             html += '<span class="vic-profile-popup-level-badge" style="background-color: ' + data.level_color + '">' + data.level + '</span>';
+            html += '</div>'; // End avatar
+
+            // Level info under avatar
+            html += '<div class="vic-profile-popup-level-info">';
+            html += '<div class="vic-profile-popup-level-title">';
+            html += 'Niveau ' + data.level + ' - ' + escapeHtml(data.level_name) + ' ' + data.level_emoji;
             html += '</div>';
+            html += '<div class="vic-profile-popup-points-info">';
+            html += '<span>' + data.points.toLocaleString() + ' points</span>';
+            if (data.points_to_next > 0) {
+                html += ' • ' + data.points_to_next.toLocaleString() + ' pts pour niveau suivant';
+            }
+            html += '</div>';
+            html += '</div>'; // End level-info
+
+            html += '</div>'; // End left column
+
+            // RIGHT COLUMN - User info
+            html += '<div class="vic-profile-popup-right">';
 
             // Name and badges
             html += '<div class="vic-profile-popup-name-row">';
             html += '<h4 class="vic-profile-popup-name">' + escapeHtml(data.display_name) + '</h4>';
             if (data.is_admin) {
-                html += '<span class="vic-profile-popup-verified" title="Administrateur">&#x2714;</span>';
+                html += '<span class="vic-profile-popup-verified" title="Administrateur">&#x2714;&#xFE0F;</span>';
             }
             if (data.level >= 7) {
                 html += '<span class="vic-profile-popup-star" title="Expert">&#x2B50;</span>';
@@ -3768,46 +3806,18 @@
             html += '<span>' + (data.is_active ? 'Actif maintenant' : 'Actif il y a ' + data.last_activity) + '</span>';
             html += '</div>';
 
-            html += '</div>'; // End header
-
             // Bio if exists
             if (data.bio) {
                 html += '<p class="vic-profile-popup-bio">' + escapeHtml(data.bio) + '</p>';
             }
 
-            // Level info
-            html += '<div class="vic-profile-popup-level">';
-            html += '<div class="vic-profile-popup-level-icon" style="background-color: ' + data.level_color + '">' + data.level + '</div>';
-            html += '<div class="vic-profile-popup-level-info">';
-            html += '<div class="vic-profile-popup-level-name">';
-            html += 'Niveau ' + data.level + ' - ' + escapeHtml(data.level_name);
-            html += '<span class="vic-profile-popup-level-emoji">' + data.level_emoji + '</span>';
-            html += '</div>';
-            html += '<div class="vic-profile-popup-points">';
-            html += data.points.toLocaleString() + ' points';
-            if (data.points_to_next > 0) {
-                html += ' &bull; ' + data.points_to_next.toLocaleString() + ' pts pour niveau suivant';
-            }
-            html += '</div>';
-            html += '</div>';
-            html += '</div>';
-
-            // Stats
-            html += '<div class="vic-profile-popup-stats">';
-            html += '<div class="vic-profile-popup-stat">';
-            html += '<div class="vic-profile-popup-stat-value">' + data.post_count + '</div>';
-            html += '<div class="vic-profile-popup-stat-label">Posts</div>';
-            html += '</div>';
-            html += '<div class="vic-profile-popup-stat">';
-            html += '<div class="vic-profile-popup-stat-value">' + data.comment_count + '</div>';
-            html += '<div class="vic-profile-popup-stat-label">Commentaires</div>';
-            html += '</div>';
-            html += '</div>';
+            html += '</div>'; // End right column
+            html += '</div>'; // End content
 
             // Action buttons
             html += '<div class="vic-profile-popup-actions">';
             if (data.profile_url) {
-                html += '<a href="' + data.profile_url + '" class="vic-profile-popup-btn vic-profile-popup-btn-primary">PROFIL</a>';
+                html += '<a href="' + data.profile_url + '" class="vic-profile-popup-btn">PROFIL</a>';
             }
             html += '</div>';
 
