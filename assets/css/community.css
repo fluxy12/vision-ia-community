@@ -2140,7 +2140,8 @@ body .vic-community-wrapper,
 }
 
 .vic-emoji-item,
-.vic-edit-comment-emoji-item {
+.vic-edit-comment-emoji-item,
+.vic-post-emoji-item {
     cursor: pointer;
     padding: 6px;
     font-size: 22px;
@@ -2154,7 +2155,8 @@ body .vic-community-wrapper,
 }
 
 .vic-emoji-item:hover,
-.vic-edit-comment-emoji-item:hover {
+.vic-edit-comment-emoji-item:hover,
+.vic-post-emoji-item:hover {
     background: var(--vic-gray-100);
 }
 

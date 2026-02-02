@@ -342,7 +342,8 @@
             if (typeof emojiData !== 'undefined') {
                 const emojis = emojiData['smileys'] || [];
                 emojis.forEach(function(emoji) {
-                    $grid.append('<span class="vic-emoji-item vic-post-emoji-item">' + emoji + '</span>');
+                    // Only use specific class to avoid conflicts with general handler
+                    $grid.append('<span class="vic-post-emoji-item">' + emoji + '</span>');
                 });
             }
             $picker.append($grid);
@@ -402,7 +403,8 @@
             $grid.empty();
             if (typeof emojiData !== 'undefined' && emojiData[category]) {
                 emojiData[category].forEach(function(emoji) {
-                    $grid.append('<span class="vic-emoji-item vic-post-emoji-item">' + emoji + '</span>');
+                    // Only use specific class to avoid conflicts
+                    $grid.append('<span class="vic-post-emoji-item">' + emoji + '</span>');
                 });
             }
         });
@@ -418,7 +420,8 @@
                 $grid.empty();
                 if (typeof emojiData !== 'undefined' && emojiData[activeCategory]) {
                     emojiData[activeCategory].forEach(function(emoji) {
-                        $grid.append('<span class="vic-emoji-item vic-post-emoji-item">' + emoji + '</span>');
+                        // Only use specific class to avoid conflicts
+                        $grid.append('<span class="vic-post-emoji-item">' + emoji + '</span>');
                     });
                 }
                 return;
@@ -435,7 +438,8 @@
                     });
                 });
                 found.slice(0, 40).forEach(function(emoji) {
-                    $grid.append('<span class="vic-emoji-item vic-post-emoji-item">' + emoji + '</span>');
+                    // Only use specific class to avoid conflicts
+                    $grid.append('<span class="vic-post-emoji-item">' + emoji + '</span>');
                 });
             }
         });
@@ -1892,9 +1896,18 @@
                 }
             }
 
-            // Méthode 3: Chercher globalement (fallback)
+            // Méthode 3: Chercher globalement pour commentaires (fallback)
             if (!$input || !$input.length) {
                 $input = $('.vic-comment-input-skool:visible').first();
+            }
+
+            // Méthode 4: Chercher dans le formulaire de création de post
+            if (!$input || !$input.length) {
+                const $postForm = $('#vic-new-post-form');
+                if ($postForm.is(':visible')) {
+                    $input = $postForm.find('textarea[name="post_content"]');
+                    console.log('Found post form textarea:', $input.length);
+                }
             }
 
             if ($input && $input.length) {
