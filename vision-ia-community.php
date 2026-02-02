@@ -2616,65 +2616,61 @@ class Vision_IA_Community {
             }
         }
 
-        // Check active status - use multiple sources for reliability
+        // Check active status - only show "En ligne" for the current user viewing their own profile
         $is_online = false;
         $last_activity = null;
 
-        // Method 1: Check if user is currently logged in (most reliable for "online" status)
-        if (function_exists('is_user_logged_in') && $user_id == get_current_user_id()) {
+        // Only mark as "online" if this is the currently logged-in user viewing their own popup
+        if ($user_id == get_current_user_id()) {
             $is_online = true;
         }
 
-        // Method 2: Check WordPress session tokens (user has active session)
-        $sessions = get_user_meta($user_id, 'session_tokens', true);
-        if (!empty($sessions) && is_array($sessions)) {
-            foreach ($sessions as $session) {
-                if (isset($session['expiration']) && $session['expiration'] > time()) {
-                    $is_online = true;
-                    break;
-                }
-            }
+        // For last activity display, try multiple sources (most recent first)
+        $activity_dates = [];
+
+        // Source 1: MasterStudy LMS last activity
+        $lms_activity = get_user_meta($user_id, 'stm_lms_last_activity', true);
+        if (!empty($lms_activity)) {
+            $activity_dates[] = strtotime($lms_activity);
         }
 
-        // For last activity display, try multiple sources
-        // Source 1: MasterStudy LMS last activity
-        $last_activity = get_user_meta($user_id, 'stm_lms_last_activity', true);
-
-        // Source 2: Check last post date
-        if (empty($last_activity)) {
-            $last_post = get_posts([
-                'post_type' => 'community_post',
-                'author' => $user_id,
-                'posts_per_page' => 1,
-                'orderby' => 'date',
-                'order' => 'DESC',
-                'fields' => 'ids'
-            ]);
-            if (!empty($last_post)) {
-                $last_activity = get_post_field('post_date', $last_post[0]);
+        // Source 2: Check last post date in community
+        $last_post = get_posts([
+            'post_type' => 'community_post',
+            'author' => $user_id,
+            'posts_per_page' => 1,
+            'orderby' => 'date',
+            'order' => 'DESC',
+            'fields' => 'ids'
+        ]);
+        if (!empty($last_post)) {
+            $post_date = get_post_field('post_date', $last_post[0]);
+            if ($post_date) {
+                $activity_dates[] = strtotime($post_date);
             }
         }
 
         // Source 3: Check last comment date
-        if (empty($last_activity)) {
-            $last_comment = get_comments([
-                'user_id' => $user_id,
-                'number' => 1,
-                'orderby' => 'comment_date',
-                'order' => 'DESC'
-            ]);
-            if (!empty($last_comment)) {
-                $last_activity = $last_comment[0]->comment_date;
-            }
+        $last_comment = get_comments([
+            'user_id' => $user_id,
+            'number' => 1,
+            'orderby' => 'comment_date',
+            'order' => 'DESC'
+        ]);
+        if (!empty($last_comment)) {
+            $activity_dates[] = strtotime($last_comment[0]->comment_date);
         }
 
-        // Source 4: Fallback to registration date
-        if (empty($last_activity)) {
+        // Use the most recent activity date found
+        if (!empty($activity_dates)) {
+            $last_activity = date('Y-m-d H:i:s', max($activity_dates));
+        } else {
+            // Fallback to registration date only if no activity found
             $last_activity = $user->user_registered;
         }
 
-        // Check if active within last 24 hours (for non-online users)
-        $is_active = $is_online || (strtotime($last_activity) > strtotime('-24 hours'));
+        // Check if active within last 15 minutes (more realistic "active now")
+        $is_active = $is_online || (strtotime($last_activity) > strtotime('-15 minutes'));
 
         // Format last activity
         if ($is_online) {
