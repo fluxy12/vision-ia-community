@@ -3308,14 +3308,22 @@
         // Insert emoji in edit comment textarea
         $(document).on('click', '.vic-edit-comment-emoji-item', function(e) {
             console.log('=== EDIT COMMENT EMOJI HANDLER TRIGGERED ===');
-            console.log('Element clicked:', this);
-            console.log('Element classes:', $(this).attr('class'));
 
             e.preventDefault();
             e.stopPropagation();
 
-            let emoji = $(this).text().trim();
-            console.log('Emoji extracted:', emoji);
+            // WordPress/Twemoji converts emojis to <img> tags
+            // We need to get the emoji from the alt attribute
+            let emoji = '';
+            const $img = $(this).find('img.emoji');
+            if ($img.length) {
+                emoji = $img.attr('alt') || '';
+                console.log('Emoji from img alt:', emoji);
+            } else {
+                emoji = $(this).text().trim();
+                console.log('Emoji from text:', emoji);
+            }
+
             if (!emoji) {
                 console.log('ERROR: No emoji found');
                 return;
@@ -3323,21 +3331,19 @@
 
             const $textarea = $('.vic-edit-comment-modal .vic-edit-comment-input');
             console.log('Textarea found:', $textarea.length);
-            console.log('Textarea element:', $textarea);
 
             if ($textarea.length) {
                 const currentVal = $textarea.val() || '';
-                console.log('Current value:', currentVal);
                 $textarea.val(currentVal + emoji);
-                console.log('New value:', $textarea.val());
+                console.log('Emoji added! New value:', $textarea.val());
                 $textarea.focus();
             } else {
-                console.log('ERROR: No textarea found in .vic-edit-comment-modal');
+                console.log('ERROR: No textarea found');
             }
 
             // Close the picker
-            console.log('Closing picker...');
             $('.vic-emoji-picker-full, .vic-emoji-picker').remove();
+            console.log('Picker closed');
         });
 
         // Change category in edit comment emoji picker
