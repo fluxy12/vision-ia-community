@@ -3926,6 +3926,19 @@
             sessionStorage.setItem('vic_scroll_to_comment', scrollToCommentId);
         }
 
+        // Remove existing modal
+        $('.vic-modal-overlay').remove();
+
+        // Create modal wrapper with loading state (same structure as openModal function)
+        $('body').append(
+            '<div class="vic-modal-overlay active" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:999999;display:flex;align-items:center;justify-content:center;">' +
+                '<div class="vic-modal" style="background:#fff;border-radius:16px;width:100%;max-width:800px;max-height:90vh;overflow:hidden;position:relative;">' +
+                    '<div class="vic-modal-content" style="padding: 40px; text-align: center;">Chargement...</div>' +
+                '</div>' +
+            '</div>'
+        );
+        $('body').css('overflow', 'hidden');
+
         $.ajax({
             url: vicAjax.ajaxurl,
             type: 'POST',
@@ -3936,12 +3949,8 @@
             },
             success: function(response) {
                 if (response.success) {
-                    // Remove existing modal
-                    $('.vic-modal-overlay').remove();
-
-                    // Add new modal
-                    $('body').append(response.data.html);
-                    $('body').addClass('vic-modal-open');
+                    // Replace modal content with loaded HTML
+                    $('.vic-modal-overlay .vic-modal').html(response.data.html);
 
                     // Check if we need to scroll to a comment
                     var scrollToComment = sessionStorage.getItem('vic_scroll_to_comment');
@@ -3979,6 +3988,10 @@
                         }, 500);
                     }
                 }
+            },
+            error: function() {
+                $('.vic-modal-overlay').remove();
+                $('body').css('overflow', '');
             }
         });
     };
