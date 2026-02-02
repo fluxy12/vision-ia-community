@@ -54,9 +54,256 @@ class Vision_IA_Community {
         
         // Allow additional file types for community uploads
         add_filter('upload_mimes', [$this, 'allow_additional_mimes']);
-        
+
+        // Admin menu for level settings
+        add_action('admin_menu', [$this, 'add_admin_menu']);
+        add_action('admin_init', [$this, 'register_settings']);
+
         // Activation hook
         register_activation_hook(__FILE__, [$this, 'activate']);
+    }
+
+    /**
+     * Add admin menu page
+     */
+    public function add_admin_menu() {
+        add_submenu_page(
+            'edit.php?post_type=community_post',
+            'Paramètres des Niveaux',
+            'Niveaux & Points',
+            'manage_options',
+            'vic-levels-settings',
+            [$this, 'render_admin_page']
+        );
+    }
+
+    /**
+     * Register settings
+     */
+    public function register_settings() {
+        register_setting('vic_levels_settings', 'vic_levels_config');
+    }
+
+    /**
+     * Get default levels configuration
+     */
+    public static function get_default_levels() {
+        return [
+            1 => ['name' => 'Explorateur IA', 'points' => 0, 'emoji' => '🔍', 'color' => '#9CA3AF'],
+            2 => ['name' => 'Apprenti Automation', 'points' => 100, 'emoji' => '🤖', 'color' => '#6B7280'],
+            3 => ['name' => 'Opérateur IA', 'points' => 300, 'emoji' => '⚙️', 'color' => '#3B82F6'],
+            4 => ['name' => 'Créateur d\'Agents', 'points' => 600, 'emoji' => '🛠️', 'color' => '#8B5CF6'],
+            5 => ['name' => 'Maître Agent', 'points' => 1200, 'emoji' => '🎯', 'color' => '#EC4899'],
+            6 => ['name' => 'Architecte IA', 'points' => 2500, 'emoji' => '🏗️', 'color' => '#F97316'],
+            7 => ['name' => 'Expert IA', 'points' => 5000, 'emoji' => '💎', 'color' => '#EF4444'],
+            8 => ['name' => 'Génie IA', 'points' => 10000, 'emoji' => '✨', 'color' => '#10B981'],
+            9 => ['name' => 'Grand Maître IA', 'points' => 50000, 'emoji' => '🚀', 'color' => '#FBBF24'],
+        ];
+    }
+
+    /**
+     * Get levels configuration (from options or defaults)
+     */
+    public static function get_levels_config() {
+        $config = get_option('vic_levels_config');
+        if (!$config || empty($config)) {
+            return self::get_default_levels();
+        }
+        return $config;
+    }
+
+    /**
+     * Render admin settings page
+     */
+    public function render_admin_page() {
+        // Save settings
+        if (isset($_POST['vic_save_levels']) && check_admin_referer('vic_levels_nonce')) {
+            $levels = [];
+            for ($i = 1; $i <= 9; $i++) {
+                $levels[$i] = [
+                    'name' => sanitize_text_field($_POST['level_name_' . $i] ?? ''),
+                    'points' => intval($_POST['level_points_' . $i] ?? 0),
+                    'emoji' => sanitize_text_field($_POST['level_emoji_' . $i] ?? ''),
+                    'color' => sanitize_hex_color($_POST['level_color_' . $i] ?? '#9CA3AF'),
+                ];
+            }
+            update_option('vic_levels_config', $levels);
+
+            // Save admin level
+            if (isset($_POST['vic_admin_level'])) {
+                update_option('vic_admin_level', intval($_POST['vic_admin_level']));
+            }
+
+            echo '<div class="notice notice-success"><p>Paramètres sauvegardés avec succès !</p></div>';
+        }
+
+        // Reset to defaults
+        if (isset($_POST['vic_reset_levels']) && check_admin_referer('vic_levels_nonce')) {
+            delete_option('vic_levels_config');
+            delete_option('vic_admin_level');
+            echo '<div class="notice notice-info"><p>Paramètres réinitialisés aux valeurs par défaut.</p></div>';
+        }
+
+        $levels = self::get_levels_config();
+        $admin_level = intval(get_option('vic_admin_level', 8));
+        ?>
+        <div class="wrap">
+            <h1>🎮 Paramètres des Niveaux - Vision IA Community</h1>
+
+            <form method="post" action="">
+                <?php wp_nonce_field('vic_levels_nonce'); ?>
+
+                <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                    <h2 style="margin-top: 0;">⚙️ Configuration Générale</h2>
+                    <table class="form-table">
+                        <tr>
+                            <th>Niveau automatique des administrateurs</th>
+                            <td>
+                                <select name="vic_admin_level">
+                                    <?php for ($i = 1; $i <= 9; $i++) : ?>
+                                        <option value="<?php echo $i; ?>" <?php selected($admin_level, $i); ?>>
+                                            Niveau <?php echo $i; ?> - <?php echo esc_html($levels[$i]['name']); ?>
+                                        </option>
+                                    <?php endfor; ?>
+                                </select>
+                                <p class="description">Les administrateurs auront automatiquement ce niveau, peu importe leurs points.</p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <h2 style="margin-top: 0;">🏆 Configuration des Niveaux</h2>
+                    <p style="color: #666; margin-bottom: 20px;">
+                        <strong>Points MasterStudy LMS :</strong> course_purchased = 50 pts | lesson_passed = 10 pts | certificate_received = 25 pts | user_registered = 50 pts
+                    </p>
+
+                    <table class="widefat striped" style="border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f0f0f1;">
+                                <th style="padding: 12px; text-align: center; width: 60px;">Niveau</th>
+                                <th style="padding: 12px;">Nom du niveau</th>
+                                <th style="padding: 12px; width: 120px;">Points requis</th>
+                                <th style="padding: 12px; width: 80px;">Emoji</th>
+                                <th style="padding: 12px; width: 100px;">Couleur</th>
+                                <th style="padding: 12px; width: 100px;">Aperçu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php for ($i = 1; $i <= 9; $i++) :
+                                $level = $levels[$i];
+                            ?>
+                            <tr>
+                                <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">
+                                    <?php echo $i; ?>
+                                </td>
+                                <td style="padding: 12px;">
+                                    <input type="text"
+                                           name="level_name_<?php echo $i; ?>"
+                                           value="<?php echo esc_attr($level['name']); ?>"
+                                           class="regular-text"
+                                           style="width: 100%;">
+                                </td>
+                                <td style="padding: 12px;">
+                                    <input type="number"
+                                           name="level_points_<?php echo $i; ?>"
+                                           value="<?php echo esc_attr($level['points']); ?>"
+                                           min="0"
+                                           style="width: 100%;"
+                                           <?php echo $i === 1 ? 'readonly' : ''; ?>>
+                                    <?php if ($i === 1) : ?>
+                                        <small style="color: #666;">Toujours 0</small>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="padding: 12px;">
+                                    <input type="text"
+                                           name="level_emoji_<?php echo $i; ?>"
+                                           value="<?php echo esc_attr($level['emoji']); ?>"
+                                           style="width: 60px; text-align: center; font-size: 18px;">
+                                </td>
+                                <td style="padding: 12px;">
+                                    <input type="color"
+                                           name="level_color_<?php echo $i; ?>"
+                                           value="<?php echo esc_attr($level['color']); ?>"
+                                           style="width: 50px; height: 35px; padding: 0; border: none; cursor: pointer;">
+                                </td>
+                                <td style="padding: 12px;">
+                                    <span style="display: inline-flex; align-items: center; gap: 8px;">
+                                        <span style="background: <?php echo esc_attr($level['color']); ?>; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;"><?php echo $i; ?></span>
+                                        <span><?php echo esc_html($level['emoji']); ?></span>
+                                    </span>
+                                </td>
+                            </tr>
+                            <?php endfor; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button type="submit" name="vic_save_levels" class="button button-primary button-large">
+                        💾 Sauvegarder les paramètres
+                    </button>
+                    <button type="submit" name="vic_reset_levels" class="button button-secondary button-large" onclick="return confirm('Êtes-vous sûr de vouloir réinitialiser tous les paramètres ?');">
+                        🔄 Réinitialiser par défaut
+                    </button>
+                </div>
+            </form>
+
+            <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-top: 30px;">
+                <h2 style="margin-top: 0;">📊 Statistiques des membres</h2>
+                <?php
+                global $wpdb;
+                $table_name = $wpdb->prefix . 'stm_lms_user_points';
+
+                // Get top 10 users by points
+                $top_users = $wpdb->get_results("
+                    SELECT user_id, SUM(score) as total_points
+                    FROM $table_name
+                    GROUP BY user_id
+                    ORDER BY total_points DESC
+                    LIMIT 10
+                ");
+                ?>
+
+                <?php if ($top_users) : ?>
+                <table class="widefat striped">
+                    <thead>
+                        <tr>
+                            <th>Rang</th>
+                            <th>Utilisateur</th>
+                            <th>Points</th>
+                            <th>Niveau</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($top_users as $index => $user_data) :
+                            $user = get_user_by('id', $user_data->user_id);
+                            if (!$user) continue;
+                            $user_level = self::get_user_level($user_data->user_id);
+                            $level_config = $levels[$user_level];
+                        ?>
+                        <tr>
+                            <td><strong>#<?php echo $index + 1; ?></strong></td>
+                            <td>
+                                <?php echo get_avatar($user_data->user_id, 24); ?>
+                                <?php echo esc_html($user->display_name); ?>
+                            </td>
+                            <td><?php echo number_format($user_data->total_points); ?> pts</td>
+                            <td>
+                                <span style="background: <?php echo esc_attr($level_config['color']); ?>; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">
+                                    <?php echo $level_config['emoji']; ?> Niveau <?php echo $user_level; ?> - <?php echo esc_html($level_config['name']); ?>
+                                </span>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <?php else : ?>
+                    <p>Aucune donnée de points disponible.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php
     }
 
     /**
@@ -122,41 +369,26 @@ class Vision_IA_Community {
 
     /**
      * Get user level based on points (Skool-style)
-     * Returns level 1-9 based on points thresholds
-     *
-     * Points system:
-     * - course_purchased = 50 pts
-     * - lesson_passed = 10 pts
-     * - certificate_received = 25 pts
-     * - user_registered = 50 pts
-     *
-     * Level 3 = finish all lessons at launch (~300-400 pts)
-     * Level 8 = admin only
-     * Level 9 = unreachable (legendary)
+     * Returns level 1-9 based on points thresholds from saved settings
      */
     public static function get_user_level($user_id) {
-        // Admins are automatically level 8
+        // Admins get automatic level from settings
+        $admin_level = intval(get_option('vic_admin_level', 8));
         if (user_can($user_id, 'administrator')) {
-            return 8;
+            return $admin_level;
         }
 
         $points = self::get_user_points($user_id);
+        $levels_config = self::get_levels_config();
 
-        // Level thresholds - adapted for your point system
-        // Level 3 ~= completing all initial lessons (300-400 pts)
-        $levels = [
-            9 => 50000,  // Inatteignable - Légende
-            8 => 10000,  // Réservé admins (mais au cas où)
-            7 => 5000,   // Expert IA
-            6 => 2500,   // Architecte IA
-            5 => 1200,   // Maître Agent
-            4 => 600,    // Créateur d'Agents
-            3 => 300,    // Opérateur IA (fin des leçons de lancement)
-            2 => 100,    // Apprenti Automation
-            1 => 0       // Explorateur IA
-        ];
+        // Sort levels by points descending to check highest first
+        $thresholds = [];
+        foreach ($levels_config as $level => $config) {
+            $thresholds[$level] = $config['points'];
+        }
+        arsort($thresholds);
 
-        foreach ($levels as $level => $threshold) {
+        foreach ($thresholds as $level => $threshold) {
             if ($points >= $threshold) {
                 return $level;
             }
@@ -166,57 +398,27 @@ class Vision_IA_Community {
     }
 
     /**
-     * Get level name in French
+     * Get level name from saved settings
      */
     public static function get_level_name($level) {
-        $names = [
-            1 => 'Explorateur IA',
-            2 => 'Apprenti Automation',
-            3 => 'Opérateur IA',
-            4 => 'Créateur d\'Agents',
-            5 => 'Maître Agent',
-            6 => 'Architecte IA',
-            7 => 'Expert IA',
-            8 => 'Génie IA',
-            9 => 'Grand Maître IA'
-        ];
-        return isset($names[$level]) ? $names[$level] : 'Explorateur IA';
+        $config = self::get_levels_config();
+        return isset($config[$level]['name']) ? $config[$level]['name'] : 'Explorateur IA';
     }
 
     /**
-     * Get level emoji
+     * Get level emoji from saved settings
      */
     public static function get_level_emoji($level) {
-        $emojis = [
-            1 => '🔍',
-            2 => '🤖',
-            3 => '⚙️',
-            4 => '🛠️',
-            5 => '🎯',
-            6 => '🏗️',
-            7 => '💎',
-            8 => '✨',
-            9 => '🚀'
-        ];
-        return isset($emojis[$level]) ? $emojis[$level] : '🔍';
+        $config = self::get_levels_config();
+        return isset($config[$level]['emoji']) ? $config[$level]['emoji'] : '🔍';
     }
 
     /**
-     * Get level badge color based on level
+     * Get level badge color from saved settings
      */
     public static function get_level_color($level) {
-        $colors = [
-            1 => '#9CA3AF', // Gris - Explorateur
-            2 => '#6B7280', // Gris foncé - Apprenti
-            3 => '#3B82F6', // Bleu - Opérateur
-            4 => '#8B5CF6', // Violet - Créateur
-            5 => '#EC4899', // Rose - Maître
-            6 => '#F97316', // Orange - Architecte
-            7 => '#EF4444', // Rouge - Expert
-            8 => '#10B981', // Vert émeraude - Génie
-            9 => '#FBBF24', // Or - Grand Maître
-        ];
-        return isset($colors[$level]) ? $colors[$level] : '#9CA3AF';
+        $config = self::get_levels_config();
+        return isset($config[$level]['color']) ? $config[$level]['color'] : '#9CA3AF';
     }
 
     /**
