@@ -67,9 +67,16 @@ class Vision_IA_Community {
         $avatar_url = '';
 
         // Try MasterStudy LMS avatar first
-        $stm_avatar_id = get_user_meta($user_id, 'stm_lms_user_avatar', true);
-        if ($stm_avatar_id) {
-            $avatar_url = wp_get_attachment_image_url($stm_avatar_id, 'thumbnail');
+        $stm_avatar = get_user_meta($user_id, 'stm_lms_user_avatar', true);
+        if ($stm_avatar) {
+            // Check if it's a URL (MasterStudy stores URL directly) or an attachment ID
+            if (filter_var($stm_avatar, FILTER_VALIDATE_URL) || strpos($stm_avatar, 'http') === 0) {
+                // It's a URL - use directly (remove query string for clean URL)
+                $avatar_url = strtok($stm_avatar, '?');
+            } elseif (is_numeric($stm_avatar)) {
+                // It's an attachment ID
+                $avatar_url = wp_get_attachment_image_url($stm_avatar, 'thumbnail');
+            }
         }
 
         // Fallback: Try BuddyPress/BuddyBoss avatar
@@ -94,7 +101,21 @@ class Vision_IA_Community {
      * Get user points from MasterStudy LMS
      */
     public static function get_user_points($user_id) {
-        // MasterStudy LMS points
+        global $wpdb;
+
+        // Try from dedicated MasterStudy points table first
+        $table_name = $wpdb->prefix . 'stm_lms_user_points';
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") === $table_name) {
+            $points = $wpdb->get_var($wpdb->prepare(
+                "SELECT SUM(points) FROM $table_name WHERE user_id = %d",
+                $user_id
+            ));
+            if ($points !== null) {
+                return intval($points);
+            }
+        }
+
+        // Fallback: Try user meta
         $points = get_user_meta($user_id, 'stm_lms_points', true);
         return intval($points);
     }
