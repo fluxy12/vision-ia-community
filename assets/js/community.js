@@ -3670,29 +3670,40 @@
         function showProfilePopup($trigger, userId) {
             currentUserId = userId;
 
-            // Position popup
+            // Position popup - Skool style: to the right of the avatar, or left if no space
             var rect = $trigger[0].getBoundingClientRect();
             var popupWidth = 320;
-            var popupHeight = 400; // Estimated
-            var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+            var popupHeight = 380; // Estimated popup height
+            var gap = 10; // Gap between trigger and popup
 
-            // Calculate position (prefer below and to the right)
-            var top = rect.bottom + scrollTop + 10;
-            var left = rect.left + scrollLeft;
+            // Try to position to the RIGHT of the trigger first (Skool style)
+            var left = rect.right + gap;
+            var top = rect.top;
 
-            // Adjust if popup would go off screen right
-            if (left + popupWidth > window.innerWidth) {
-                left = window.innerWidth - popupWidth - 20;
+            // Center vertically relative to the trigger
+            top = rect.top + (rect.height / 2) - (popupHeight / 2);
+
+            // If popup goes off screen RIGHT, position to the LEFT of trigger
+            if (left + popupWidth > window.innerWidth - 10) {
+                left = rect.left - popupWidth - gap;
             }
 
-            // Adjust if popup would go off screen bottom
-            if (rect.bottom + popupHeight > window.innerHeight) {
-                top = rect.top + scrollTop - popupHeight - 10;
+            // If popup goes off screen LEFT, center it horizontally
+            if (left < 10) {
+                left = Math.max(10, (window.innerWidth - popupWidth) / 2);
+                // In this case, position below the trigger
+                top = rect.bottom + gap;
             }
 
-            // Ensure left is not negative
-            if (left < 10) left = 10;
+            // Adjust if popup would go off screen BOTTOM
+            if (top + popupHeight > window.innerHeight - 10) {
+                top = window.innerHeight - popupHeight - 10;
+            }
+
+            // Adjust if popup would go off screen TOP
+            if (top < 10) {
+                top = 10;
+            }
 
             $popup.css({
                 top: top + 'px',
