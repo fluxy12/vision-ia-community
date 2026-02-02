@@ -1080,7 +1080,10 @@ class Vision_IA_Community {
         
         update_post_meta($post_id, '_vic_likes', $likes);
         update_post_meta($post_id, '_vic_liked_users', $liked_users);
-        
+
+        // Update user's last activity timestamp
+        update_user_meta($user_id, 'vic_last_activity', current_time('mysql'));
+
         wp_send_json_success([
             'likes' => $likes,
             'action' => $action
@@ -1121,7 +1124,10 @@ class Vision_IA_Community {
         if (is_wp_error($post_id)) {
             wp_send_json_error(['message' => 'Erreur lors de la création du post']);
         }
-        
+
+        // Update user's last activity timestamp
+        update_user_meta(get_current_user_id(), 'vic_last_activity', current_time('mysql'));
+
         wp_set_object_terms($post_id, [$category_id], 'community_category');
         
         // Save URL if provided
@@ -2088,6 +2094,9 @@ class Vision_IA_Community {
         update_comment_meta($comment_id, '_vic_comment_likes', $likes);
         update_comment_meta($comment_id, '_vic_comment_liked_users', $liked_users);
 
+        // Update user's last activity timestamp
+        update_user_meta($user_id, 'vic_last_activity', current_time('mysql'));
+
         wp_send_json_success([
             'likes' => $likes,
             'action' => $action
@@ -2184,6 +2193,9 @@ class Vision_IA_Community {
         if (!$comment_id) {
             wp_send_json_error(['message' => 'Erreur lors de l\'ajout du commentaire']);
         }
+
+        // Update user's last activity timestamp
+        update_user_meta($user->ID, 'vic_last_activity', current_time('mysql'));
 
         // Handle file uploads for comment
         if (!empty($_FILES['comment_attachments'])) {
@@ -2628,13 +2640,19 @@ class Vision_IA_Community {
         // For last activity display, try multiple sources (most recent first)
         $activity_dates = [];
 
-        // Source 1: MasterStudy LMS last activity
+        // Source 1: Our own plugin's activity tracker (most reliable)
+        $vic_activity = get_user_meta($user_id, 'vic_last_activity', true);
+        if (!empty($vic_activity)) {
+            $activity_dates[] = strtotime($vic_activity);
+        }
+
+        // Source 2: MasterStudy LMS last activity
         $lms_activity = get_user_meta($user_id, 'stm_lms_last_activity', true);
         if (!empty($lms_activity)) {
             $activity_dates[] = strtotime($lms_activity);
         }
 
-        // Source 2: Check last post date in community
+        // Source 3: Check last post date in community
         $last_post = get_posts([
             'post_type' => 'community_post',
             'author' => $user_id,
@@ -2650,15 +2668,39 @@ class Vision_IA_Community {
             }
         }
 
-        // Source 3: Check last comment date
+        // Source 4: Check last comment date on community posts
         $last_comment = get_comments([
             'user_id' => $user_id,
+            'post_type' => 'community_post',
             'number' => 1,
-            'orderby' => 'comment_date',
+            'orderby' => 'comment_date_gmt',
             'order' => 'DESC'
         ]);
         if (!empty($last_comment)) {
-            $activity_dates[] = strtotime($last_comment[0]->comment_date);
+            $activity_dates[] = strtotime($last_comment[0]->comment_date_gmt);
+        }
+
+        // Source 5: BuddyPress/BuddyBoss last activity if available
+        $bp_last_activity = get_user_meta($user_id, 'last_activity', true);
+        if (!empty($bp_last_activity)) {
+            $activity_dates[] = strtotime($bp_last_activity);
+        }
+
+        // Source 6: Check WooCommerce last order date if available
+        if (class_exists('WooCommerce')) {
+            $last_order = wc_get_orders([
+                'customer_id' => $user_id,
+                'limit' => 1,
+                'orderby' => 'date',
+                'order' => 'DESC',
+                'return' => 'ids'
+            ]);
+            if (!empty($last_order)) {
+                $order = wc_get_order($last_order[0]);
+                if ($order) {
+                    $activity_dates[] = $order->get_date_created()->getTimestamp();
+                }
+            }
         }
 
         // Use the most recent activity date found
