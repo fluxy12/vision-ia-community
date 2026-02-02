@@ -2585,7 +2585,7 @@ body .vic-community-wrapper,
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 100000; /* Above post modal (99999) */
+    z-index: 2000001; /* Above post modal and activity modal */
 }
 
 .vic-edit-modal {
@@ -2951,7 +2951,7 @@ body .vic-community-wrapper,
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 100001; /* Above edit post modal */
+    z-index: 2000001; /* Above post modal and activity modal */
 }
 
 .vic-edit-comment-modal {
