@@ -123,21 +123,37 @@ class Vision_IA_Community {
     /**
      * Get user level based on points (Skool-style)
      * Returns level 1-9 based on points thresholds
+     *
+     * Points system:
+     * - course_purchased = 50 pts
+     * - lesson_passed = 10 pts
+     * - certificate_received = 25 pts
+     * - user_registered = 50 pts
+     *
+     * Level 3 = finish all lessons at launch (~300-400 pts)
+     * Level 8 = admin only
+     * Level 9 = unreachable (legendary)
      */
     public static function get_user_level($user_id) {
+        // Admins are automatically level 8
+        if (user_can($user_id, 'administrator')) {
+            return 8;
+        }
+
         $points = self::get_user_points($user_id);
 
-        // Level thresholds (customize as needed)
+        // Level thresholds - adapted for your point system
+        // Level 3 ~= completing all initial lessons (300-400 pts)
         $levels = [
-            9 => 5000,
-            8 => 2500,
-            7 => 1500,
-            6 => 1000,
-            5 => 500,
-            4 => 250,
-            3 => 100,
-            2 => 50,
-            1 => 0
+            9 => 50000,  // Inatteignable - Légende
+            8 => 10000,  // Réservé admins (mais au cas où)
+            7 => 5000,   // Expert IA
+            6 => 2500,   // Architecte IA
+            5 => 1200,   // Maître Agent
+            4 => 600,    // Créateur d'Agents
+            3 => 300,    // Opérateur IA (fin des leçons de lancement)
+            2 => 100,    // Apprenti Automation
+            1 => 0       // Explorateur IA
         ];
 
         foreach ($levels as $level => $threshold) {
@@ -150,19 +166,55 @@ class Vision_IA_Community {
     }
 
     /**
+     * Get level name in French
+     */
+    public static function get_level_name($level) {
+        $names = [
+            1 => 'Explorateur IA',
+            2 => 'Apprenti Automation',
+            3 => 'Opérateur IA',
+            4 => 'Créateur d\'Agents',
+            5 => 'Maître Agent',
+            6 => 'Architecte IA',
+            7 => 'Expert IA',
+            8 => 'Génie IA',
+            9 => 'Grand Maître IA'
+        ];
+        return isset($names[$level]) ? $names[$level] : 'Explorateur IA';
+    }
+
+    /**
+     * Get level emoji
+     */
+    public static function get_level_emoji($level) {
+        $emojis = [
+            1 => '🔍',
+            2 => '🤖',
+            3 => '⚙️',
+            4 => '🛠️',
+            5 => '🎯',
+            6 => '🏗️',
+            7 => '💎',
+            8 => '✨',
+            9 => '🚀'
+        ];
+        return isset($emojis[$level]) ? $emojis[$level] : '🔍';
+    }
+
+    /**
      * Get level badge color based on level
      */
     public static function get_level_color($level) {
         $colors = [
-            1 => '#9CA3AF', // Gray
-            2 => '#6B7280', // Dark gray
-            3 => '#3B82F6', // Blue
-            4 => '#8B5CF6', // Purple
-            5 => '#EC4899', // Pink
-            6 => '#F59E0B', // Orange
-            7 => '#EF4444', // Red
-            8 => '#10B981', // Green
-            9 => '#F59E0B', // Gold
+            1 => '#9CA3AF', // Gris - Explorateur
+            2 => '#6B7280', // Gris foncé - Apprenti
+            3 => '#3B82F6', // Bleu - Opérateur
+            4 => '#8B5CF6', // Violet - Créateur
+            5 => '#EC4899', // Rose - Maître
+            6 => '#F97316', // Orange - Architecte
+            7 => '#EF4444', // Rouge - Expert
+            8 => '#10B981', // Vert émeraude - Génie
+            9 => '#FBBF24', // Or - Grand Maître
         ];
         return isset($colors[$level]) ? $colors[$level] : '#9CA3AF';
     }
