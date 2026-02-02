@@ -45,6 +45,7 @@ class Vision_IA_Community {
         add_action('wp_ajax_vic_report_post', [$this, 'handle_report_post']);
         add_action('wp_ajax_vic_delete_comment', [$this, 'handle_delete_comment']);
         add_action('wp_ajax_vic_edit_comment', [$this, 'handle_edit_comment']);
+        add_action('wp_ajax_vic_get_comment_data_for_edit', [$this, 'handle_get_comment_data_for_edit']);
         add_shortcode('community_feed', [$this, 'render_feed']);
         
         // Hook MasterStudy profile tab
@@ -1954,7 +1955,7 @@ class Vision_IA_Community {
     }
 
     /**
-     * Handle edit comment AJAX
+     * Handle edit comment AJAX (with media support)
      * Only comment owner can edit
      */
     public function handle_edit_comment() {
@@ -1981,7 +1982,22 @@ class Vision_IA_Community {
 
         $content = sanitize_textarea_field($_POST['content']);
 
-        if (empty($content)) {
+        // Allow empty content if there are images
+        $has_new_images = !empty($_FILES['comment_attachments']);
+        $attachments_to_remove = isset($_POST['attachments_to_remove']) ? sanitize_text_field($_POST['attachments_to_remove']) : '';
+        $current_attachments = get_comment_meta($comment_id, '_vic_comment_attachments', true);
+        if (!is_array($current_attachments)) {
+            $current_attachments = [];
+        }
+
+        // Calculate remaining attachments after removal
+        $remaining_attachments = $current_attachments;
+        if (!empty($attachments_to_remove)) {
+            $ids_to_remove = array_map('intval', explode(',', $attachments_to_remove));
+            $remaining_attachments = array_diff($current_attachments, $ids_to_remove);
+        }
+
+        if (empty($content) && empty($remaining_attachments) && !$has_new_images) {
             wp_send_json_error(['message' => 'Le commentaire ne peut pas être vide']);
         }
 
@@ -1992,6 +2008,66 @@ class Vision_IA_Community {
 
         if ($updated === false) {
             wp_send_json_error(['message' => 'Erreur lors de la modification']);
+        }
+
+        // Handle attachments to remove
+        if (!empty($attachments_to_remove)) {
+            $ids_to_remove = array_map('intval', explode(',', $attachments_to_remove));
+            foreach ($ids_to_remove as $att_id) {
+                $current_attachments = array_diff($current_attachments, [$att_id]);
+            }
+            if (!empty($current_attachments)) {
+                update_comment_meta($comment_id, '_vic_comment_attachments', array_values($current_attachments));
+            } else {
+                delete_comment_meta($comment_id, '_vic_comment_attachments');
+            }
+        }
+
+        // Handle new file uploads
+        if (!empty($_FILES['comment_attachments'])) {
+            require_once(ABSPATH . 'wp-admin/includes/image.php');
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+            require_once(ABSPATH . 'wp-admin/includes/media.php');
+
+            $current_attachments = get_comment_meta($comment_id, '_vic_comment_attachments', true);
+            if (!is_array($current_attachments)) {
+                $current_attachments = [];
+            }
+
+            $files = $_FILES['comment_attachments'];
+            $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            $max_size = 5 * 1024 * 1024; // 5MB
+
+            for ($i = 0; $i < count($files['name']); $i++) {
+                if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                    $file_type = $files['type'][$i];
+                    if (!in_array($file_type, $allowed_types)) {
+                        continue;
+                    }
+                    if ($files['size'][$i] > $max_size) {
+                        continue;
+                    }
+
+                    $file = [
+                        'name' => $files['name'][$i],
+                        'type' => $files['type'][$i],
+                        'tmp_name' => $files['tmp_name'][$i],
+                        'error' => $files['error'][$i],
+                        'size' => $files['size'][$i]
+                    ];
+
+                    $_FILES['upload_file'] = $file;
+                    $attachment_id = media_handle_upload('upload_file', $comment->comment_post_ID);
+
+                    if (!is_wp_error($attachment_id)) {
+                        $current_attachments[] = $attachment_id;
+                    }
+                }
+            }
+
+            if (!empty($current_attachments)) {
+                update_comment_meta($comment_id, '_vic_comment_attachments', $current_attachments);
+            }
         }
 
         // Get updated comment HTML
@@ -2012,6 +2088,55 @@ class Vision_IA_Community {
         wp_send_json_success([
             'message' => 'Commentaire modifié avec succès',
             'comment_html' => $comment_html
+        ]);
+    }
+
+    /**
+     * Handle get comment data for edit AJAX
+     */
+    public function handle_get_comment_data_for_edit() {
+        check_ajax_referer('vic_nonce', 'nonce');
+
+        if (!is_user_logged_in()) {
+            wp_send_json_error(['message' => 'Vous devez être connecté']);
+        }
+
+        $comment_id = intval($_POST['comment_id']);
+        $comment = get_comment($comment_id);
+
+        if (!$comment) {
+            wp_send_json_error(['message' => 'Commentaire non trouvé']);
+        }
+
+        $current_user_id = get_current_user_id();
+        $is_owner = (int) $comment->user_id === $current_user_id;
+
+        if (!$is_owner) {
+            wp_send_json_error(['message' => 'Vous ne pouvez modifier que vos propres commentaires']);
+        }
+
+        // Get content
+        $content = $comment->comment_content;
+
+        // Get attachments
+        $attachment_ids = get_comment_meta($comment_id, '_vic_comment_attachments', true);
+        $attachments = [];
+
+        if (!empty($attachment_ids) && is_array($attachment_ids)) {
+            foreach ($attachment_ids as $att_id) {
+                $att_url = wp_get_attachment_url($att_id);
+                $filename = basename($att_url);
+                $attachments[] = [
+                    'id' => $att_id,
+                    'url' => $att_url,
+                    'filename' => $filename
+                ];
+            }
+        }
+
+        wp_send_json_success([
+            'content' => $content,
+            'attachments' => $attachments
         ]);
     }
 

@@ -3010,37 +3010,160 @@
             $('.vic-comment-menu-dropdown').removeClass('show');
         });
 
-        // Edit comment - show inline edit form
+        // Edit comment - show full edit form with media support
         $(document).on('click', '.vic-edit-comment', function(e) {
             e.stopPropagation();
             const commentId = $(this).data('comment-id');
             const $comment = $(this).closest('.vic-comment');
             const $contentDiv = $comment.find('> .vic-comment-body > .vic-comment-content').first();
 
-            // Get current content (text only, without images/embeds)
-            const currentContent = $contentDiv.clone()
-                .find('img, .vic-youtube-embed-link, a').remove().end()
-                .text().trim();
-
-            // Replace content with edit form
+            // Store original HTML for cancel
             const originalHtml = $contentDiv.html();
             $contentDiv.data('original-html', originalHtml);
 
+            // Show loading state
             $contentDiv.html(`
                 <div class="vic-edit-comment-form">
-                    <textarea class="vic-edit-comment-input">${escapeHtml(currentContent)}</textarea>
-                    <div class="vic-edit-comment-actions">
-                        <button type="button" class="vic-edit-comment-cancel">Annuler</button>
-                        <button type="button" class="vic-edit-comment-save" data-comment-id="${commentId}">Enregistrer</button>
-                    </div>
+                    <div class="vic-edit-loading">Chargement...</div>
                 </div>
             `);
 
-            // Focus the textarea
-            $contentDiv.find('.vic-edit-comment-input').focus();
+            // Initialize edit state
+            window.vicEditCommentFiles = [];
+            window.vicEditCommentAttachmentsToRemove = [];
+
+            // Load comment data via AJAX
+            $.ajax({
+                url: vicAjax.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'vic_get_comment_data_for_edit',
+                    nonce: vicAjax.nonce,
+                    comment_id: commentId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        const data = response.data;
+
+                        // Build edit form with media support
+                        let attachmentsHtml = '';
+                        if (data.attachments && data.attachments.length > 0) {
+                            attachmentsHtml = '<div class="vic-edit-comment-current-attachments">';
+                            attachmentsHtml += '<div class="vic-edit-attachments-label">Images actuelles :</div>';
+                            data.attachments.forEach(function(att) {
+                                attachmentsHtml += `
+                                    <div class="vic-edit-comment-attachment-item" data-attachment-id="${att.id}">
+                                        <img src="${att.url}" alt="">
+                                        <button type="button" class="vic-remove-comment-attachment" data-attachment-id="${att.id}">✕</button>
+                                    </div>
+                                `;
+                            });
+                            attachmentsHtml += '</div>';
+                        }
+
+                        $contentDiv.html(`
+                            <div class="vic-edit-comment-form" data-comment-id="${commentId}">
+                                <textarea class="vic-edit-comment-input">${escapeHtml(data.content)}</textarea>
+                                ${attachmentsHtml}
+                                <div class="vic-edit-comment-new-attachments"></div>
+                                <input type="hidden" class="vic-edit-comment-attachments-to-remove" value="">
+                                <div class="vic-edit-comment-footer">
+                                    <label class="vic-btn-icon vic-edit-comment-add-image" title="Ajouter une image">
+                                        <input type="file" class="vic-edit-comment-file-input" accept="image/*" multiple style="display:none;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                                            <polyline points="21 15 16 10 5 21"/>
+                                        </svg>
+                                    </label>
+                                    <div class="vic-edit-comment-actions">
+                                        <button type="button" class="vic-edit-comment-cancel">Annuler</button>
+                                        <button type="button" class="vic-edit-comment-save" data-comment-id="${commentId}">Enregistrer</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+
+                        // Focus textarea
+                        $contentDiv.find('.vic-edit-comment-input').focus();
+                    } else {
+                        // Fallback to simple edit
+                        const currentContent = $contentDiv.data('original-html') || '';
+                        const textContent = $('<div>').html(currentContent).find('img').remove().end().text().trim();
+                        $contentDiv.html(`
+                            <div class="vic-edit-comment-form" data-comment-id="${commentId}">
+                                <textarea class="vic-edit-comment-input">${escapeHtml(textContent)}</textarea>
+                                <div class="vic-edit-comment-actions">
+                                    <button type="button" class="vic-edit-comment-cancel">Annuler</button>
+                                    <button type="button" class="vic-edit-comment-save" data-comment-id="${commentId}">Enregistrer</button>
+                                </div>
+                            </div>
+                        `);
+                    }
+                },
+                error: function() {
+                    $contentDiv.html(originalHtml);
+                    alert('Erreur de chargement');
+                }
+            });
 
             // Close menu
             $('.vic-comment-menu-dropdown').removeClass('show');
+        });
+
+        // Handle file input for edit comment
+        $(document).on('change', '.vic-edit-comment-file-input', function(e) {
+            const files = Array.from(e.target.files);
+            const $form = $(this).closest('.vic-edit-comment-form');
+            const $preview = $form.find('.vic-edit-comment-new-attachments');
+
+            files.forEach(function(file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Le fichier "' + file.name + '" est trop volumineux (max 5MB)');
+                    return;
+                }
+
+                if (!file.type.startsWith('image/')) {
+                    alert('Seules les images sont autorisées');
+                    return;
+                }
+
+                window.vicEditCommentFiles.push(file);
+                const index = window.vicEditCommentFiles.length - 1;
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $preview.append(`
+                        <div class="vic-edit-comment-new-file" data-index="${index}">
+                            <img src="${e.target.result}" alt="">
+                            <button type="button" class="vic-remove-edit-comment-new-file" data-index="${index}">✕</button>
+                        </div>
+                    `);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        // Remove new file from edit comment
+        $(document).on('click', '.vic-remove-edit-comment-new-file', function(e) {
+            e.stopPropagation();
+            const index = parseInt($(this).data('index'));
+            window.vicEditCommentFiles[index] = null; // Mark as removed
+            $(this).closest('.vic-edit-comment-new-file').fadeOut(200, function() {
+                $(this).remove();
+            });
+        });
+
+        // Remove existing attachment from comment
+        $(document).on('click', '.vic-remove-comment-attachment', function(e) {
+            e.stopPropagation();
+            const attachmentId = $(this).data('attachment-id');
+            window.vicEditCommentAttachmentsToRemove.push(attachmentId);
+            const $form = $(this).closest('.vic-edit-comment-form');
+            $form.find('.vic-edit-comment-attachments-to-remove').val(window.vicEditCommentAttachmentsToRemove.join(','));
+            $(this).closest('.vic-edit-comment-attachment-item').fadeOut(200, function() {
+                $(this).remove();
+            });
         });
 
         // Cancel edit comment
@@ -3049,36 +3172,62 @@
             const $contentDiv = $(this).closest('.vic-comment-content');
             const originalHtml = $contentDiv.data('original-html');
             $contentDiv.html(originalHtml);
+            // Clean up
+            window.vicEditCommentFiles = [];
+            window.vicEditCommentAttachmentsToRemove = [];
         });
 
-        // Save edited comment
+        // Save edited comment (with media support)
         $(document).on('click', '.vic-edit-comment-save', function(e) {
             e.stopPropagation();
             const $btn = $(this);
             const commentId = $btn.data('comment-id');
             const $comment = $btn.closest('.vic-comment');
-            const content = $comment.find('.vic-edit-comment-input').val().trim();
+            const $form = $btn.closest('.vic-edit-comment-form');
+            const content = $form.find('.vic-edit-comment-input').val().trim();
+            const attachmentsToRemove = $form.find('.vic-edit-comment-attachments-to-remove').val() || '';
 
-            if (!content) {
+            // Check if there's content or remaining images
+            const hasNewFiles = window.vicEditCommentFiles && window.vicEditCommentFiles.filter(f => f !== null).length > 0;
+            const hasRemainingImages = $form.find('.vic-edit-comment-attachment-item').length > 0;
+
+            if (!content && !hasNewFiles && !hasRemainingImages) {
                 alert('Le commentaire ne peut pas être vide');
                 return;
             }
 
             $btn.text('...').prop('disabled', true);
 
+            // Prepare FormData
+            const formData = new FormData();
+            formData.append('action', 'vic_edit_comment');
+            formData.append('nonce', vicAjax.nonce);
+            formData.append('comment_id', commentId);
+            formData.append('content', content);
+            formData.append('attachments_to_remove', attachmentsToRemove);
+
+            // Add new files
+            if (window.vicEditCommentFiles) {
+                window.vicEditCommentFiles.forEach(function(file) {
+                    if (file !== null) {
+                        formData.append('comment_attachments[]', file);
+                    }
+                });
+            }
+
             $.ajax({
                 url: vicAjax.ajaxurl,
                 type: 'POST',
-                data: {
-                    action: 'vic_edit_comment',
-                    nonce: vicAjax.nonce,
-                    comment_id: commentId,
-                    content: content
-                },
+                data: formData,
+                processData: false,
+                contentType: false,
                 success: function(response) {
                     if (response.success) {
                         // Replace comment with updated version
                         $comment.replaceWith(response.data.comment_html);
+                        // Clean up
+                        window.vicEditCommentFiles = [];
+                        window.vicEditCommentAttachmentsToRemove = [];
                     } else {
                         alert(response.data.message || 'Erreur lors de la modification');
                         $btn.text('Enregistrer').prop('disabled', false);

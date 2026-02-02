@@ -2480,7 +2480,7 @@ body .vic-community-wrapper,
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10000;
+    z-index: 100000; /* Above post modal (99999) */
 }
 
 .vic-edit-modal {
@@ -2835,7 +2835,7 @@ body .vic-community-wrapper,
     z-index: 10001;
 }
 
-/* ====== EDIT COMMENT INLINE ====== */
+/* ====== EDIT COMMENT INLINE (with media support) ====== */
 .vic-edit-comment-form {
     display: flex;
     flex-direction: column;
@@ -2858,6 +2858,117 @@ body .vic-community-wrapper,
     outline: none;
     border-color: #2563EB;
     box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+/* Current attachments in edit comment */
+.vic-edit-comment-current-attachments {
+    margin: 8px 0;
+}
+
+.vic-edit-comment-current-attachments .vic-edit-attachments-label {
+    font-size: 12px;
+    color: #6B7280;
+    margin-bottom: 8px;
+}
+
+.vic-edit-comment-attachment-item {
+    display: inline-block;
+    position: relative;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+.vic-edit-comment-attachment-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #E5E7EB;
+}
+
+.vic-remove-comment-attachment {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    background: #EF4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.vic-remove-comment-attachment:hover {
+    background: #DC2626;
+}
+
+/* New attachments preview in edit comment */
+.vic-edit-comment-new-attachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.vic-edit-comment-new-file {
+    position: relative;
+    display: inline-block;
+}
+
+.vic-edit-comment-new-file img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #BFDBFE;
+}
+
+.vic-remove-edit-comment-new-file {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    background: #EF4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Edit comment footer */
+.vic-edit-comment-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.vic-edit-comment-add-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: #F3F4F6;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #6B7280;
+    transition: background 0.2s;
+}
+
+.vic-edit-comment-add-image:hover {
+    background: #E5E7EB;
+    color: #374151;
 }
 
 .vic-edit-comment-actions {
