@@ -3601,4 +3601,223 @@
         });
     }
 
+    /**
+     * ========================================
+     * Profile Popup on Hover (Skool Style)
+     * ========================================
+     */
+    function initProfilePopup() {
+        // Create popup container if not exists
+        if (!$('#vic-profile-popup').length) {
+            $('body').append('<div id="vic-profile-popup" class="vic-profile-popup"></div>');
+        }
+
+        var $popup = $('#vic-profile-popup');
+        var hoverTimeout = null;
+        var hideTimeout = null;
+        var currentUserId = null;
+        var profileCache = {};
+
+        // Show popup on hover
+        $(document).on('mouseenter', '.vic-profile-hover', function(e) {
+            var $trigger = $(this);
+            var userId = $trigger.data('user-id');
+
+            // Don't show for guests (user_id = 0)
+            if (!userId || userId === 0) return;
+
+            // Clear hide timeout
+            clearTimeout(hideTimeout);
+
+            // Debounce show
+            clearTimeout(hoverTimeout);
+            hoverTimeout = setTimeout(function() {
+                showProfilePopup($trigger, userId);
+            }, 300);
+        });
+
+        // Hide popup on leave trigger
+        $(document).on('mouseleave', '.vic-profile-hover', function() {
+            clearTimeout(hoverTimeout);
+            hideTimeout = setTimeout(function() {
+                hideProfilePopup();
+            }, 200);
+        });
+
+        // Keep popup visible when hovering over it
+        $popup.on('mouseenter', function() {
+            clearTimeout(hideTimeout);
+        });
+
+        $popup.on('mouseleave', function() {
+            hideTimeout = setTimeout(function() {
+                hideProfilePopup();
+            }, 200);
+        });
+
+        // Hide on click outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.vic-profile-popup, .vic-profile-hover').length) {
+                hideProfilePopup();
+            }
+        });
+
+        // Hide on scroll
+        $(window).on('scroll', function() {
+            hideProfilePopup();
+        });
+
+        function showProfilePopup($trigger, userId) {
+            currentUserId = userId;
+
+            // Position popup
+            var rect = $trigger[0].getBoundingClientRect();
+            var popupWidth = 320;
+            var popupHeight = 400; // Estimated
+            var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+            // Calculate position (prefer below and to the right)
+            var top = rect.bottom + scrollTop + 10;
+            var left = rect.left + scrollLeft;
+
+            // Adjust if popup would go off screen right
+            if (left + popupWidth > window.innerWidth) {
+                left = window.innerWidth - popupWidth - 20;
+            }
+
+            // Adjust if popup would go off screen bottom
+            if (rect.bottom + popupHeight > window.innerHeight) {
+                top = rect.top + scrollTop - popupHeight - 10;
+            }
+
+            // Ensure left is not negative
+            if (left < 10) left = 10;
+
+            $popup.css({
+                top: top + 'px',
+                left: left + 'px'
+            });
+
+            // Check cache
+            if (profileCache[userId]) {
+                renderProfilePopup(profileCache[userId]);
+                $popup.addClass('active');
+                return;
+            }
+
+            // Show loading state
+            $popup.html('<div class="vic-profile-popup-loading"><div class="vic-profile-popup-spinner"></div></div>');
+            $popup.addClass('active');
+
+            // Fetch profile data
+            $.ajax({
+                url: vicAjax.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'vic_get_user_profile',
+                    user_id: userId,
+                    nonce: vicAjax.nonce
+                },
+                success: function(response) {
+                    if (response.success && currentUserId === userId) {
+                        profileCache[userId] = response.data;
+                        renderProfilePopup(response.data);
+                    }
+                },
+                error: function() {
+                    hideProfilePopup();
+                }
+            });
+        }
+
+        function renderProfilePopup(data) {
+            var html = '<div class="vic-profile-popup-header">';
+
+            // Avatar with level badge
+            html += '<div class="vic-profile-popup-avatar">';
+            html += data.avatar_html;
+            html += '<span class="vic-profile-popup-level-badge" style="background-color: ' + data.level_color + '">' + data.level + '</span>';
+            html += '</div>';
+
+            // Name and badges
+            html += '<div class="vic-profile-popup-name-row">';
+            html += '<h4 class="vic-profile-popup-name">' + escapeHtml(data.display_name) + '</h4>';
+            if (data.is_admin) {
+                html += '<span class="vic-profile-popup-verified" title="Administrateur">&#x2714;</span>';
+            }
+            if (data.level >= 7) {
+                html += '<span class="vic-profile-popup-star" title="Expert">&#x2B50;</span>';
+            }
+            html += '</div>';
+
+            // Active status
+            html += '<div class="vic-profile-popup-status">';
+            html += '<span class="vic-profile-popup-status-dot' + (data.is_active ? ' active' : '') + '"></span>';
+            html += '<span>' + (data.is_active ? 'Actif maintenant' : 'Actif il y a ' + data.last_activity) + '</span>';
+            html += '</div>';
+
+            html += '</div>'; // End header
+
+            // Bio if exists
+            if (data.bio) {
+                html += '<p class="vic-profile-popup-bio">' + escapeHtml(data.bio) + '</p>';
+            }
+
+            // Level info
+            html += '<div class="vic-profile-popup-level">';
+            html += '<div class="vic-profile-popup-level-icon" style="background-color: ' + data.level_color + '">' + data.level + '</div>';
+            html += '<div class="vic-profile-popup-level-info">';
+            html += '<div class="vic-profile-popup-level-name">';
+            html += 'Niveau ' + data.level + ' - ' + escapeHtml(data.level_name);
+            html += '<span class="vic-profile-popup-level-emoji">' + data.level_emoji + '</span>';
+            html += '</div>';
+            html += '<div class="vic-profile-popup-points">';
+            html += data.points.toLocaleString() + ' points';
+            if (data.points_to_next > 0) {
+                html += ' &bull; ' + data.points_to_next.toLocaleString() + ' pts pour niveau suivant';
+            }
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+
+            // Stats
+            html += '<div class="vic-profile-popup-stats">';
+            html += '<div class="vic-profile-popup-stat">';
+            html += '<div class="vic-profile-popup-stat-value">' + data.post_count + '</div>';
+            html += '<div class="vic-profile-popup-stat-label">Posts</div>';
+            html += '</div>';
+            html += '<div class="vic-profile-popup-stat">';
+            html += '<div class="vic-profile-popup-stat-value">' + data.comment_count + '</div>';
+            html += '<div class="vic-profile-popup-stat-label">Commentaires</div>';
+            html += '</div>';
+            html += '</div>';
+
+            // Action buttons
+            html += '<div class="vic-profile-popup-actions">';
+            if (data.profile_url) {
+                html += '<a href="' + data.profile_url + '" class="vic-profile-popup-btn vic-profile-popup-btn-primary">PROFIL</a>';
+            }
+            html += '</div>';
+
+            $popup.html(html);
+        }
+
+        function hideProfilePopup() {
+            clearTimeout(hoverTimeout);
+            $popup.removeClass('active');
+            currentUserId = null;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    }
+
+    // Initialize profile popup
+    initProfilePopup();
+
 })(jQuery);

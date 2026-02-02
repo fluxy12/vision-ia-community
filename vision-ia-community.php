@@ -46,6 +46,8 @@ class Vision_IA_Community {
         add_action('wp_ajax_vic_delete_comment', [$this, 'handle_delete_comment']);
         add_action('wp_ajax_vic_edit_comment', [$this, 'handle_edit_comment']);
         add_action('wp_ajax_vic_get_comment_data_for_edit', [$this, 'handle_get_comment_data_for_edit']);
+        add_action('wp_ajax_vic_get_user_profile', [$this, 'handle_get_user_profile']);
+        add_action('wp_ajax_nopriv_vic_get_user_profile', [$this, 'handle_get_user_profile']);
         add_shortcode('community_feed', [$this, 'render_feed']);
         
         // Hook MasterStudy profile tab
@@ -847,14 +849,14 @@ class Vision_IA_Community {
                 <div class="vic-post-main">
                     <div class="vic-post-header">
                         <div class="vic-author-info">
-                            <div class="vic-avatar-with-level">
+                            <div class="vic-avatar-with-level vic-profile-hover" data-user-id="<?php echo $author_id; ?>">
                                 <?php echo self::get_user_avatar($author_id, 40); ?>
                                 <?php $user_level = self::get_user_level($author_id); ?>
                                 <span class="vic-level-badge" style="background-color: <?php echo self::get_level_color($user_level); ?>"><?php echo $user_level; ?></span>
                             </div>
                             <div class="vic-author-meta">
                                 <div class="vic-author-name-row">
-                                    <span class="vic-author-name"><?php echo esc_html($author_name); ?></span>
+                                    <span class="vic-author-name vic-profile-hover" data-user-id="<?php echo $author_id; ?>"><?php echo esc_html($author_name); ?></span>
                                     <?php if ($user_level >= 7) : ?>
                                     <span class="vic-status-icon">🔥</span>
                                     <?php endif; ?>
@@ -1655,14 +1657,14 @@ class Vision_IA_Community {
         <!-- Modal Header -->
         <div class="vic-modal-header">
             <div class="vic-modal-header-left">
-                <div class="vic-avatar-with-level">
+                <div class="vic-avatar-with-level vic-profile-hover" data-user-id="<?php echo $author_id; ?>">
                     <?php echo self::get_user_avatar($author_id, 40); ?>
                     <?php $user_level = self::get_user_level($author_id); ?>
                     <span class="vic-level-badge" style="background-color: <?php echo self::get_level_color($user_level); ?>"><?php echo $user_level; ?></span>
                 </div>
                 <div class="vic-modal-author-info">
                     <div class="vic-author-name-row">
-                        <h3 class="vic-modal-title"><?php echo esc_html($author_name); ?></h3>
+                        <h3 class="vic-modal-title vic-profile-hover" data-user-id="<?php echo $author_id; ?>"><?php echo esc_html($author_name); ?></h3>
                         <?php if ($user_level >= 7) : ?>
                         <span class="vic-status-icon">🔥</span>
                         <?php endif; ?>
@@ -1911,10 +1913,12 @@ class Vision_IA_Community {
         $max_depth = 3; // Maximum reply depth
         ?>
         <div class="vic-comment <?php echo $depth > 0 ? 'vic-comment-reply' : ''; ?>" data-comment-id="<?php echo $comment->comment_ID; ?>" data-depth="<?php echo $depth; ?>">
-            <?php echo $comment->user_id ? self::get_user_avatar($comment->user_id, 36, 'vic-comment-avatar') : get_avatar($comment->comment_author_email, 36, '', '', ['class' => 'vic-comment-avatar']); ?>
+            <div class="vic-comment-avatar-wrapper vic-profile-hover" data-user-id="<?php echo $comment->user_id; ?>">
+                <?php echo $comment->user_id ? self::get_user_avatar($comment->user_id, 36, 'vic-comment-avatar') : get_avatar($comment->comment_author_email, 36, '', '', ['class' => 'vic-comment-avatar']); ?>
+            </div>
             <div class="vic-comment-body">
                 <div class="vic-comment-header">
-                    <span class="vic-comment-author"><?php echo esc_html($comment->comment_author); ?></span>
+                    <span class="vic-comment-author vic-profile-hover" data-user-id="<?php echo $comment->user_id; ?>"><?php echo esc_html($comment->comment_author); ?></span>
                     <span class="vic-comment-date">• <?php echo $comment_date; ?></span>
                 </div>
                 <div class="vic-comment-content">
@@ -2519,6 +2523,98 @@ class Vision_IA_Community {
         wp_send_json_success([
             'content' => $content,
             'attachments' => $attachments
+        ]);
+    }
+
+    /**
+     * Handle AJAX request for user profile popup
+     */
+    public function handle_get_user_profile() {
+        $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
+
+        if (!$user_id) {
+            wp_send_json_error(['message' => 'User ID manquant']);
+        }
+
+        $user = get_user_by('id', $user_id);
+        if (!$user) {
+            wp_send_json_error(['message' => 'Utilisateur non trouvé']);
+        }
+
+        // Get user data
+        $display_name = $user->display_name;
+        $user_level = self::get_user_level($user_id);
+        $level_name = self::get_level_name($user_level);
+        $level_color = self::get_level_color($user_level);
+        $level_emoji = self::get_level_emoji($user_level);
+        $points = self::get_user_points($user_id);
+        $is_admin = user_can($user_id, 'administrator');
+
+        // Get avatar URL
+        $avatar_html = self::get_user_avatar($user_id, 80);
+
+        // Get user bio/description
+        $bio = get_user_meta($user_id, 'description', true);
+        if (empty($bio)) {
+            $bio = get_user_meta($user_id, 'stm_lms_bio', true);
+        }
+
+        // Count posts
+        $post_count = count_user_posts($user_id, 'community_post');
+
+        // Count comments
+        global $wpdb;
+        $comment_count = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->comments} c
+             INNER JOIN {$wpdb->posts} p ON c.comment_post_ID = p.ID
+             WHERE c.user_id = %d AND p.post_type = 'community_post'",
+            $user_id
+        ));
+
+        // Calculate points to next level
+        $levels_config = self::get_levels_config();
+        $next_level = $user_level + 1;
+        $points_to_next = 0;
+        if (isset($levels_config[$next_level])) {
+            $points_to_next = $levels_config[$next_level]['points'] - $points;
+            if ($points_to_next < 0) $points_to_next = 0;
+        }
+
+        // Get user profile URL (MasterStudy LMS)
+        $profile_url = '';
+        if (function_exists('STM_LMS_User')) {
+            $profile_url = STM_LMS_User::get_current_user_url($user_id);
+        } else {
+            $profile_url = get_author_posts_url($user_id);
+        }
+
+        // Check active status (last activity within 24 hours)
+        $last_activity = get_user_meta($user_id, 'stm_lms_last_activity', true);
+        if (empty($last_activity)) {
+            $last_activity = $user->user_registered;
+        }
+        $is_active = (strtotime($last_activity) > strtotime('-24 hours'));
+
+        // Format last activity
+        $last_activity_formatted = human_time_diff(strtotime($last_activity), current_time('timestamp'));
+
+        wp_send_json_success([
+            'user_id' => $user_id,
+            'display_name' => $display_name,
+            'avatar_html' => $avatar_html,
+            'bio' => wp_trim_words($bio, 15, '...'),
+            'level' => $user_level,
+            'level_name' => $level_name,
+            'level_color' => $level_color,
+            'level_emoji' => $level_emoji,
+            'points' => $points,
+            'points_to_next' => $points_to_next,
+            'post_count' => intval($post_count),
+            'comment_count' => intval($comment_count),
+            'is_admin' => $is_admin,
+            'is_active' => $is_active,
+            'last_activity' => $last_activity_formatted,
+            'profile_url' => $profile_url
         ]);
     }
 
