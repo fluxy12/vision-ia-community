@@ -762,8 +762,13 @@ class Vision_IA_Community {
 
         // Get user info
         $display_name = $user->display_name;
-        $avatar = $this->get_user_avatar($user_id, 64);
-        $level_info = $this->get_user_level_info($user_id);
+        $avatar = self::get_user_avatar($user_id, 64);
+        $user_level = self::get_user_level($user_id);
+        $level_info = [
+            'name' => self::get_level_name($user_level),
+            'color' => self::get_level_color($user_level),
+            'emoji' => self::get_level_emoji($user_level)
+        ];
 
         // Get posts by user
         $posts = get_posts([
@@ -2948,7 +2953,12 @@ class Vision_IA_Community {
         // Get user info
         $display_name = $user->display_name;
         $avatar = self::get_user_avatar($user_id, 48);
-        $level_info = $this->get_user_level_info($user_id);
+        $user_level = self::get_user_level($user_id);
+        $level_info = [
+            'name' => self::get_level_name($user_level),
+            'color' => self::get_level_color($user_level),
+            'emoji' => self::get_level_emoji($user_level)
+        ];
 
         // Get posts by user
         $posts = get_posts([
