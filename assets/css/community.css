@@ -2835,17 +2835,46 @@ body .vic-community-wrapper,
     z-index: 10001;
 }
 
-/* ====== EDIT COMMENT INLINE (with media support) ====== */
-.vic-edit-comment-form {
+/* ====== EDIT COMMENT MODAL ====== */
+.vic-edit-comment-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    z-index: 100001; /* Above edit post modal */
 }
 
-.vic-edit-comment-input {
+.vic-edit-comment-modal {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.vic-edit-comment-modal-body {
+    padding: 20px;
+    max-height: calc(90vh - 60px);
+    overflow-y: auto;
+}
+
+.vic-edit-comment-modal .vic-edit-comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.vic-edit-comment-modal .vic-edit-comment-input {
     width: 100%;
-    min-height: 80px;
-    padding: 10px 12px;
+    min-height: 100px;
+    padding: 12px 16px;
     font-size: 14px;
     border: 1px solid #E5E7EB;
     border-radius: 8px;
@@ -2854,39 +2883,71 @@ body .vic-community-wrapper,
     font-family: inherit;
 }
 
-.vic-edit-comment-input:focus {
+.vic-edit-comment-modal .vic-edit-comment-input:focus {
     outline: none;
     border-color: #2563EB;
     box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
-/* Current attachments in edit comment */
-.vic-edit-comment-current-attachments {
-    margin: 8px 0;
-}
-
-.vic-edit-comment-current-attachments .vic-edit-attachments-label {
-    font-size: 12px;
-    color: #6B7280;
-    margin-bottom: 8px;
-}
-
-.vic-edit-comment-attachment-item {
-    display: inline-block;
+/* Edit comment form actions */
+.vic-edit-comment-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     position: relative;
-    margin-right: 8px;
-    margin-bottom: 8px;
 }
 
-.vic-edit-comment-attachment-item img {
-    width: 80px;
-    height: 80px;
+.vic-edit-comment-form-actions .vic-btn-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: #F3F4F6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+    color: #6B7280;
+}
+
+.vic-edit-comment-form-actions .vic-btn-icon:hover {
+    background: #E5E7EB;
+    color: #374151;
+}
+
+.vic-edit-comment-upload-btn {
+    cursor: pointer;
+}
+
+.vic-edit-comment-upload-btn.has-files {
+    background: #DBEAFE;
+    color: #2563EB;
+}
+
+/* Pickers in edit comment modal */
+.vic-edit-comment-form-actions .vic-emoji-picker-full,
+.vic-edit-comment-form-actions .vic-gif-picker {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 8px;
+    z-index: 100002;
+}
+
+/* GIF preview in edit comment */
+.vic-edit-comment-gif-preview {
+    position: relative;
+}
+
+.vic-edit-comment-gif-preview img {
+    max-width: 120px;
+    max-height: 120px;
     object-fit: cover;
     border-radius: 8px;
-    border: 1px solid #E5E7EB;
 }
 
-.vic-remove-comment-attachment {
+.vic-remove-edit-comment-gif {
     position: absolute;
     top: -6px;
     right: -6px;
@@ -2904,23 +2965,20 @@ body .vic-community-wrapper,
     line-height: 1;
 }
 
-.vic-remove-comment-attachment:hover {
+.vic-remove-edit-comment-gif:hover {
     background: #DC2626;
 }
 
-/* New attachments preview in edit comment */
-.vic-edit-comment-new-attachments {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.vic-edit-comment-new-file {
+/* New attachments in edit comment modal */
+.vic-edit-comment-new-attachments .vic-preview-item {
+    display: inline-flex;
+    align-items: center;
     position: relative;
-    display: inline-block;
+    margin-right: 8px;
+    margin-bottom: 8px;
 }
 
-.vic-edit-comment-new-file img {
+.vic-edit-comment-new-attachments .vic-preview-item img {
     width: 80px;
     height: 80px;
     object-fit: cover;
@@ -2928,7 +2986,7 @@ body .vic-community-wrapper,
     border: 2px solid #BFDBFE;
 }
 
-.vic-remove-edit-comment-new-file {
+.vic-edit-comment-new-attachments .vic-remove-edit-comment-new-file {
     position: absolute;
     top: -6px;
     right: -6px;
@@ -2945,38 +3003,7 @@ body .vic-community-wrapper,
     justify-content: center;
 }
 
-/* Edit comment footer */
-.vic-edit-comment-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-}
-
-.vic-edit-comment-add-image {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: #F3F4F6;
-    border-radius: 6px;
-    cursor: pointer;
-    color: #6B7280;
-    transition: background 0.2s;
-}
-
-.vic-edit-comment-add-image:hover {
-    background: #E5E7EB;
-    color: #374151;
-}
-
-.vic-edit-comment-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-}
-
+/* Legacy inline edit styles (keep for compatibility) */
 .vic-edit-comment-cancel,
 .vic-edit-comment-save {
     padding: 6px 14px;

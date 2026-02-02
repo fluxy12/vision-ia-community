@@ -3010,27 +3010,37 @@
             $('.vic-comment-menu-dropdown').removeClass('show');
         });
 
-        // Edit comment - show full edit form with media support
+        // Edit comment - open full modal (like edit post)
         $(document).on('click', '.vic-edit-comment', function(e) {
+            e.preventDefault();
             e.stopPropagation();
+
+            // Close menu immediately
+            $('.vic-comment-menu-dropdown').removeClass('show');
+
             const commentId = $(this).data('comment-id');
-            const $comment = $(this).closest('.vic-comment');
-            const $contentDiv = $comment.find('> .vic-comment-body > .vic-comment-content').first();
 
-            // Store original HTML for cancel
-            const originalHtml = $contentDiv.html();
-            $contentDiv.data('original-html', originalHtml);
-
-            // Show loading state
-            $contentDiv.html(`
-                <div class="vic-edit-comment-form">
-                    <div class="vic-edit-loading">Chargement...</div>
+            // Create edit comment modal (similar to edit post modal)
+            const editCommentModal = `
+                <div class="vic-edit-comment-modal-overlay">
+                    <div class="vic-edit-comment-modal">
+                        <div class="vic-edit-modal-header">
+                            <h3>Modifier le commentaire</h3>
+                            <button class="vic-edit-modal-close vic-edit-comment-modal-close">✕</button>
+                        </div>
+                        <div class="vic-edit-comment-modal-body">
+                            <div class="vic-edit-loading">Chargement...</div>
+                        </div>
+                    </div>
                 </div>
-            `);
+            `;
+
+            $('body').append(editCommentModal);
 
             // Initialize edit state
             window.vicEditCommentFiles = [];
             window.vicEditCommentAttachmentsToRemove = [];
+            window.vicEditCommentGif = '';
 
             // Load comment data via AJAX
             $.ajax({
@@ -3045,77 +3055,127 @@
                     if (response.success) {
                         const data = response.data;
 
-                        // Build edit form with media support
+                        // Extract GIF from content if present
+                        let content = data.content;
+                        let gifUrl = '';
+                        const gifMatch = content.match(/\[gif\](.*?)\[\/gif\]/i);
+                        if (gifMatch) {
+                            gifUrl = gifMatch[1];
+                            content = content.replace(/\[gif\].*?\[\/gif\]/gi, '').trim();
+                        }
+                        window.vicEditCommentGif = gifUrl;
+
+                        // Build modal content
                         let attachmentsHtml = '';
                         if (data.attachments && data.attachments.length > 0) {
-                            attachmentsHtml = '<div class="vic-edit-comment-current-attachments">';
-                            attachmentsHtml += '<div class="vic-edit-attachments-label">Images actuelles :</div>';
                             data.attachments.forEach(function(att) {
                                 attachmentsHtml += `
-                                    <div class="vic-edit-comment-attachment-item" data-attachment-id="${att.id}">
+                                    <div class="vic-edit-attachment-item vic-edit-comment-attachment-item" data-attachment-id="${att.id}">
                                         <img src="${att.url}" alt="">
                                         <button type="button" class="vic-remove-comment-attachment" data-attachment-id="${att.id}">✕</button>
                                     </div>
                                 `;
                             });
-                            attachmentsHtml += '</div>';
                         }
 
-                        $contentDiv.html(`
-                            <div class="vic-edit-comment-form" data-comment-id="${commentId}">
-                                <textarea class="vic-edit-comment-input">${escapeHtml(data.content)}</textarea>
-                                ${attachmentsHtml}
-                                <div class="vic-edit-comment-new-attachments"></div>
+                        // Add GIF preview if exists
+                        let gifPreviewHtml = '';
+                        if (gifUrl) {
+                            gifPreviewHtml = `
+                                <div class="vic-edit-attachment-item vic-edit-comment-gif-preview" data-type="gif">
+                                    <img src="${gifUrl}" alt="GIF">
+                                    <span class="vic-edit-attachment-name">GIF</span>
+                                    <button type="button" class="vic-remove-edit-comment-gif">✕</button>
+                                </div>
+                            `;
+                        }
+
+                        $('.vic-edit-comment-modal-body').html(`
+                            <form class="vic-edit-comment-form" data-comment-id="${commentId}">
+                                <textarea class="vic-textarea vic-edit-comment-input" placeholder="Votre commentaire...">${escapeHtml(content)}</textarea>
+
+                                <input type="hidden" id="vic-edit-comment-gif-input" value="${gifUrl}">
                                 <input type="hidden" class="vic-edit-comment-attachments-to-remove" value="">
-                                <div class="vic-edit-comment-footer">
-                                    <label class="vic-btn-icon vic-edit-comment-add-image" title="Ajouter une image">
-                                        <input type="file" class="vic-edit-comment-file-input" accept="image/*" multiple style="display:none;">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                            <circle cx="8.5" cy="8.5" r="1.5"/>
-                                            <polyline points="21 15 16 10 5 21"/>
-                                        </svg>
-                                    </label>
-                                    <div class="vic-edit-comment-actions">
-                                        <button type="button" class="vic-edit-comment-cancel">Annuler</button>
-                                        <button type="button" class="vic-edit-comment-save" data-comment-id="${commentId}">Enregistrer</button>
+
+                                <!-- Current attachments -->
+                                <div class="vic-edit-current-attachments" id="vic-edit-comment-current-attachments">
+                                    ${attachmentsHtml}
+                                    ${gifPreviewHtml}
+                                </div>
+
+                                <!-- New attachments preview -->
+                                <div class="vic-attachments-preview vic-edit-comment-new-attachments"></div>
+
+                                <div class="vic-form-footer vic-edit-form-footer">
+                                    <div class="vic-form-actions vic-edit-comment-form-actions">
+                                        <!-- Image upload -->
+                                        <label class="vic-btn-icon vic-edit-comment-upload-btn" title="Ajouter une image">
+                                            <input type="file" class="vic-edit-comment-file-input" accept="image/*" multiple style="display:none;">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                                <polyline points="21 15 16 10 5 21"/>
+                                            </svg>
+                                        </label>
+
+                                        <!-- Emoji button -->
+                                        <button type="button" class="vic-btn-icon vic-edit-comment-add-emoji" title="Ajouter un emoji">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                                                <line x1="9" y1="9" x2="9.01" y2="9"/>
+                                                <line x1="15" y1="9" x2="15.01" y2="9"/>
+                                            </svg>
+                                        </button>
+
+                                        <!-- GIF button -->
+                                        <button type="button" class="vic-btn-icon vic-edit-comment-add-gif" title="Ajouter un GIF">
+                                            <span style="font-weight: 600; font-size: 11px;">GIF</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="vic-form-submit">
+                                        <button type="button" class="vic-btn vic-btn-cancel vic-edit-comment-modal-close">ANNULER</button>
+                                        <button type="submit" class="vic-btn vic-btn-primary">ENREGISTRER</button>
                                     </div>
                                 </div>
-                            </div>
+                            </form>
                         `);
 
                         // Focus textarea
-                        $contentDiv.find('.vic-edit-comment-input').focus();
+                        $('.vic-edit-comment-modal .vic-edit-comment-input').focus();
                     } else {
-                        // Fallback to simple edit
-                        const currentContent = $contentDiv.data('original-html') || '';
-                        const textContent = $('<div>').html(currentContent).find('img').remove().end().text().trim();
-                        $contentDiv.html(`
-                            <div class="vic-edit-comment-form" data-comment-id="${commentId}">
-                                <textarea class="vic-edit-comment-input">${escapeHtml(textContent)}</textarea>
-                                <div class="vic-edit-comment-actions">
-                                    <button type="button" class="vic-edit-comment-cancel">Annuler</button>
-                                    <button type="button" class="vic-edit-comment-save" data-comment-id="${commentId}">Enregistrer</button>
-                                </div>
-                            </div>
-                        `);
+                        $('.vic-edit-comment-modal-body').html('<div class="vic-edit-error">Erreur de chargement</div>');
                     }
                 },
                 error: function() {
-                    $contentDiv.html(originalHtml);
-                    alert('Erreur de chargement');
+                    $('.vic-edit-comment-modal-body').html('<div class="vic-edit-error">Erreur de connexion</div>');
                 }
             });
-
-            // Close menu
-            $('.vic-comment-menu-dropdown').removeClass('show');
         });
 
-        // Handle file input for edit comment
-        $(document).on('change', '.vic-edit-comment-file-input', function(e) {
+        // Close edit comment modal
+        $(document).on('click', '.vic-edit-comment-modal-close, .vic-edit-comment-modal-overlay', function(e) {
+            if (e.target === this || $(this).hasClass('vic-edit-comment-modal-close')) {
+                $('.vic-edit-comment-modal-overlay').fadeOut(200, function() {
+                    $(this).remove();
+                });
+                // Clean up
+                window.vicEditCommentFiles = [];
+                window.vicEditCommentAttachmentsToRemove = [];
+                window.vicEditCommentGif = '';
+            }
+        });
+
+        // Prevent modal close when clicking inside
+        $(document).on('click', '.vic-edit-comment-modal', function(e) {
+            e.stopPropagation();
+        });
+
+        // Handle file input for edit comment modal
+        $(document).on('change', '.vic-edit-comment-modal .vic-edit-comment-file-input', function(e) {
             const files = Array.from(e.target.files);
-            const $form = $(this).closest('.vic-edit-comment-form');
-            const $preview = $form.find('.vic-edit-comment-new-attachments');
+            const $preview = $('.vic-edit-comment-new-attachments');
 
             files.forEach(function(file) {
                 if (file.size > 5 * 1024 * 1024) {
@@ -3134,7 +3194,7 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     $preview.append(`
-                        <div class="vic-edit-comment-new-file" data-index="${index}">
+                        <div class="vic-preview-item vic-edit-comment-new-file" data-index="${index}">
                             <img src="${e.target.result}" alt="">
                             <button type="button" class="vic-remove-edit-comment-new-file" data-index="${index}">✕</button>
                         </div>
@@ -3142,61 +3202,268 @@
                 };
                 reader.readAsDataURL(file);
             });
+
+            if (window.vicEditCommentFiles.length > 0) {
+                $('.vic-edit-comment-upload-btn').addClass('has-files');
+            }
         });
 
-        // Remove new file from edit comment
+        // Remove new file from edit comment modal
         $(document).on('click', '.vic-remove-edit-comment-new-file', function(e) {
             e.stopPropagation();
             const index = parseInt($(this).data('index'));
-            window.vicEditCommentFiles[index] = null; // Mark as removed
+            window.vicEditCommentFiles[index] = null;
             $(this).closest('.vic-edit-comment-new-file').fadeOut(200, function() {
                 $(this).remove();
             });
         });
 
-        // Remove existing attachment from comment
-        $(document).on('click', '.vic-remove-comment-attachment', function(e) {
+        // Remove existing attachment from comment modal
+        $(document).on('click', '.vic-edit-comment-modal .vic-remove-comment-attachment', function(e) {
             e.stopPropagation();
             const attachmentId = $(this).data('attachment-id');
             window.vicEditCommentAttachmentsToRemove.push(attachmentId);
-            const $form = $(this).closest('.vic-edit-comment-form');
-            $form.find('.vic-edit-comment-attachments-to-remove').val(window.vicEditCommentAttachmentsToRemove.join(','));
+            $('.vic-edit-comment-attachments-to-remove').val(window.vicEditCommentAttachmentsToRemove.join(','));
             $(this).closest('.vic-edit-comment-attachment-item').fadeOut(200, function() {
                 $(this).remove();
             });
         });
 
-        // Cancel edit comment
-        $(document).on('click', '.vic-edit-comment-cancel', function(e) {
+        // Remove GIF from edit comment modal
+        $(document).on('click', '.vic-remove-edit-comment-gif', function(e) {
             e.stopPropagation();
-            const $contentDiv = $(this).closest('.vic-comment-content');
-            const originalHtml = $contentDiv.data('original-html');
-            $contentDiv.html(originalHtml);
-            // Clean up
-            window.vicEditCommentFiles = [];
-            window.vicEditCommentAttachmentsToRemove = [];
+            window.vicEditCommentGif = '';
+            $('#vic-edit-comment-gif-input').val('');
+            $(this).closest('.vic-edit-comment-gif-preview').fadeOut(200, function() {
+                $(this).remove();
+            });
         });
 
-        // Save edited comment (with media support)
-        $(document).on('click', '.vic-edit-comment-save', function(e) {
+        // ====== EDIT COMMENT MODAL: Emoji picker ======
+        $(document).on('click', '.vic-edit-comment-add-emoji', function(e) {
+            e.preventDefault();
             e.stopPropagation();
+
             const $btn = $(this);
-            const commentId = $btn.data('comment-id');
-            const $comment = $btn.closest('.vic-comment');
-            const $form = $btn.closest('.vic-edit-comment-form');
-            const content = $form.find('.vic-edit-comment-input').val().trim();
+            const $formActions = $btn.closest('.vic-edit-comment-form-actions');
+
+            // Close other pickers
+            $('.vic-emoji-picker-full, .vic-emoji-picker, .vic-gif-picker').remove();
+
+            // Create emoji picker
+            const $picker = $('<div class="vic-emoji-picker-full vic-edit-comment-emoji-picker"></div>');
+            $picker.append('<div class="vic-emoji-search"><input type="text" placeholder="Rechercher un emoji..." class="vic-emoji-search-input"></div>');
+
+            const categories = [
+                { id: 'smileys', icon: '😀', name: 'Smileys' },
+                { id: 'people', icon: '👋', name: 'Personnes' },
+                { id: 'nature', icon: '🌿', name: 'Nature' },
+                { id: 'food', icon: '🍕', name: 'Nourriture' },
+                { id: 'activities', icon: '⚽', name: 'Activités' },
+                { id: 'travel', icon: '✈️', name: 'Voyage' },
+                { id: 'objects', icon: '💡', name: 'Objets' },
+                { id: 'symbols', icon: '❤️', name: 'Symboles' }
+            ];
+
+            const $categories = $('<div class="vic-emoji-categories"></div>');
+            categories.forEach(function(cat, idx) {
+                $categories.append('<button data-category="' + cat.id + '" ' + (idx === 0 ? 'class="active"' : '') + ' title="' + cat.name + '">' + cat.icon + '</button>');
+            });
+            $picker.append($categories);
+
+            const $grid = $('<div class="vic-emoji-grid"></div>');
+            if (typeof emojiData !== 'undefined') {
+                const emojis = emojiData['smileys'] || [];
+                emojis.forEach(function(emoji) {
+                    $grid.append('<span class="vic-emoji-item vic-edit-comment-emoji-item">' + emoji + '</span>');
+                });
+            }
+            $picker.append($grid);
+
+            $formActions.append($picker);
+        });
+
+        // Insert emoji in edit comment textarea
+        $(document).on('click', '.vic-edit-comment-emoji-item', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            let emoji = $(this).text().trim();
+            if (!emoji) return;
+
+            const $textarea = $('.vic-edit-comment-modal .vic-edit-comment-input');
+            if ($textarea.length) {
+                const currentVal = $textarea.val() || '';
+                $textarea.val(currentVal + emoji);
+                $textarea.focus();
+            }
+
+            $('.vic-emoji-picker-full, .vic-emoji-picker').remove();
+        });
+
+        // Change category in edit comment emoji picker
+        $(document).on('click', '.vic-edit-comment-emoji-picker .vic-emoji-categories button', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const category = $(this).data('category');
+            const $picker = $(this).closest('.vic-emoji-picker-full');
+
+            $picker.find('.vic-emoji-categories button').removeClass('active');
+            $(this).addClass('active');
+
+            const $grid = $picker.find('.vic-emoji-grid');
+            $grid.empty();
+            if (typeof emojiData !== 'undefined' && emojiData[category]) {
+                emojiData[category].forEach(function(emoji) {
+                    $grid.append('<span class="vic-emoji-item vic-edit-comment-emoji-item">' + emoji + '</span>');
+                });
+            }
+        });
+
+        // ====== EDIT COMMENT MODAL: GIF picker ======
+        $(document).on('click', '.vic-edit-comment-add-gif', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $btn = $(this);
+            const $formActions = $btn.closest('.vic-edit-comment-form-actions');
+
+            // Close other pickers
+            $('.vic-gif-picker, .vic-emoji-picker-full, .vic-emoji-picker').remove();
+
+            // Create GIF picker
+            const $picker = $(`
+                <div class="vic-gif-picker vic-edit-comment-gif-picker">
+                    <div class="vic-gif-header">
+                        <input type="text" placeholder="Rechercher des GIFs..." class="vic-gif-search-input">
+                    </div>
+                    <div class="vic-gif-grid">
+                        <div class="vic-gif-loading">Chargement...</div>
+                    </div>
+                </div>
+            `);
+
+            $formActions.append($picker);
+
+            // Load trending GIFs
+            loadEditCommentTrendingGifs($picker.find('.vic-gif-grid'));
+        });
+
+        // Load trending GIFs for edit comment
+        function loadEditCommentTrendingGifs($grid) {
+            const TENOR_API_KEY = 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ';
+            $grid.html('<div class="vic-gif-loading">Chargement...</div>');
+
+            fetch(`https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&limit=20&media_filter=gif,tinygif`)
+                .then(response => response.json())
+                .then(data => {
+                    $grid.empty();
+                    if (data.results && data.results.length > 0) {
+                        data.results.forEach(gif => {
+                            const gifUrl = gif.media_formats.gif?.url || gif.media_formats.tinygif?.url;
+                            const previewUrl = gif.media_formats.tinygif?.url || gif.media_formats.nanogif?.url || gifUrl;
+                            if (gifUrl) {
+                                $grid.append(`<img src="${previewUrl}" data-full="${gifUrl}" class="vic-gif-item vic-edit-comment-gif-item" alt="${gif.content_description || 'GIF'}">`);
+                            }
+                        });
+                    }
+                })
+                .catch(() => {
+                    $grid.html('<div class="vic-gif-loading">Erreur de chargement</div>');
+                });
+        }
+
+        // Search GIFs in edit comment modal
+        let editCommentGifSearchTimeout;
+        $(document).on('input', '.vic-edit-comment-gif-picker .vic-gif-search-input', function() {
+            const query = $(this).val().trim();
+            const $grid = $(this).closest('.vic-gif-picker').find('.vic-gif-grid');
+
+            clearTimeout(editCommentGifSearchTimeout);
+
+            if (query.length < 2) {
+                loadEditCommentTrendingGifs($grid);
+                return;
+            }
+
+            editCommentGifSearchTimeout = setTimeout(function() {
+                const TENOR_API_KEY = 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ';
+                $grid.html('<div class="vic-gif-loading">Recherche...</div>');
+
+                fetch(`https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=${TENOR_API_KEY}&limit=20&media_filter=gif,tinygif`)
+                    .then(response => response.json())
+                    .then(data => {
+                        $grid.empty();
+                        if (data.results && data.results.length > 0) {
+                            data.results.forEach(gif => {
+                                const gifUrl = gif.media_formats.gif?.url || gif.media_formats.tinygif?.url;
+                                const previewUrl = gif.media_formats.tinygif?.url || gif.media_formats.nanogif?.url || gifUrl;
+                                if (gifUrl) {
+                                    $grid.append(`<img src="${previewUrl}" data-full="${gifUrl}" class="vic-gif-item vic-edit-comment-gif-item" alt="${gif.content_description || 'GIF'}">`);
+                                }
+                            });
+                        } else {
+                            $grid.html('<div class="vic-gif-loading">Aucun GIF trouvé</div>');
+                        }
+                    })
+                    .catch(() => {
+                        $grid.html('<div class="vic-gif-loading">Erreur de recherche</div>');
+                    });
+            }, 300);
+        });
+
+        // Select GIF in edit comment modal
+        $(document).on('click', '.vic-edit-comment-gif-item', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const gifUrl = $(this).data('full') || $(this).attr('src');
+
+            window.vicEditCommentGif = gifUrl;
+            $('#vic-edit-comment-gif-input').val(gifUrl);
+
+            // Remove existing GIF preview
+            $('.vic-edit-comment-gif-preview').remove();
+
+            // Add preview
+            $('#vic-edit-comment-current-attachments').append(`
+                <div class="vic-edit-attachment-item vic-edit-comment-gif-preview" data-type="gif">
+                    <img src="${gifUrl}" alt="GIF">
+                    <span class="vic-edit-attachment-name">GIF</span>
+                    <button type="button" class="vic-remove-edit-comment-gif">✕</button>
+                </div>
+            `);
+
+            // Close picker
+            $('.vic-gif-picker').remove();
+        });
+
+        // Submit edit comment form
+        $(document).on('submit', '.vic-edit-comment-modal .vic-edit-comment-form', function(e) {
+            e.preventDefault();
+
+            const $form = $(this);
+            const commentId = $form.data('comment-id');
+            let content = $form.find('.vic-edit-comment-input').val().trim();
             const attachmentsToRemove = $form.find('.vic-edit-comment-attachments-to-remove').val() || '';
+            const gifUrl = window.vicEditCommentGif || '';
 
-            // Check if there's content or remaining images
+            // Add GIF tag to content if present
+            if (gifUrl) {
+                content = content + '\n[gif]' + gifUrl + '[/gif]';
+            }
+
+            // Check if there's content or images
             const hasNewFiles = window.vicEditCommentFiles && window.vicEditCommentFiles.filter(f => f !== null).length > 0;
-            const hasRemainingImages = $form.find('.vic-edit-comment-attachment-item').length > 0;
+            const hasRemainingImages = $form.find('.vic-edit-comment-attachment-item:not(.vic-edit-comment-gif-preview)').length > 0;
 
-            if (!content && !hasNewFiles && !hasRemainingImages) {
+            if (!content.trim() && !hasNewFiles && !hasRemainingImages && !gifUrl) {
                 alert('Le commentaire ne peut pas être vide');
                 return;
             }
 
-            $btn.text('...').prop('disabled', true);
+            const $submitBtn = $form.find('button[type="submit"]');
+            $submitBtn.text('...').prop('disabled', true);
 
             // Prepare FormData
             const formData = new FormData();
@@ -3223,19 +3490,29 @@
                 contentType: false,
                 success: function(response) {
                     if (response.success) {
-                        // Replace comment with updated version
-                        $comment.replaceWith(response.data.comment_html);
+                        // Replace comment in the page
+                        const $oldComment = $('.vic-comment[data-comment-id="' + commentId + '"]');
+                        if ($oldComment.length) {
+                            $oldComment.replaceWith(response.data.comment_html);
+                        }
+
+                        // Close modal
+                        $('.vic-edit-comment-modal-overlay').fadeOut(200, function() {
+                            $(this).remove();
+                        });
+
                         // Clean up
                         window.vicEditCommentFiles = [];
                         window.vicEditCommentAttachmentsToRemove = [];
+                        window.vicEditCommentGif = '';
                     } else {
                         alert(response.data.message || 'Erreur lors de la modification');
-                        $btn.text('Enregistrer').prop('disabled', false);
+                        $submitBtn.text('ENREGISTRER').prop('disabled', false);
                     }
                 },
                 error: function() {
                     alert('Erreur de connexion');
-                    $btn.text('Enregistrer').prop('disabled', false);
+                    $submitBtn.text('ENREGISTRER').prop('disabled', false);
                 }
             });
         });
