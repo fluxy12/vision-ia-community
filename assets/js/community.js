@@ -3990,7 +3990,18 @@
                 console.log('AJAX success, response:', response);
                 if (response.success) {
                     console.log('Response success, HTML length:', response.data.html.length);
-                    $('.vic-activity-modal').html(response.data.html);
+                    var $modal = $('.vic-activity-modal');
+                    console.log('Modal element found:', $modal.length);
+                    $modal.html(response.data.html);
+                    console.log('HTML inserted, modal height now:', $modal.height());
+                    // Force visibility
+                    $modal.css({
+                        'display': 'flex',
+                        'flex-direction': 'column',
+                        'visibility': 'visible',
+                        'opacity': '1'
+                    });
+                    console.log('Styles forced, modal visible:', $modal.is(':visible'));
                 } else {
                     console.log('Response error:', response);
                     $('.vic-activity-modal').html('<p style="padding:20px;">Erreur de chargement: ' + (response.data ? response.data.message : 'Unknown') + '</p>');
