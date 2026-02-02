@@ -796,6 +796,7 @@
     function loadPosts(category, page, replace) {
         const $feed = $('#vic-feed');
         const $loadMore = $('#vic-load-more');
+        const authorId = $feed.data('author') || 0;
 
         $feed.addClass('vic-loading');
         $loadMore.text('Chargement...').prop('disabled', true);
@@ -807,7 +808,8 @@
                 action: 'vic_load_posts',
                 nonce: vicAjax.nonce,
                 category: category,
-                page: page
+                page: page,
+                author_id: authorId
             },
             success: function(response) {
                 if (response.success) {
@@ -3825,6 +3827,9 @@
             if (data.profile_url) {
                 html += '<a href="' + data.profile_url + '" class="vic-profile-popup-btn">PROFIL</a>';
             }
+            // Activity button - links to community filtered by user
+            var activityUrl = window.location.pathname.split('?')[0] + '?vic_author=' + data.user_id;
+            html += '<a href="' + activityUrl + '" class="vic-profile-popup-btn">ACTIVITÉS</a>';
             html += '</div>';
 
             $popup.html(html);

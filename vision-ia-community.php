@@ -705,11 +705,27 @@ class Vision_IA_Community {
                 ?>
             </div>
 
+            <?php
+            // Check if filtering by author
+            $filter_author = isset($_GET['vic_author']) ? intval($_GET['vic_author']) : 0;
+            if ($filter_author > 0) {
+                $filter_user = get_user_by('ID', $filter_author);
+                if ($filter_user) {
+                    ?>
+                    <div class="vic-author-filter-banner">
+                        <span>Activités de <strong><?php echo esc_html($filter_user->display_name); ?></strong></span>
+                        <a href="<?php echo esc_url(remove_query_arg('vic_author')); ?>" class="vic-clear-filter">✕ Effacer le filtre</a>
+                    </div>
+                    <?php
+                }
+            }
+            ?>
+
             <!-- Posts Feed -->
-            <div class="vic-feed" id="vic-feed">
-                <?php echo $this->get_posts_html($atts['posts_per_page']); ?>
+            <div class="vic-feed" id="vic-feed" data-author="<?php echo esc_attr($filter_author); ?>">
+                <?php echo $this->get_posts_html($atts['posts_per_page'], 1, '', $filter_author); ?>
             </div>
-            
+
             <!-- Load More -->
             <div class="vic-load-more-wrapper">
                 <button class="vic-btn vic-btn-load-more" id="vic-load-more" data-page="1">
@@ -724,13 +740,18 @@ class Vision_IA_Community {
     /**
      * Get posts HTML
      */
-    public function get_posts_html($posts_per_page = 10, $paged = 1, $category = '') {
+    public function get_posts_html($posts_per_page = 10, $paged = 1, $category = '', $author_id = 0) {
         $args = [
             'post_type' => 'community_post',
             'posts_per_page' => $posts_per_page,
             'paged' => $paged,
             'post_status' => 'publish'
         ];
+
+        // Filter by author if specified
+        if ($author_id > 0) {
+            $args['author'] = $author_id;
+        }
 
         if ($category && $category !== 'all') {
             $args['tax_query'] = [
@@ -1217,20 +1238,25 @@ class Vision_IA_Community {
      */
     public function handle_load_posts() {
         check_ajax_referer('vic_nonce', 'nonce');
-        
+
         $category = sanitize_text_field($_POST['category']);
         $page = intval($_POST['page']);
         $posts_per_page = 10;
-        
-        $html = $this->get_posts_html($posts_per_page, $page, $category);
-        
+        $author_id = isset($_POST['author_id']) ? intval($_POST['author_id']) : 0;
+
+        $html = $this->get_posts_html($posts_per_page, $page, $category, $author_id);
+
         // Check if there are more posts
         $args = [
             'post_type' => 'community_post',
             'posts_per_page' => $posts_per_page,
             'paged' => $page + 1
         ];
-        
+
+        if ($author_id > 0) {
+            $args['author'] = $author_id;
+        }
+
         if ($category && $category !== 'all') {
             $args['tax_query'] = [
                 [
@@ -1240,10 +1266,10 @@ class Vision_IA_Community {
                 ]
             ];
         }
-        
+
         $next_query = new WP_Query($args);
         $has_more = $next_query->have_posts();
-        
+
         wp_send_json_success([
             'html' => $html,
             'has_more' => $has_more
