@@ -3335,6 +3335,11 @@ body .vic-community-wrapper,
     background: #10B981;
 }
 
+.vic-profile-popup-online {
+    color: #10B981;
+    font-weight: 500;
+}
+
 /* Bio */
 .vic-profile-popup-bio {
     font-size: 14px;

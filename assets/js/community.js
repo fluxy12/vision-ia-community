@@ -3803,7 +3803,13 @@
             // Active status
             html += '<div class="vic-profile-popup-status">';
             html += '<span class="vic-profile-popup-status-dot' + (data.is_active ? ' active' : '') + '"></span>';
-            html += '<span>' + (data.is_active ? 'Actif maintenant' : 'Actif il y a ' + data.last_activity) + '</span>';
+            if (data.last_activity === 'En ligne') {
+                html += '<span class="vic-profile-popup-online">En ligne</span>';
+            } else if (data.is_active) {
+                html += '<span>Actif maintenant</span>';
+            } else {
+                html += '<span>Actif il y a ' + data.last_activity + '</span>';
+            }
             html += '</div>';
 
             // Bio if exists

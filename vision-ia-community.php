@@ -2616,15 +2616,72 @@ class Vision_IA_Community {
             }
         }
 
-        // Check active status (last activity within 24 hours)
+        // Check active status - use multiple sources for reliability
+        $is_online = false;
+        $last_activity = null;
+
+        // Method 1: Check if user is currently logged in (most reliable for "online" status)
+        if (function_exists('is_user_logged_in') && $user_id == get_current_user_id()) {
+            $is_online = true;
+        }
+
+        // Method 2: Check WordPress session tokens (user has active session)
+        $sessions = get_user_meta($user_id, 'session_tokens', true);
+        if (!empty($sessions) && is_array($sessions)) {
+            foreach ($sessions as $session) {
+                if (isset($session['expiration']) && $session['expiration'] > time()) {
+                    $is_online = true;
+                    break;
+                }
+            }
+        }
+
+        // For last activity display, try multiple sources
+        // Source 1: MasterStudy LMS last activity
         $last_activity = get_user_meta($user_id, 'stm_lms_last_activity', true);
+
+        // Source 2: Check last post date
+        if (empty($last_activity)) {
+            $last_post = get_posts([
+                'post_type' => 'community_post',
+                'author' => $user_id,
+                'posts_per_page' => 1,
+                'orderby' => 'date',
+                'order' => 'DESC',
+                'fields' => 'ids'
+            ]);
+            if (!empty($last_post)) {
+                $last_activity = get_post_field('post_date', $last_post[0]);
+            }
+        }
+
+        // Source 3: Check last comment date
+        if (empty($last_activity)) {
+            $last_comment = get_comments([
+                'user_id' => $user_id,
+                'number' => 1,
+                'orderby' => 'comment_date',
+                'order' => 'DESC'
+            ]);
+            if (!empty($last_comment)) {
+                $last_activity = $last_comment[0]->comment_date;
+            }
+        }
+
+        // Source 4: Fallback to registration date
         if (empty($last_activity)) {
             $last_activity = $user->user_registered;
         }
-        $is_active = (strtotime($last_activity) > strtotime('-24 hours'));
+
+        // Check if active within last 24 hours (for non-online users)
+        $is_active = $is_online || (strtotime($last_activity) > strtotime('-24 hours'));
 
         // Format last activity
-        $last_activity_formatted = human_time_diff(strtotime($last_activity), current_time('timestamp'));
+        if ($is_online) {
+            $last_activity_formatted = 'En ligne';
+        } else {
+            $last_activity_formatted = human_time_diff(strtotime($last_activity), current_time('timestamp'));
+        }
 
         wp_send_json_success([
             'user_id' => $user_id,
