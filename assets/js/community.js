@@ -1810,20 +1810,24 @@
 
         // Insérer emoji - FIX du bug
         $(document).on('click', '.vic-emoji-item', function(e) {
+            console.log('=== GENERAL EMOJI HANDLER (.vic-emoji-item) TRIGGERED ===');
+            console.log('Element classes:', $(this).attr('class'));
+
             const $emojiItem = $(this);
 
             // Skip if this is for edit comment modal (handled by specific handler)
             if ($emojiItem.hasClass('vic-edit-comment-emoji-item')) {
-                // Let the specific handler deal with it
+                console.log('SKIPPING - has vic-edit-comment-emoji-item class');
                 return;
             }
 
             // Skip if this is for edit post modal (handled by specific handler)
             if ($emojiItem.hasClass('vic-edit-emoji-item')) {
-                // Let the specific handler deal with it
+                console.log('SKIPPING - has vic-edit-emoji-item class');
                 return;
             }
 
+            console.log('PROCESSING in general handler');
             e.preventDefault();
             e.stopPropagation();
 
@@ -3303,20 +3307,36 @@
 
         // Insert emoji in edit comment textarea
         $(document).on('click', '.vic-edit-comment-emoji-item', function(e) {
+            console.log('=== EDIT COMMENT EMOJI HANDLER TRIGGERED ===');
+            console.log('Element clicked:', this);
+            console.log('Element classes:', $(this).attr('class'));
+
             e.preventDefault();
             e.stopPropagation();
 
             let emoji = $(this).text().trim();
-            if (!emoji) return;
+            console.log('Emoji extracted:', emoji);
+            if (!emoji) {
+                console.log('ERROR: No emoji found');
+                return;
+            }
 
             const $textarea = $('.vic-edit-comment-modal .vic-edit-comment-input');
+            console.log('Textarea found:', $textarea.length);
+            console.log('Textarea element:', $textarea);
+
             if ($textarea.length) {
                 const currentVal = $textarea.val() || '';
+                console.log('Current value:', currentVal);
                 $textarea.val(currentVal + emoji);
+                console.log('New value:', $textarea.val());
                 $textarea.focus();
+            } else {
+                console.log('ERROR: No textarea found in .vic-edit-comment-modal');
             }
 
             // Close the picker
+            console.log('Closing picker...');
             $('.vic-emoji-picker-full, .vic-emoji-picker').remove();
         });
 
