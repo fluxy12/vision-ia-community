@@ -3863,8 +3863,9 @@
             e.preventDefault();
             e.stopPropagation();
             var userId = $(this).data('user-id');
+            console.log('Activity button clicked, userId:', userId);
             if (userId) {
-                openActivityModal(userId);
+                window.openActivityModal(userId);
             }
         });
 
@@ -3885,8 +3886,10 @@
         // Click on post activity item - open modal
         $(document).on('click', '.vic-activity-post', function() {
             var postId = $(this).data('post-id');
-            if (postId && typeof openPostModal === 'function') {
-                openPostModal(postId);
+            // Close activity modal first
+            window.closeActivityModal();
+            if (postId && typeof window.openPostModal === 'function') {
+                window.openPostModal(postId);
             } else if (postId) {
                 // Fallback: trigger the modal via custom event or redirect
                 window.location.href = '?vic_post=' + postId;
@@ -3898,14 +3901,17 @@
             var postId = $(this).data('post-id');
             var commentId = $(this).data('comment-id');
 
+            // Close activity modal first
+            window.closeActivityModal();
+
             if (postId) {
                 // Store comment ID to scroll to after modal opens
                 if (commentId) {
                     sessionStorage.setItem('vic_scroll_to_comment', commentId);
                 }
 
-                if (typeof openPostModal === 'function') {
-                    openPostModal(postId);
+                if (typeof window.openPostModal === 'function') {
+                    window.openPostModal(postId);
                 } else {
                     window.location.href = '?vic_post=' + postId + '&comment=' + commentId;
                 }
@@ -3953,8 +3959,8 @@
         });
     };
 
-    // Open Activity Modal
-    function openActivityModal(userId) {
+    // Open Activity Modal - make it global
+    window.openActivityModal = function(userId) {
         // Show loading
         var loadingHtml = '<div class="vic-modal-overlay vic-activity-modal-overlay">' +
             '<div class="vic-activity-modal">' +
@@ -4004,10 +4010,10 @@
         });
     }
 
-    function closeActivityModal() {
+    window.closeActivityModal = function() {
         $('.vic-activity-modal-overlay').remove();
         $('body').removeClass('vic-modal-open');
         $(document).off('keydown.activityModal');
-    }
+    };
 
 })(jQuery);
