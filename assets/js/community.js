@@ -3963,10 +3963,10 @@
     window.openActivityModal = function(userId) {
         console.log('openActivityModal called with userId:', userId);
 
-        // Show loading
-        var loadingHtml = '<div class="vic-modal-overlay vic-activity-modal-overlay">' +
-            '<div class="vic-activity-modal">' +
-            '<div class="vic-activity-modal-loading"><div class="vic-profile-popup-spinner"></div></div>' +
+        // Show loading - with inline styles to ensure visibility
+        var loadingHtml = '<div class="vic-modal-overlay vic-activity-modal-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">' +
+            '<div class="vic-activity-modal" style="background:#ffffff;border-radius:16px;width:100%;max-width:600px;max-height:80vh;overflow:hidden;min-height:200px;box-shadow:0 25px 50px rgba(0,0,0,0.25);display:flex;flex-direction:column;">' +
+            '<div class="vic-activity-modal-loading" style="display:flex;align-items:center;justify-content:center;padding:60px;"><div class="vic-profile-popup-spinner"></div></div>' +
             '</div></div>';
 
         console.log('Appending modal to body');
