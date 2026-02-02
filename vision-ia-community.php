@@ -107,7 +107,7 @@ class Vision_IA_Community {
         $table_name = $wpdb->prefix . 'stm_lms_user_points';
         if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") === $table_name) {
             $points = $wpdb->get_var($wpdb->prepare(
-                "SELECT SUM(points) FROM $table_name WHERE user_id = %d",
+                "SELECT SUM(score) FROM $table_name WHERE user_id = %d",
                 $user_id
             ));
             if ($points !== null) {
