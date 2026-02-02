@@ -3292,7 +3292,8 @@
             if (typeof emojiData !== 'undefined') {
                 const emojis = emojiData['smileys'] || [];
                 emojis.forEach(function(emoji) {
-                    $grid.append('<span class="vic-emoji-item vic-edit-comment-emoji-item">' + emoji + '</span>');
+                    // Only use specific class, not the general one to avoid conflicts
+                    $grid.append('<span class="vic-edit-comment-emoji-item">' + emoji + '</span>');
                 });
             }
             $picker.append($grid);
@@ -3315,6 +3316,7 @@
                 $textarea.focus();
             }
 
+            // Close the picker
             $('.vic-emoji-picker-full, .vic-emoji-picker').remove();
         });
 
@@ -3332,7 +3334,8 @@
             $grid.empty();
             if (typeof emojiData !== 'undefined' && emojiData[category]) {
                 emojiData[category].forEach(function(emoji) {
-                    $grid.append('<span class="vic-emoji-item vic-edit-comment-emoji-item">' + emoji + '</span>');
+                    // Only use specific class, not the general one to avoid conflicts
+                    $grid.append('<span class="vic-edit-comment-emoji-item">' + emoji + '</span>');
                 });
             }
         });

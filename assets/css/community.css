@@ -2139,7 +2139,8 @@ body .vic-community-wrapper,
     max-height: 250px;
 }
 
-.vic-emoji-item {
+.vic-emoji-item,
+.vic-edit-comment-emoji-item {
     cursor: pointer;
     padding: 6px;
     font-size: 22px;
@@ -2152,7 +2153,8 @@ body .vic-community-wrapper,
     aspect-ratio: 1;
 }
 
-.vic-emoji-item:hover {
+.vic-emoji-item:hover,
+.vic-edit-comment-emoji-item:hover {
     background: var(--vic-gray-100);
 }
 
