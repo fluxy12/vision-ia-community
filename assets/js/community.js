@@ -1815,6 +1815,16 @@
 
             const $emojiItem = $(this);
 
+            // Skip if this is for edit comment modal (handled separately)
+            if ($emojiItem.hasClass('vic-edit-comment-emoji-item')) {
+                return;
+            }
+
+            // Skip if this is for edit post modal (handled separately)
+            if ($emojiItem.hasClass('vic-edit-emoji-item')) {
+                return;
+            }
+
             // WordPress/Twemoji convertit les emojis en images <img>
             // On doit récupérer l'emoji depuis l'attribut alt de l'image
             let emoji = '';
