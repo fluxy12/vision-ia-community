@@ -60,6 +60,46 @@ class Vision_IA_Community {
     }
 
     /**
+     * Get user avatar - MasterStudy LMS compatible
+     * Falls back to WordPress avatar if MasterStudy avatar not found
+     */
+    public static function get_user_avatar($user_id, $size = 40, $class = '') {
+        $avatar_url = '';
+
+        // Try MasterStudy LMS avatar first
+        $stm_avatar_id = get_user_meta($user_id, 'stm_lms_user_avatar', true);
+        if ($stm_avatar_id) {
+            $avatar_url = wp_get_attachment_image_url($stm_avatar_id, 'thumbnail');
+        }
+
+        // Fallback: Try BuddyPress/BuddyBoss avatar
+        if (empty($avatar_url) && function_exists('bp_core_fetch_avatar')) {
+            $avatar_url = bp_core_fetch_avatar([
+                'item_id' => $user_id,
+                'type' => 'thumb',
+                'html' => false
+            ]);
+        }
+
+        // Final fallback: WordPress default avatar (Gravatar)
+        if (empty($avatar_url)) {
+            return get_avatar($user_id, $size, '', '', ['class' => $class]);
+        }
+
+        $class_attr = $class ? ' class="' . esc_attr($class) . '"' : '';
+        return '<img src="' . esc_url($avatar_url) . '" alt="" width="' . intval($size) . '" height="' . intval($size) . '"' . $class_attr . ' style="border-radius: 50%; object-fit: cover;">';
+    }
+
+    /**
+     * Get user points from MasterStudy LMS
+     */
+    public static function get_user_points($user_id) {
+        // MasterStudy LMS points
+        $points = get_user_meta($user_id, 'stm_lms_points', true);
+        return intval($points);
+    }
+
+    /**
      * Allow additional mime types for uploads
      */
     public function allow_additional_mimes($mimes) {
@@ -205,7 +245,7 @@ class Vision_IA_Community {
             <!-- Post Creation Form -->
             <div class="vic-create-post-box">
                 <div class="vic-create-post-header">
-                    <?php echo get_avatar(get_current_user_id(), 48); ?>
+                    <?php echo self::get_user_avatar(get_current_user_id(), 48); ?>
                     <button class="vic-create-post-trigger" id="vic-open-form">
                         Écrivez quelque chose
                     </button>
@@ -485,9 +525,12 @@ class Vision_IA_Community {
                 <div class="vic-post-main">
                     <div class="vic-post-header">
                         <div class="vic-author-info">
-                            <?php echo get_avatar($author_id, 40); ?>
+                            <?php echo self::get_user_avatar($author_id, 40); ?>
                             <div class="vic-author-meta">
                                 <span class="vic-author-name"><?php echo esc_html($author_name); ?></span>
+                                <?php $user_points = self::get_user_points($author_id); if ($user_points > 0) : ?>
+                                <span class="vic-user-points">🏆 <?php echo number_format($user_points); ?></span>
+                                <?php endif; ?>
                                 <span class="vic-post-meta">
                                     <?php echo esc_html($post_date); ?> •
                                     <span class="vic-category-tag"><?php echo esc_html($category_name); ?> <?php echo $emoji; ?></span>
@@ -577,7 +620,7 @@ class Vision_IA_Community {
                             if ($shown >= 4) break;
                             if (in_array($comment->user_id, $unique_users)) continue;
                             $unique_users[] = $comment->user_id;
-                            echo get_avatar($comment->user_id ?: $comment->comment_author_email, 24);
+                            echo $comment->user_id ? self::get_user_avatar($comment->user_id, 24) : get_avatar($comment->comment_author_email, 24);
                             $shown++;
                         }
                         ?>
@@ -1285,8 +1328,11 @@ class Vision_IA_Community {
         <!-- Modal Header -->
         <div class="vic-modal-header">
             <div class="vic-modal-header-left">
-                <?php echo get_avatar($author_id, 40); ?>
+                <?php echo self::get_user_avatar($author_id, 40); ?>
                 <h3 class="vic-modal-title"><?php echo esc_html($author_name); ?></h3>
+                <?php $user_points = self::get_user_points($author_id); if ($user_points > 0) : ?>
+                <span class="vic-user-points">🏆 <?php echo number_format($user_points); ?></span>
+                <?php endif; ?>
             </div>
             <div class="vic-modal-actions">
                 <div class="vic-post-menu vic-modal-post-menu">
@@ -1461,7 +1507,7 @@ class Vision_IA_Community {
             <?php if (is_user_logged_in()) : ?>
             <div class="vic-comment-form-wrapper-skool">
                 <div class="vic-comment-form-skool">
-                    <?php echo get_avatar(get_current_user_id(), 32, '', '', ['class' => 'vic-comment-avatar-skool']); ?>
+                    <?php echo self::get_user_avatar(get_current_user_id(), 32, 'vic-comment-avatar-skool'); ?>
                     <div class="vic-comment-input-skool-wrapper">
                         <input type="text" class="vic-comment-input-skool" placeholder="Votre commentaire">
                         <div class="vic-comment-tools-skool">
@@ -1529,7 +1575,7 @@ class Vision_IA_Community {
         $max_depth = 3; // Maximum reply depth
         ?>
         <div class="vic-comment <?php echo $depth > 0 ? 'vic-comment-reply' : ''; ?>" data-comment-id="<?php echo $comment->comment_ID; ?>" data-depth="<?php echo $depth; ?>">
-            <?php echo get_avatar($comment->user_id ?: $comment->comment_author_email, 36, '', '', ['class' => 'vic-comment-avatar']); ?>
+            <?php echo $comment->user_id ? self::get_user_avatar($comment->user_id, 36, 'vic-comment-avatar') : get_avatar($comment->comment_author_email, 36, '', '', ['class' => 'vic-comment-avatar']); ?>
             <div class="vic-comment-body">
                 <div class="vic-comment-header">
                     <span class="vic-comment-author"><?php echo esc_html($comment->comment_author); ?></span>
@@ -1620,7 +1666,7 @@ class Vision_IA_Community {
                 <?php if ($depth < $max_depth && is_user_logged_in()) : ?>
                 <div class="vic-reply-form-wrapper" style="display: none;">
                     <div class="vic-reply-form">
-                        <?php echo get_avatar(get_current_user_id(), 28, '', '', ['class' => 'vic-reply-avatar']); ?>
+                        <?php echo self::get_user_avatar(get_current_user_id(), 28, 'vic-reply-avatar'); ?>
                         <div class="vic-reply-input-wrapper">
                             <textarea class="vic-reply-input" placeholder="Répondre à <?php echo esc_attr($comment->comment_author); ?>..." rows="1"></textarea>
                             <div class="vic-reply-form-actions">

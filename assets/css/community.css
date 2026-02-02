@@ -467,6 +467,20 @@ body .vic-community-wrapper,
     line-height: 1.2;
 }
 
+/* User points badge */
+.vic-user-points {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    color: #92400E;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+}
+
 .vic-author-info img {
     width: 40px;
     height: 40px;
