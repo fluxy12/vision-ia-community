@@ -101,21 +101,21 @@
 
 ---
 
-### 9. Boutons J'aime / Commentaires
+### 9. Boutons J'aime / Commentaires ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
 | Couleur J'aime (normal) | Color | OK |
 | Couleur J'aime (actif) | Color | OK |
 | Couleur icone commentaire | Color | OK |
 | Couleur texte "Nouveau commentaire" | Color | OK |
-| Taille icones | Slider | EN ATTENTE |
-| Police compteurs | Typography | EN ATTENTE |
-| Espacement boutons | Slider | EN ATTENTE |
-| Animation au clic | Select | EN ATTENTE |
+| Taille icones | Slider | OK |
+| Police compteurs | Typography | OK |
+| Espacement boutons | Slider | OK |
+| Animation au clic | Select | OK |
 
 ---
 
-### 10. Filtres Categories
+### 10. Filtres Categories ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
 | Couleur fond (normal) | Color | OK |
@@ -123,11 +123,13 @@
 | Couleur fond (actif) | Color | OK |
 | Couleur texte (actif) | Color | OK |
 | Rayon bordure | Slider | OK |
-| Police filtres | Typography | EN ATTENTE |
-| Padding filtres | Dimensions | EN ATTENTE |
-| Espacement entre filtres | Slider | EN ATTENTE |
-| Bordure filtres | Border Group | EN ATTENTE |
-| Effet survol | Hover States | EN ATTENTE |
+| Police filtres | Typography | OK |
+| Padding filtres | Dimensions | OK |
+| Espacement entre filtres | Slider | OK |
+| Bordure filtres | Border Group | OK |
+| Couleur fond survol | Color | OK |
+| Couleur texte survol | Color | OK |
+| Couleur bordure survol | Color | OK |
 
 ---
 
@@ -470,9 +472,9 @@
 
 | Categorie | Elements OK | Elements EN ATTENTE | Total |
 |-----------|-------------|---------------------|-------|
-| Elementor Style | 41 | ~76 | ~117 |
+| Elementor Style | 53 | ~64 | ~117 |
 | Console Admin | 11 | ~120 | ~131 |
-| **TOTAL** | **52** | **~196** | **~248** |
+| **TOTAL** | **64** | **~184** | **~248** |
 
 ---
 
@@ -489,4 +491,6 @@
 | 2025-01-10 | 6. Typo Auteur | OK | +2 controles (police date, couleur date) |
 | 2025-02-03 | 7. Avatars | OK | +4 controles (forme, rayon custom, bordure, ombre) |
 | 2025-02-03 | 8. Badge de Niveau | OK | +5 controles (taille, position, bordure, ombre, anneau) |
+| 2025-02-03 | 9. Boutons J'aime/Comm | OK | +4 controles (taille icones, typo, espacement, animation) |
+| 2025-02-03 | 10. Filtres Categories | OK | +7 controles (typo, padding, espacement, bordure, 3 hover) |
 
