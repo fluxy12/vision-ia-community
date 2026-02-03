@@ -163,32 +163,33 @@
 
 ---
 
-### 14. Barre de Recherche
+### 14. Barre de Recherche ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
-| Couleur fond | Color | EN ATTENTE |
-| Couleur texte | Color | EN ATTENTE |
-| Couleur placeholder | Color | EN ATTENTE |
-| Bordure | Border Group | EN ATTENTE |
-| Rayon bordure | Slider | EN ATTENTE |
-| Icone recherche | Icon | EN ATTENTE |
-| Couleur icone | Color | EN ATTENTE |
+| Couleur fond | Color | OK |
+| Couleur texte | Color | OK |
+| Couleur placeholder | Color | OK |
+| Bordure | Border Group | OK |
+| Rayon bordure | Slider | OK |
+| Couleur icone | Color | OK |
+| Couleur bordure focus | Color | OK (BONUS) |
 
 ---
 
-### 15. Formulaire Creation Post
+### 15. Formulaire Creation Post ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
-| Couleur fond formulaire | Color | EN ATTENTE |
-| Bordure formulaire | Border Group | EN ATTENTE |
-| Couleur fond champs | Color | EN ATTENTE |
-| Couleur texte champs | Color | EN ATTENTE |
-| Couleur placeholder | Color | EN ATTENTE |
-| Bordure champs | Border Group | EN ATTENTE |
-| Focus bordure | Color | EN ATTENTE |
-| Bouton publier (fond) | Color | EN ATTENTE |
-| Bouton publier (texte) | Color | EN ATTENTE |
-| Bouton publier (survol) | Color | EN ATTENTE |
+| Couleur fond formulaire | Color | OK |
+| Bordure formulaire | Border Group | OK |
+| Rayon bordure formulaire | Slider | OK (BONUS) |
+| Couleur fond champs | Color | OK |
+| Couleur texte champs | Color | OK |
+| Couleur placeholder | Color | OK |
+| Bordure champs | Border Group | OK |
+| Focus bordure | Color | OK |
+| Bouton publier (fond) | Color | OK |
+| Bouton publier (texte) | Color | OK |
+| Bouton publier (survol) | Color | OK |
 
 ---
 
@@ -466,9 +467,9 @@
 
 | Categorie | Elements OK | Elements EN ATTENTE | Total |
 |-----------|-------------|---------------------|-------|
-| Elementor Style | 63 | ~54 | ~117 |
+| Elementor Style | 81 | ~36 | ~117 |
 | Console Admin | 11 | ~120 | ~131 |
-| **TOTAL** | **74** | **~174** | **~248** |
+| **TOTAL** | **92** | **~156** | **~248** |
 
 ---
 
@@ -490,4 +491,6 @@
 | 2025-02-03 | 11. Miniatures/Medias | OK | +3 controles (bordure, ombre, zoom survol) |
 | 2025-02-03 | 12. Badge Epingle | OK | +4 controles (fond, padding, icone, rayon) |
 | 2025-02-03 | 13. Tag Categorie | SUPPRIME | Doublon avec Filtres Categories |
+| 2025-02-03 | 14. Barre Recherche | OK | +7 controles (fond, texte, placeholder, bordure, rayon, icone, focus) |
+| 2025-02-03 | 15. Formulaire Post | OK | +11 controles (form + champs + bouton publier) |
 
