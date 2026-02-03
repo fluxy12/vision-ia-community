@@ -1193,6 +1193,41 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
             ]
         );
 
+        // === NOUVEAUX CONTRÔLES PARTIE 11 ===
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'thumbnail_border',
+                'label' => 'Bordure miniature',
+                'selector' => '{{WRAPPER}} .vic-post-thumbnail',
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            [
+                'name' => 'thumbnail_shadow',
+                'label' => 'Ombre miniature',
+                'selector' => '{{WRAPPER}} .vic-post-thumbnail',
+            ]
+        );
+
+        $this->add_control(
+            'thumbnail_hover_zoom',
+            [
+                'label' => 'Effet zoom au survol',
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'label_on' => 'Oui',
+                'label_off' => 'Non',
+                'return_value' => 'yes',
+                'default' => 'yes',
+            ]
+        );
+
+        // === FIN CONTRÔLES PARTIE 11 ===
+
         $this->end_controls_section();
 
         // ========================================
@@ -1227,57 +1262,72 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
             ]
         );
 
-        $this->end_controls_section();
-
-        // ========================================
-        // STYLE TAB - CATEGORY TAG
-        // ========================================
-
-        $this->start_controls_section(
-            'style_category',
-            [
-                'label' => 'Tag catégorie',
-                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
-            ]
-        );
+        // === NOUVEAUX CONTRÔLES PARTIE 12 ===
 
         $this->add_control(
-            'category_bg_color',
+            'pinned_bg_color',
             [
                 'label' => 'Couleur de fond',
                 'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#F3F4F6',
+                'default' => '#FEF3C7',
                 'selectors' => [
-                    '{{WRAPPER}} .vic-category-tag' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .vic-pinned-badge' => 'background-color: {{VALUE}};',
                 ],
+                'separator' => 'before',
             ]
         );
 
-        $this->add_control(
-            'category_text_color',
+        $this->add_responsive_control(
+            'pinned_padding',
             [
-                'label' => 'Couleur du texte',
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#4B5563',
+                'label' => 'Padding',
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em'],
+                'default' => [
+                    'top' => '4',
+                    'right' => '8',
+                    'bottom' => '4',
+                    'left' => '8',
+                    'unit' => 'px',
+                    'isLinked' => false,
+                ],
                 'selectors' => [
-                    '{{WRAPPER}} .vic-category-tag' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .vic-pinned-badge' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
 
         $this->add_control(
-            'category_border_radius',
+            'pinned_icon',
+            [
+                'label' => 'Icône',
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'pin',
+                'options' => [
+                    'pin' => '📌 Épingle',
+                    'star' => '⭐ Étoile',
+                    'fire' => '🔥 Feu',
+                    'megaphone' => '📢 Mégaphone',
+                    'none' => 'Aucune',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'pinned_border_radius',
             [
                 'label' => 'Rayon de bordure',
                 'type' => \Elementor\Controls_Manager::SLIDER,
                 'size_units' => ['px'],
-                'range' => ['px' => ['min' => 0, 'max' => 30]],
-                'default' => ['unit' => 'px', 'size' => 20],
+                'range' => ['px' => ['min' => 0, 'max' => 20]],
+                'default' => ['unit' => 'px', 'size' => 4],
                 'selectors' => [
-                    '{{WRAPPER}} .vic-category-tag' => 'border-radius: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .vic-pinned-badge' => 'border-radius: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
+
+        // === FIN CONTRÔLES PARTIE 12 ===
 
         $this->end_controls_section();
 
@@ -1369,6 +1419,35 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
                     break;
             }
             echo $animation_css;
+            echo '</style>';
+        }
+
+        // Output thumbnail hover zoom effect
+        $hover_zoom = isset($settings['thumbnail_hover_zoom']) ? $settings['thumbnail_hover_zoom'] : 'yes';
+        if ($hover_zoom === 'yes') {
+            echo '<style>';
+            echo $wrapper_selector . ' .vic-post-thumbnail { overflow: hidden; }';
+            echo $wrapper_selector . ' .vic-post-thumbnail img { transition: transform 0.3s ease; }';
+            echo $wrapper_selector . ' .vic-post-thumbnail:hover img { transform: scale(1.05); }';
+            echo '</style>';
+        }
+
+        // Output pinned badge icon
+        $pinned_icon = isset($settings['pinned_icon']) ? $settings['pinned_icon'] : 'pin';
+        $icons = [
+            'pin' => '📌',
+            'star' => '⭐',
+            'fire' => '🔥',
+            'megaphone' => '📢',
+            'none' => '',
+        ];
+        if (isset($icons[$pinned_icon]) && $pinned_icon !== 'none') {
+            echo '<style>';
+            echo $wrapper_selector . ' .vic-pinned-badge::before { content: "' . $icons[$pinned_icon] . ' "; }';
+            echo '</style>';
+        } elseif ($pinned_icon === 'none') {
+            echo '<style>';
+            echo $wrapper_selector . ' .vic-pinned-badge::before { content: none; }';
             echo '</style>';
         }
 
