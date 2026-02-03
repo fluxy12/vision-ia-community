@@ -1563,7 +1563,7 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
                 'type' => \Elementor\Controls_Manager::COLOR,
                 'default' => '#F59E0B',
                 'selectors' => [
-                    '{{WRAPPER}} .vic-btn-primary' => 'background-color: {{VALUE}} !important;',
+                    '{{WRAPPER}} .vic-create-post-form .vic-btn-primary, {{WRAPPER}} .vic-btn.vic-btn-primary' => 'background: {{VALUE}} !important;',
                 ],
             ]
         );
@@ -1575,7 +1575,7 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
                 'type' => \Elementor\Controls_Manager::COLOR,
                 'default' => '#FFFFFF',
                 'selectors' => [
-                    '{{WRAPPER}} .vic-btn-primary' => 'color: {{VALUE}} !important;',
+                    '{{WRAPPER}} .vic-create-post-form .vic-btn-primary, {{WRAPPER}} .vic-btn.vic-btn-primary' => 'color: {{VALUE}} !important;',
                 ],
             ]
         );
@@ -1587,7 +1587,7 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
                 'type' => \Elementor\Controls_Manager::COLOR,
                 'default' => '#D97706',
                 'selectors' => [
-                    '{{WRAPPER}} .vic-btn-primary:hover' => 'background-color: {{VALUE}} !important;',
+                    '{{WRAPPER}} .vic-create-post-form .vic-btn-primary:hover, {{WRAPPER}} .vic-btn.vic-btn-primary:hover' => 'background: {{VALUE}} !important;',
                 ],
             ]
         );
