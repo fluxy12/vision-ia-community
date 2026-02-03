@@ -695,6 +695,63 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
             ]
         );
 
+        // === NOUVEAUX CONTRÔLES PARTIE 7 ===
+
+        $this->add_control(
+            'avatar_shape',
+            [
+                'label' => 'Forme avatar',
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'round',
+                'options' => [
+                    'round' => 'Rond',
+                    'square' => 'Carré',
+                    'custom' => 'Personnalisé',
+                ],
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'avatar_border_radius',
+            [
+                'label' => 'Rayon bordure avatar',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px', '%'],
+                'range' => [
+                    'px' => ['min' => 0, 'max' => 50],
+                    '%' => ['min' => 0, 'max' => 50],
+                ],
+                'default' => ['unit' => 'px', 'size' => 8],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-author-info img, {{WRAPPER}} .vic-commenters-avatars img' => 'border-radius: {{SIZE}}{{UNIT}};',
+                ],
+                'condition' => [
+                    'avatar_shape' => 'custom',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'avatar_border',
+                'label' => 'Bordure avatar',
+                'selector' => '{{WRAPPER}} .vic-author-info img, {{WRAPPER}} .vic-commenters-avatars img',
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            [
+                'name' => 'avatar_shadow',
+                'label' => 'Ombre avatar',
+                'selector' => '{{WRAPPER}} .vic-author-info img, {{WRAPPER}} .vic-commenters-avatars img',
+            ]
+        );
+
+        // === FIN NOUVEAUX CONTRÔLES PARTIE 7 ===
+
         $this->end_controls_section();
 
         // ========================================
@@ -1021,11 +1078,22 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
 
     protected function render() {
         $settings = $this->get_settings_for_display();
+        $wrapper_selector = '.elementor-element-' . $this->get_id();
 
         // Output custom CSS if provided
         if (!empty($settings['custom_css'])) {
-            $custom_css = str_replace('{{WRAPPER}}', '.elementor-element-' . $this->get_id(), $settings['custom_css']);
+            $custom_css = str_replace('{{WRAPPER}}', $wrapper_selector, $settings['custom_css']);
             echo '<style>' . $custom_css . '</style>';
+        }
+
+        // Output avatar shape styles (for round/square presets)
+        $avatar_shape = isset($settings['avatar_shape']) ? $settings['avatar_shape'] : 'round';
+        if ($avatar_shape !== 'custom') {
+            $border_radius = ($avatar_shape === 'round') ? '50%' : '0';
+            echo '<style>';
+            echo $wrapper_selector . ' .vic-author-info img, ';
+            echo $wrapper_selector . ' .vic-commenters-avatars img { border-radius: ' . $border_radius . ' !important; }';
+            echo '</style>';
         }
 
         // Build shortcode attributes

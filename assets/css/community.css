@@ -555,7 +555,7 @@ body .vic-community-wrapper,
 .vic-author-info img {
     width: 40px;
     height: 40px;
-    border-radius: 50% !important;
+    border-radius: 50%;
     object-fit: cover;
     aspect-ratio: 1 / 1;
 }
@@ -741,7 +741,7 @@ body .vic-community-wrapper,
 .vic-commenters-avatars img {
     width: 28px;
     height: 28px;
-    border-radius: 50% !important;
+    border-radius: 50%;
     border: 2px solid var(--vic-white);
     margin-left: -6px;
     object-fit: cover;
