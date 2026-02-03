@@ -1716,6 +1716,24 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
             echo '</style>';
         }
 
+        // Output publish button styles (need high specificity to override CSS variables)
+        $btn_bg = isset($settings['button_bg_color']) ? $settings['button_bg_color'] : '';
+        $btn_text = isset($settings['button_text_color']) ? $settings['button_text_color'] : '';
+        $btn_hover = isset($settings['button_hover_bg_color']) ? $settings['button_hover_bg_color'] : '';
+        if ($btn_bg || $btn_text || $btn_hover) {
+            echo '<style>';
+            if ($btn_bg) {
+                echo $wrapper_selector . ' .vic-form-submit .vic-btn-primary { background: ' . $btn_bg . ' !important; }';
+            }
+            if ($btn_text) {
+                echo $wrapper_selector . ' .vic-form-submit .vic-btn-primary { color: ' . $btn_text . ' !important; }';
+            }
+            if ($btn_hover) {
+                echo $wrapper_selector . ' .vic-form-submit .vic-btn-primary:hover { background: ' . $btn_hover . ' !important; }';
+            }
+            echo '</style>';
+        }
+
         // Build shortcode attributes
         $atts = [
             'posts_per_page' => $settings['posts_per_page'],
