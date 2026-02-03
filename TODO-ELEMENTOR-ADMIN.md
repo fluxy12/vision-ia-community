@@ -133,39 +133,33 @@
 
 ---
 
-### 11. Miniatures / Medias
+### 11. Miniatures / Medias ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
 | Largeur miniature | Slider | OK |
 | Hauteur miniature | Slider | OK |
 | Rayon bordure miniature | Slider | OK |
 | Marge haut miniature | Slider | OK |
-| Bordure miniature | Border Group | EN ATTENTE |
-| Ombre miniature | Box Shadow | EN ATTENTE |
-| Effet zoom survol | Switcher | EN ATTENTE |
+| Bordure miniature | Border Group | OK |
+| Ombre miniature | Box Shadow | OK |
+| Effet zoom survol | Switcher | OK |
 
 ---
 
-### 12. Badge Epingle
+### 12. Badge Epingle ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
 | Couleur badge | Color | OK |
 | Police badge | Typography | OK |
-| Couleur fond badge | Color | EN ATTENTE |
-| Padding badge | Dimensions | EN ATTENTE |
-| Icone badge | Icon | EN ATTENTE |
+| Couleur fond badge | Color | OK |
+| Padding badge | Dimensions | OK |
+| Icone badge | Select | OK |
+| Rayon bordure badge | Slider | OK (BONUS) |
 
 ---
 
-### 13. Tag Categorie
-| Element | Type | Status |
-|---------|------|--------|
-| Couleur fond | Color | OK |
-| Couleur texte | Color | OK |
-| Rayon bordure | Slider | OK |
-| Police tag | Typography | EN ATTENTE |
-| Padding tag | Dimensions | EN ATTENTE |
-| Bordure tag | Border Group | EN ATTENTE |
+### 13. Tag Categorie - SUPPRIME
+> Section supprimee car doublon avec Filtres Categories (Partie 10)
 
 ---
 
@@ -472,9 +466,9 @@
 
 | Categorie | Elements OK | Elements EN ATTENTE | Total |
 |-----------|-------------|---------------------|-------|
-| Elementor Style | 53 | ~64 | ~117 |
+| Elementor Style | 63 | ~54 | ~117 |
 | Console Admin | 11 | ~120 | ~131 |
-| **TOTAL** | **64** | **~184** | **~248** |
+| **TOTAL** | **74** | **~174** | **~248** |
 
 ---
 
@@ -493,4 +487,7 @@
 | 2025-02-03 | 8. Badge de Niveau | OK | +5 controles (taille, position, bordure, ombre, anneau) |
 | 2025-02-03 | 9. Boutons J'aime/Comm | OK | +4 controles (taille icones, typo, espacement, animation) |
 | 2025-02-03 | 10. Filtres Categories | OK | +7 controles (typo, padding, espacement, bordure, 3 hover) |
+| 2025-02-03 | 11. Miniatures/Medias | OK | +3 controles (bordure, ombre, zoom survol) |
+| 2025-02-03 | 12. Badge Epingle | OK | +4 controles (fond, padding, icone, rayon) |
+| 2025-02-03 | 13. Tag Categorie | SUPPRIME | Doublon avec Filtres Categories |
 
