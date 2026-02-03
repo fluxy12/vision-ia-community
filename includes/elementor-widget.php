@@ -898,6 +898,64 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
             ]
         );
 
+        // === NOUVEAUX CONTRÔLES PARTIE 9 ===
+
+        $this->add_control(
+            'buttons_icon_size',
+            [
+                'label' => 'Taille icônes',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 12, 'max' => 28]],
+                'default' => ['unit' => 'px', 'size' => 18],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-like-btn svg, {{WRAPPER}} .vic-comment-btn svg' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+                ],
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'buttons_counter_typography',
+                'label' => 'Police compteurs',
+                'selector' => '{{WRAPPER}} .vic-like-count, {{WRAPPER}} .vic-comment-count',
+            ]
+        );
+
+        $this->add_control(
+            'buttons_spacing',
+            [
+                'label' => 'Espacement boutons',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 0, 'max' => 40]],
+                'default' => ['unit' => 'px', 'size' => 16],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-actions' => 'gap: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .vic-post-stats' => 'gap: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'buttons_click_animation',
+            [
+                'label' => 'Animation au clic',
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'scale',
+                'options' => [
+                    'none' => 'Aucune',
+                    'scale' => 'Pulse (zoom)',
+                    'bounce' => 'Rebond',
+                    'shake' => 'Secousse',
+                ],
+            ]
+        );
+
+        // === FIN CONTRÔLES PARTIE 9 ===
+
         $this->end_controls_section();
 
         // ========================================
@@ -973,6 +1031,97 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
                 ],
             ]
         );
+
+        // === NOUVEAUX CONTRÔLES PARTIE 10 ===
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'filter_typography',
+                'label' => 'Police filtres',
+                'selector' => '{{WRAPPER}} .vic-filter-btn',
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_responsive_control(
+            'filter_padding',
+            [
+                'label' => 'Padding filtres',
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em'],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-filter-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'filter_spacing',
+            [
+                'label' => 'Espacement entre filtres',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 0, 'max' => 20]],
+                'default' => ['unit' => 'px', 'size' => 8],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-filters' => 'gap: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'filter_border',
+                'label' => 'Bordure filtres',
+                'selector' => '{{WRAPPER}} .vic-filter-btn',
+            ]
+        );
+
+        $this->add_control(
+            'filter_hover_heading',
+            [
+                'label' => 'Effet Survol',
+                'type' => \Elementor\Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'filter_hover_bg_color',
+            [
+                'label' => 'Couleur fond (survol)',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .vic-filter-btn:not(.active):hover' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'filter_hover_text_color',
+            [
+                'label' => 'Couleur texte (survol)',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .vic-filter-btn:not(.active):hover' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'filter_hover_border_color',
+            [
+                'label' => 'Couleur bordure (survol)',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .vic-filter-btn:not(.active):hover' => 'border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        // === FIN CONTRÔLES PARTIE 10 ===
 
         $this->end_controls_section();
 
@@ -1199,6 +1348,29 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
         echo '<style>';
         echo '#vic-profile-popup .vic-profile-popup-progress-ring circle { stroke-width: ' . $ring_thickness . $ring_unit . ' !important; }';
         echo '</style>';
+
+        // Output button click animation styles
+        $click_animation = isset($settings['buttons_click_animation']) ? $settings['buttons_click_animation'] : 'scale';
+        if ($click_animation !== 'none') {
+            echo '<style>';
+            $animation_css = '';
+            switch ($click_animation) {
+                case 'scale':
+                    $animation_css = $wrapper_selector . ' .vic-like-btn:active, ' . $wrapper_selector . ' .vic-comment-btn:active { transform: scale(1.2); }';
+                    $animation_css .= $wrapper_selector . ' .vic-like-btn, ' . $wrapper_selector . ' .vic-comment-btn { transition: transform 0.15s ease; }';
+                    break;
+                case 'bounce':
+                    $animation_css = '@keyframes vic-bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }';
+                    $animation_css .= $wrapper_selector . ' .vic-like-btn:active, ' . $wrapper_selector . ' .vic-comment-btn:active { animation: vic-bounce 0.3s ease; }';
+                    break;
+                case 'shake':
+                    $animation_css = '@keyframes vic-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }';
+                    $animation_css .= $wrapper_selector . ' .vic-like-btn:active, ' . $wrapper_selector . ' .vic-comment-btn:active { animation: vic-shake 0.3s ease; }';
+                    break;
+            }
+            echo $animation_css;
+            echo '</style>';
+        }
 
         // Build shortcode attributes
         $atts = [
