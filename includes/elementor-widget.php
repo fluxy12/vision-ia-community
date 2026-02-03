@@ -449,6 +449,111 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
             ]
         );
 
+        // === NOUVEAUX CONTRÔLES PARTIE 3 - BADGE ANNONCE ===
+
+        $this->add_control(
+            'admin_badge_heading',
+            [
+                'label' => 'Badge Annonce',
+                'type' => \Elementor\Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'admin_badge_icon',
+            [
+                'label' => 'Icône du badge',
+                'type' => \Elementor\Controls_Manager::ICONS,
+                'default' => [
+                    'value' => 'fas fa-bullhorn',
+                    'library' => 'fa-solid',
+                ],
+                'recommended' => [
+                    'fa-solid' => [
+                        'bullhorn',
+                        'megaphone',
+                        'bell',
+                        'star',
+                        'certificate',
+                        'award',
+                        'crown',
+                        'flag',
+                    ],
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'admin_badge_bg_color',
+            [
+                'label' => 'Couleur de fond du badge',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#FEF3C7',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-admin-badge' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'admin_badge_text_color',
+            [
+                'label' => 'Couleur du texte/icône',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#D97706',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-admin-badge' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .vic-admin-badge svg' => 'fill: {{VALUE}};',
+                    '{{WRAPPER}} .vic-admin-badge i' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'admin_badge_padding',
+            [
+                'label' => 'Padding du badge',
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em'],
+                'default' => [
+                    'top' => 4,
+                    'right' => 8,
+                    'bottom' => 4,
+                    'left' => 8,
+                    'unit' => 'px',
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-admin-badge' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'admin_badge_border_radius',
+            [
+                'label' => 'Rayon de bordure du badge',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 0, 'max' => 20]],
+                'default' => ['unit' => 'px', 'size' => 4],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-admin-badge' => 'border-radius: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'admin_badge_typography',
+                'label' => 'Typographie du badge',
+                'selector' => '{{WRAPPER}} .vic-admin-badge',
+            ]
+        );
+
+        // === FIN NOUVEAUX CONTRÔLES PARTIE 3 ===
+
         $this->end_controls_section();
 
         // ========================================

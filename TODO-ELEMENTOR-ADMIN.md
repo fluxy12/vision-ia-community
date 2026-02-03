@@ -37,13 +37,17 @@
 
 ---
 
-### 3. Posts Admin (Annonces)
+### 3. Posts Admin (Annonces) ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
 | Couleur bordure admin | Color | OK |
 | Largeur bordure admin | Slider | OK |
-| Icone badge annonce | Icon | EN ATTENTE |
-| Couleur fond badge | Color | EN ATTENTE |
+| Icone badge annonce | Icons | OK |
+| Couleur fond badge | Color | OK |
+| Couleur texte/icone badge | Color | OK (BONUS) |
+| Padding badge | Dimensions | OK (BONUS) |
+| Rayon bordure badge | Slider | OK (BONUS) |
+| Typographie badge | Typography | OK (BONUS) |
 
 ---
 
@@ -475,4 +479,5 @@
 |------|--------|--------|-------|
 | 2025-01-10 | 1. Conteneur Principal | OK | +4 controles (marge, bordure, rayon bordure, ombre) |
 | 2025-01-10 | 2. Cartes de Posts | OK | +7 controles (largeur/style bordure + 5 effets hover) |
+| 2025-01-10 | 3. Posts Admin | OK | +6 controles badge annonce (icone, couleurs, padding, rayon, typo) |
 
