@@ -193,66 +193,66 @@
 
 ---
 
-### 16. Modale Post
+### 16. Modale Post ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
-| Couleur overlay | Color + Opacity | EN ATTENTE |
-| Couleur fond modale | Color | EN ATTENTE |
-| Bordure modale | Border Group | EN ATTENTE |
-| Rayon bordure modale | Slider | EN ATTENTE |
-| Ombre modale | Box Shadow | EN ATTENTE |
-| Largeur max modale | Slider | EN ATTENTE |
-| Hauteur max modale | Slider | EN ATTENTE |
-| Animation ouverture | Select | EN ATTENTE |
+| Couleur overlay | Color + Opacity | OK |
+| Couleur fond modale | Color | OK |
+| Bordure modale | Border Group | OK |
+| Rayon bordure modale | Slider | OK |
+| Ombre modale | Box Shadow | OK |
+| Largeur max modale | Slider | OK |
+| Hauteur max modale | Slider | OK |
+| Animation ouverture | Select | OK |
 
 ---
 
-### 17. Section Commentaires
+### 17. Section Commentaires ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
-| Couleur fond commentaire | Color | EN ATTENTE |
-| Bordure commentaire | Border Group | EN ATTENTE |
-| Rayon bordure commentaire | Slider | EN ATTENTE |
-| Padding commentaire | Dimensions | EN ATTENTE |
-| Espacement commentaires | Slider | EN ATTENTE |
-| Police nom commentateur | Typography | EN ATTENTE |
-| Police contenu commentaire | Typography | EN ATTENTE |
-| Couleur reponses (fond) | Color | EN ATTENTE |
-| Indentation reponses | Slider | EN ATTENTE |
+| Couleur fond commentaire | Color | OK |
+| Bordure commentaire | Border Group | OK |
+| Rayon bordure commentaire | Slider | OK |
+| Padding commentaire | Dimensions | OK |
+| Espacement commentaires | Slider | OK |
+| Police nom commentateur | Typography | OK |
+| Police contenu commentaire | Typography | OK |
+| Couleur reponses (fond) | Color | OK |
+| Indentation reponses | Slider | OK |
 
 ---
 
-### 18. Popup Profil Utilisateur
+### 18. Popup Profil Utilisateur ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
-| Couleur fond popup | Color | EN ATTENTE |
-| Bordure popup | Border Group | EN ATTENTE |
-| Ombre popup | Box Shadow | EN ATTENTE |
-| Rayon bordure popup | Slider | EN ATTENTE |
-| Largeur popup | Slider | EN ATTENTE |
-| Police nom utilisateur | Typography | EN ATTENTE |
-| Couleur statistiques | Color | EN ATTENTE |
+| Couleur fond popup | Color | OK |
+| Bordure popup | Border Group | OK |
+| Ombre popup | Box Shadow | OK |
+| Rayon bordure popup | Slider | OK |
+| Largeur popup | Slider | OK |
+| Police nom utilisateur | Typography | OK |
+| Couleur statistiques | Color | OK |
 
 ---
 
-### 19. Embed YouTube
+### 19. Embed YouTube ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
-| Rayon bordure video | Slider | EN ATTENTE |
-| Ombre video | Box Shadow | EN ATTENTE |
-| Ratio aspect | Select | EN ATTENTE |
-| Icone play overlay | Icon | EN ATTENTE |
+| Rayon bordure video | Slider | OK |
+| Ombre video | Box Shadow | OK |
+| Ratio aspect | Select | OK |
+| Icone play overlay | Icon | OK |
 
 ---
 
-### 20. Pieces Jointes
+### 20. Pieces Jointes ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
-| Grille colonnes | Number | EN ATTENTE |
-| Espacement grille | Slider | EN ATTENTE |
-| Rayon bordure images | Slider | EN ATTENTE |
-| Overlay images (survol) | Color | EN ATTENTE |
-| Icone zoom | Icon | EN ATTENTE |
+| Grille colonnes | Number | OK |
+| Espacement grille | Slider | OK |
+| Rayon bordure images | Slider | OK |
+| Overlay images (survol) | Color | OK |
+| Icone zoom | Icon | OK
 
 ---
 
@@ -467,9 +467,9 @@
 
 | Categorie | Elements OK | Elements EN ATTENTE | Total |
 |-----------|-------------|---------------------|-------|
-| Elementor Style | 81 | ~36 | ~117 |
+| Elementor Style | 114 | ~3 | ~117 |
 | Console Admin | 11 | ~120 | ~131 |
-| **TOTAL** | **92** | **~156** | **~248** |
+| **TOTAL** | **125** | **~123** | **~248** |
 
 ---
 
@@ -493,4 +493,9 @@
 | 2025-02-03 | 13. Tag Categorie | SUPPRIME | Doublon avec Filtres Categories |
 | 2025-02-03 | 14. Barre Recherche | OK | +7 controles (fond, texte, placeholder, bordure, rayon, icone, focus) |
 | 2025-02-03 | 15. Formulaire Post | OK | +11 controles (form + champs + bouton publier) |
+| 2025-02-03 | 16. Modale Post | OK | +8 controles (overlay, fond, bordure, rayon, ombre, dimensions, animation) |
+| 2025-02-03 | 17. Section Commentaires | OK | +9 controles (fond, bordure, padding, espacement, typo x2, reponses) |
+| 2025-02-03 | 18. Popup Profil | OK | +7 controles (fond, bordure, ombre, rayon, largeur, typo, stats) |
+| 2025-02-03 | 19. Embed YouTube | OK | +4 controles (rayon, ombre, ratio, icone play) |
+| 2025-02-03 | 20. Pieces Jointes | OK | +5 controles (colonnes, gap, rayon, overlay, icone zoom) |
 

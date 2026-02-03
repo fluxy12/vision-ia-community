@@ -1597,6 +1597,546 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
         $this->end_controls_section();
 
         // ========================================
+        // STYLE TAB - MODAL POST (Partie 16)
+        // ========================================
+
+        $this->start_controls_section(
+            'style_modal',
+            [
+                'label' => 'Modale Post',
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'modal_overlay_color',
+            [
+                'label' => 'Couleur overlay',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => 'rgba(0, 0, 0, 0.5)',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-modal-overlay, .vic-modal-overlay' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'modal_bg_color',
+            [
+                'label' => 'Couleur fond modale',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#FFFFFF',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-modal-content, .vic-modal-content' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .vic-post-modal, .vic-post-modal' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'modal_border',
+                'label' => 'Bordure modale',
+                'selector' => '{{WRAPPER}} .vic-modal-content, .vic-modal-content, {{WRAPPER}} .vic-post-modal, .vic-post-modal',
+            ]
+        );
+
+        $this->add_control(
+            'modal_border_radius',
+            [
+                'label' => 'Rayon bordure modale',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 0, 'max' => 40]],
+                'default' => ['unit' => 'px', 'size' => 16],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-modal-content, .vic-modal-content' => 'border-radius: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .vic-post-modal, .vic-post-modal' => 'border-radius: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            [
+                'name' => 'modal_shadow',
+                'label' => 'Ombre modale',
+                'selector' => '{{WRAPPER}} .vic-modal-content, .vic-modal-content, {{WRAPPER}} .vic-post-modal, .vic-post-modal',
+            ]
+        );
+
+        $this->add_control(
+            'modal_max_width',
+            [
+                'label' => 'Largeur max modale',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px', '%', 'vw'],
+                'range' => [
+                    'px' => ['min' => 400, 'max' => 1200],
+                    '%' => ['min' => 50, 'max' => 100],
+                    'vw' => ['min' => 50, 'max' => 100],
+                ],
+                'default' => ['unit' => 'px', 'size' => 800],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-modal-content, .vic-modal-content' => 'max-width: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .vic-post-modal, .vic-post-modal' => 'max-width: {{SIZE}}{{UNIT}};',
+                ],
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'modal_max_height',
+            [
+                'label' => 'Hauteur max modale',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px', '%', 'vh'],
+                'range' => [
+                    'px' => ['min' => 300, 'max' => 1000],
+                    '%' => ['min' => 50, 'max' => 100],
+                    'vh' => ['min' => 50, 'max' => 100],
+                ],
+                'default' => ['unit' => 'vh', 'size' => 90],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-modal-content, .vic-modal-content' => 'max-height: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .vic-post-modal, .vic-post-modal' => 'max-height: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'modal_animation',
+            [
+                'label' => 'Animation ouverture',
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'fade-scale',
+                'options' => [
+                    'none' => 'Aucune',
+                    'fade' => 'Fondu',
+                    'fade-scale' => 'Fondu + Zoom',
+                    'slide-up' => 'Glissement haut',
+                    'slide-down' => 'Glissement bas',
+                ],
+                'separator' => 'before',
+            ]
+        );
+
+        // === FIN CONTRÔLES PARTIE 16 ===
+
+        $this->end_controls_section();
+
+        // ========================================
+        // STYLE TAB - COMMENTS SECTION (Partie 17)
+        // ========================================
+
+        $this->start_controls_section(
+            'style_comments',
+            [
+                'label' => 'Section Commentaires',
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'comment_bg_color',
+            [
+                'label' => 'Couleur fond commentaire',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#F9FAFB',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-comment-item, .vic-comment-item' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'comment_border',
+                'label' => 'Bordure commentaire',
+                'selector' => '{{WRAPPER}} .vic-comment-item, .vic-comment-item',
+            ]
+        );
+
+        $this->add_control(
+            'comment_border_radius',
+            [
+                'label' => 'Rayon bordure commentaire',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 0, 'max' => 20]],
+                'default' => ['unit' => 'px', 'size' => 8],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-comment-item, .vic-comment-item' => 'border-radius: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'comment_padding',
+            [
+                'label' => 'Padding commentaire',
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em'],
+                'default' => [
+                    'top' => '12',
+                    'right' => '16',
+                    'bottom' => '12',
+                    'left' => '16',
+                    'unit' => 'px',
+                    'isLinked' => false,
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-comment-item, .vic-comment-item' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'comment_spacing',
+            [
+                'label' => 'Espacement commentaires',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 0, 'max' => 30]],
+                'default' => ['unit' => 'px', 'size' => 12],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-comment-item, .vic-comment-item' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .vic-comments-list, .vic-comments-list' => 'gap: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'comment_typography_heading',
+            [
+                'label' => 'Typographie',
+                'type' => \Elementor\Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'commenter_name_typography',
+                'label' => 'Police nom commentateur',
+                'selector' => '{{WRAPPER}} .vic-comment-author, .vic-comment-author',
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'comment_content_typography',
+                'label' => 'Police contenu commentaire',
+                'selector' => '{{WRAPPER}} .vic-comment-text, .vic-comment-text, {{WRAPPER}} .vic-comment-content, .vic-comment-content',
+            ]
+        );
+
+        $this->add_control(
+            'comment_replies_heading',
+            [
+                'label' => 'Réponses',
+                'type' => \Elementor\Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'reply_bg_color',
+            [
+                'label' => 'Couleur fond réponses',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#F3F4F6',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-comment-reply, .vic-comment-reply' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .vic-reply-item, .vic-reply-item' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'reply_indent',
+            [
+                'label' => 'Indentation réponses',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 0, 'max' => 60]],
+                'default' => ['unit' => 'px', 'size' => 24],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-comment-reply, .vic-comment-reply' => 'margin-left: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .vic-reply-item, .vic-reply-item' => 'margin-left: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        // === FIN CONTRÔLES PARTIE 17 ===
+
+        $this->end_controls_section();
+
+        // ========================================
+        // STYLE TAB - USER PROFILE POPUP (Partie 18)
+        // ========================================
+
+        $this->start_controls_section(
+            'style_profile_popup',
+            [
+                'label' => 'Popup Profil Utilisateur',
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'popup_bg_color',
+            [
+                'label' => 'Couleur fond popup',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#FFFFFF',
+                'selectors' => [
+                    '#vic-profile-popup, .vic-profile-popup' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'popup_border',
+                'label' => 'Bordure popup',
+                'selector' => '#vic-profile-popup, .vic-profile-popup',
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            [
+                'name' => 'popup_shadow',
+                'label' => 'Ombre popup',
+                'selector' => '#vic-profile-popup, .vic-profile-popup',
+            ]
+        );
+
+        $this->add_control(
+            'popup_border_radius',
+            [
+                'label' => 'Rayon bordure popup',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 0, 'max' => 24]],
+                'default' => ['unit' => 'px', 'size' => 12],
+                'selectors' => [
+                    '#vic-profile-popup, .vic-profile-popup' => 'border-radius: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'popup_width',
+            [
+                'label' => 'Largeur popup',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 200, 'max' => 400]],
+                'default' => ['unit' => 'px', 'size' => 280],
+                'selectors' => [
+                    '#vic-profile-popup, .vic-profile-popup' => 'width: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'popup_username_typography',
+                'label' => 'Police nom utilisateur',
+                'selector' => '#vic-profile-popup .vic-profile-popup-name, .vic-profile-popup .vic-profile-popup-name',
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'popup_stats_color',
+            [
+                'label' => 'Couleur statistiques',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#6B7280',
+                'selectors' => [
+                    '#vic-profile-popup .vic-profile-popup-stats, .vic-profile-popup .vic-profile-popup-stats' => 'color: {{VALUE}};',
+                    '#vic-profile-popup .vic-profile-popup-stat, .vic-profile-popup .vic-profile-popup-stat' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        // === FIN CONTRÔLES PARTIE 18 ===
+
+        $this->end_controls_section();
+
+        // ========================================
+        // STYLE TAB - YOUTUBE EMBED (Partie 19)
+        // ========================================
+
+        $this->start_controls_section(
+            'style_youtube',
+            [
+                'label' => 'Embed YouTube',
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'youtube_border_radius',
+            [
+                'label' => 'Rayon bordure vidéo',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 0, 'max' => 24]],
+                'default' => ['unit' => 'px', 'size' => 12],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-youtube-embed, .vic-youtube-embed' => 'border-radius: {{SIZE}}{{UNIT}}; overflow: hidden;',
+                    '{{WRAPPER}} .vic-youtube-embed iframe, .vic-youtube-embed iframe' => 'border-radius: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .vic-video-wrapper, .vic-video-wrapper' => 'border-radius: {{SIZE}}{{UNIT}}; overflow: hidden;',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            [
+                'name' => 'youtube_shadow',
+                'label' => 'Ombre vidéo',
+                'selector' => '{{WRAPPER}} .vic-youtube-embed, .vic-youtube-embed, {{WRAPPER}} .vic-video-wrapper, .vic-video-wrapper',
+            ]
+        );
+
+        $this->add_control(
+            'youtube_aspect_ratio',
+            [
+                'label' => 'Ratio d\'aspect',
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => '16-9',
+                'options' => [
+                    '16-9' => '16:9 (Standard)',
+                    '4-3' => '4:3 (Classique)',
+                    '21-9' => '21:9 (Cinéma)',
+                    '1-1' => '1:1 (Carré)',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'youtube_play_icon',
+            [
+                'label' => 'Icône play overlay',
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'youtube',
+                'options' => [
+                    'youtube' => 'YouTube (rouge)',
+                    'circle' => 'Cercle (blanc)',
+                    'minimal' => 'Triangle minimaliste',
+                    'none' => 'Aucune',
+                ],
+                'separator' => 'before',
+            ]
+        );
+
+        // === FIN CONTRÔLES PARTIE 19 ===
+
+        $this->end_controls_section();
+
+        // ========================================
+        // STYLE TAB - ATTACHMENTS (Partie 20)
+        // ========================================
+
+        $this->start_controls_section(
+            'style_attachments',
+            [
+                'label' => 'Pièces Jointes',
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'attachments_grid_columns',
+            [
+                'label' => 'Colonnes grille',
+                'type' => \Elementor\Controls_Manager::NUMBER,
+                'default' => 3,
+                'min' => 1,
+                'max' => 6,
+                'selectors' => [
+                    '{{WRAPPER}} .vic-attachments-grid, .vic-attachments-grid' => 'grid-template-columns: repeat({{VALUE}}, 1fr);',
+                    '{{WRAPPER}} .vic-post-images, .vic-post-images' => 'grid-template-columns: repeat({{VALUE}}, 1fr);',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'attachments_grid_gap',
+            [
+                'label' => 'Espacement grille',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 0, 'max' => 24]],
+                'default' => ['unit' => 'px', 'size' => 8],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-attachments-grid, .vic-attachments-grid' => 'gap: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .vic-post-images, .vic-post-images' => 'gap: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'attachments_border_radius',
+            [
+                'label' => 'Rayon bordure images',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 0, 'max' => 20]],
+                'default' => ['unit' => 'px', 'size' => 8],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-attachments-grid img, .vic-attachments-grid img' => 'border-radius: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .vic-post-images img, .vic-post-images img' => 'border-radius: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .vic-attachment-item, .vic-attachment-item' => 'border-radius: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'attachments_overlay_color',
+            [
+                'label' => 'Overlay images (survol)',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => 'rgba(0, 0, 0, 0.3)',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-attachments-grid img:hover, .vic-attachments-grid img:hover' => 'filter: brightness(0.7);',
+                    '{{WRAPPER}} .vic-attachment-item:hover::after, .vic-attachment-item:hover::after' => 'content: ""; position: absolute; inset: 0; background-color: {{VALUE}};',
+                ],
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'attachments_zoom_icon',
+            [
+                'label' => 'Icône zoom',
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'magnifier',
+                'options' => [
+                    'magnifier' => '🔍 Loupe',
+                    'expand' => '⤢ Expansion',
+                    'eye' => '👁 Œil',
+                    'none' => 'Aucune',
+                ],
+            ]
+        );
+
+        // === FIN CONTRÔLES PARTIE 20 ===
+
+        $this->end_controls_section();
+
+        // ========================================
         // ADVANCED TAB - CUSTOM CSS
         // ========================================
 
@@ -1730,6 +2270,94 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
             }
             if ($btn_hover) {
                 echo $wrapper_selector . ' .vic-form-submit .vic-btn-primary:hover { background: ' . $btn_hover . ' !important; }';
+            }
+            echo '</style>';
+        }
+
+        // === PARTIE 16: Modal animation styles ===
+        $modal_animation = isset($settings['modal_animation']) ? $settings['modal_animation'] : 'fade-scale';
+        if ($modal_animation !== 'none') {
+            echo '<style>';
+            $modal_css = '';
+            switch ($modal_animation) {
+                case 'fade':
+                    $modal_css = '.vic-modal-overlay { opacity: 0; transition: opacity 0.3s ease; }';
+                    $modal_css .= '.vic-modal-overlay.active { opacity: 1; }';
+                    $modal_css .= '.vic-modal-content, .vic-post-modal { opacity: 0; transition: opacity 0.3s ease; }';
+                    $modal_css .= '.vic-modal-overlay.active .vic-modal-content, .vic-modal-overlay.active .vic-post-modal { opacity: 1; }';
+                    break;
+                case 'fade-scale':
+                    $modal_css = '.vic-modal-overlay { opacity: 0; transition: opacity 0.3s ease; }';
+                    $modal_css .= '.vic-modal-overlay.active { opacity: 1; }';
+                    $modal_css .= '.vic-modal-content, .vic-post-modal { opacity: 0; transform: scale(0.9); transition: opacity 0.3s ease, transform 0.3s ease; }';
+                    $modal_css .= '.vic-modal-overlay.active .vic-modal-content, .vic-modal-overlay.active .vic-post-modal { opacity: 1; transform: scale(1); }';
+                    break;
+                case 'slide-up':
+                    $modal_css = '.vic-modal-overlay { opacity: 0; transition: opacity 0.3s ease; }';
+                    $modal_css .= '.vic-modal-overlay.active { opacity: 1; }';
+                    $modal_css .= '.vic-modal-content, .vic-post-modal { opacity: 0; transform: translateY(30px); transition: opacity 0.3s ease, transform 0.3s ease; }';
+                    $modal_css .= '.vic-modal-overlay.active .vic-modal-content, .vic-modal-overlay.active .vic-post-modal { opacity: 1; transform: translateY(0); }';
+                    break;
+                case 'slide-down':
+                    $modal_css = '.vic-modal-overlay { opacity: 0; transition: opacity 0.3s ease; }';
+                    $modal_css .= '.vic-modal-overlay.active { opacity: 1; }';
+                    $modal_css .= '.vic-modal-content, .vic-post-modal { opacity: 0; transform: translateY(-30px); transition: opacity 0.3s ease, transform 0.3s ease; }';
+                    $modal_css .= '.vic-modal-overlay.active .vic-modal-content, .vic-modal-overlay.active .vic-post-modal { opacity: 1; transform: translateY(0); }';
+                    break;
+            }
+            echo $modal_css;
+            echo '</style>';
+        }
+
+        // === PARTIE 19: YouTube aspect ratio styles ===
+        $youtube_ratio = isset($settings['youtube_aspect_ratio']) ? $settings['youtube_aspect_ratio'] : '16-9';
+        $aspect_ratios = [
+            '16-9' => '56.25%',
+            '4-3' => '75%',
+            '21-9' => '42.85%',
+            '1-1' => '100%',
+        ];
+        if (isset($aspect_ratios[$youtube_ratio])) {
+            echo '<style>';
+            echo '.vic-youtube-embed, .vic-video-wrapper { position: relative; padding-bottom: ' . $aspect_ratios[$youtube_ratio] . '; height: 0; overflow: hidden; }';
+            echo '.vic-youtube-embed iframe, .vic-video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }';
+            echo '</style>';
+        }
+
+        // === PARTIE 19: YouTube play icon overlay ===
+        $youtube_icon = isset($settings['youtube_play_icon']) ? $settings['youtube_play_icon'] : 'youtube';
+        if ($youtube_icon !== 'none') {
+            echo '<style>';
+            $icon_css = '.vic-youtube-thumbnail { position: relative; cursor: pointer; }';
+            $icon_css .= '.vic-youtube-thumbnail::after { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }';
+            switch ($youtube_icon) {
+                case 'youtube':
+                    $icon_css .= '.vic-youtube-thumbnail::after { width: 68px; height: 48px; background: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 68 48\'%3E%3Cpath fill=\'%23f00\' d=\'M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.63 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z\'/%3E%3Cpath fill=\'%23fff\' d=\'M45 24 27 14v20\'/%3E%3C/svg%3E") no-repeat center; background-size: contain; }';
+                    break;
+                case 'circle':
+                    $icon_css .= '.vic-youtube-thumbnail::after { width: 60px; height: 60px; background: rgba(255,255,255,0.9); border-radius: 50%; }';
+                    $icon_css .= '.vic-youtube-thumbnail::before { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-40%, -50%); border-style: solid; border-width: 12px 0 12px 20px; border-color: transparent transparent transparent #333; z-index: 1; }';
+                    break;
+                case 'minimal':
+                    $icon_css .= '.vic-youtube-thumbnail::after { border-style: solid; border-width: 15px 0 15px 26px; border-color: transparent transparent transparent rgba(255,255,255,0.9); filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }';
+                    break;
+            }
+            echo $icon_css;
+            echo '</style>';
+        }
+
+        // === PARTIE 20: Attachments zoom icon ===
+        $zoom_icon = isset($settings['attachments_zoom_icon']) ? $settings['attachments_zoom_icon'] : 'magnifier';
+        if ($zoom_icon !== 'none') {
+            echo '<style>';
+            $zoom_icons = [
+                'magnifier' => '🔍',
+                'expand' => '⤢',
+                'eye' => '👁',
+            ];
+            if (isset($zoom_icons[$zoom_icon])) {
+                echo '.vic-attachment-item, .vic-attachments-grid img, .vic-post-images img { position: relative; cursor: pointer; }';
+                echo '.vic-attachment-item:hover::before, .vic-attachments-grid img:hover + .vic-zoom-icon::before { content: "' . $zoom_icons[$zoom_icon] . '"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; z-index: 2; }';
             }
             echo '</style>';
         }
