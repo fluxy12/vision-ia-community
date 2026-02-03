@@ -37,17 +37,9 @@
 
 ---
 
-### 3. Posts Admin (Annonces) ✅ COMPLET
-| Element | Type | Status |
-|---------|------|--------|
-| Couleur bordure admin | Color | OK |
-| Largeur bordure admin | Slider | OK |
-| Icone badge annonce | Icons | OK |
-| Couleur fond badge | Color | OK |
-| Couleur texte/icone badge | Color | OK (BONUS) |
-| Padding badge | Dimensions | OK (BONUS) |
-| Rayon bordure badge | Slider | OK (BONUS) |
-| Typographie badge | Typography | OK (BONUS) |
+### 3. Posts Admin (Annonces) - SUPPRIME
+> Section supprimee car "Annonces" est une categorie, pas un type de post special.
+> La personnalisation se fait maintenant via la gestion des categories dans la console admin.
 
 ---
 
@@ -299,16 +291,21 @@
 
 ---
 
-### 23. Gestion des Categories
+### 23. Gestion des Categories ✅ COMPLET
 | Parametre | Type | Status |
 |-----------|------|--------|
-| Liste des categories | Repeater | EN ATTENTE |
-| Nom categorie | Text | EN ATTENTE |
-| Emoji categorie | Text | EN ATTENTE |
-| Couleur categorie | Color | EN ATTENTE |
-| Categorie reservee admin | Toggle | EN ATTENTE |
-| Ordre d'affichage | Sortable | EN ATTENTE |
-| Activer/desactiver categorie | Toggle | EN ATTENTE |
+| Liste des categories | Cards | OK |
+| Nom categorie | Text | OK |
+| Slug categorie | Text | OK |
+| Emoji categorie | Text | OK |
+| Couleur categorie | Color | OK |
+| Description categorie | Text | OK |
+| Roles autorises par categorie | Multi-checkbox | OK |
+| Ordre d'affichage | Drag & Drop | OK |
+| Activer/desactiver categorie | Toggle | OK |
+| Ajouter nouvelle categorie | Form | OK |
+| Supprimer categorie | Button AJAX | OK |
+| Synchronisation taxonomie WP | Auto | OK |
 
 ---
 
@@ -479,5 +476,6 @@
 |------|--------|--------|-------|
 | 2025-01-10 | 1. Conteneur Principal | OK | +4 controles (marge, bordure, rayon bordure, ombre) |
 | 2025-01-10 | 2. Cartes de Posts | OK | +7 controles (largeur/style bordure + 5 effets hover) |
-| 2025-01-10 | 3. Posts Admin | OK | +6 controles badge annonce (icone, couleurs, padding, rayon, typo) |
+| 2025-01-10 | 3. Posts Admin | SUPPRIME | Remplace par gestion categories |
+| 2025-01-10 | 23. Gestion Categories | OK | Nouvelle page admin complete (CRUD, permissions, couleurs, emojis) |
 
