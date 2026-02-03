@@ -497,6 +497,7 @@ class Vision_IA_Community {
 
     /**
      * Register Taxonomy for categories
+     * Menu caché car géré via notre propre interface admin
      */
     public function register_taxonomy() {
         register_taxonomy('community_category', 'community_post', [
@@ -509,6 +510,9 @@ class Vision_IA_Community {
             'public' => true,
             'hierarchical' => true,
             'show_in_rest' => true,
+            'show_ui' => true,
+            'show_in_menu' => false, // Caché du menu - géré via notre interface
+            'show_admin_column' => true,
             'rewrite' => ['slug' => 'categorie-communaute']
         ]);
     }
