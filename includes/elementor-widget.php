@@ -755,6 +755,90 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
         $this->end_controls_section();
 
         // ========================================
+        // STYLE TAB - BADGE DE NIVEAU (Partie 8)
+        // ========================================
+
+        $this->start_controls_section(
+            'style_level_badge',
+            [
+                'label' => 'Badge de Niveau',
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'level_badge_size',
+            [
+                'label' => 'Taille badge',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 14, 'max' => 32]],
+                'default' => ['unit' => 'px', 'size' => 18],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-level-badge' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}}; font-size: calc({{SIZE}}{{UNIT}} * 0.55);',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'level_badge_position',
+            [
+                'label' => 'Position badge',
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'bottom-right',
+                'options' => [
+                    'bottom-right' => 'Bas droite',
+                    'bottom-left' => 'Bas gauche',
+                    'top-right' => 'Haut droite',
+                    'top-left' => 'Haut gauche',
+                    'bottom-center' => 'Bas centre',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'level_badge_border',
+                'label' => 'Bordure badge',
+                'selector' => '{{WRAPPER}} .vic-level-badge',
+                'fields_options' => [
+                    'border' => ['default' => 'solid'],
+                    'width' => ['default' => ['top' => '2', 'right' => '2', 'bottom' => '2', 'left' => '2', 'isLinked' => true]],
+                    'color' => ['default' => '#ffffff'],
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            [
+                'name' => 'level_badge_shadow',
+                'label' => 'Ombre badge',
+                'selector' => '{{WRAPPER}} .vic-level-badge',
+            ]
+        );
+
+        $this->add_control(
+            'progress_ring_thickness',
+            [
+                'label' => 'Épaisseur anneau progression',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 2, 'max' => 8]],
+                'default' => ['unit' => 'px', 'size' => 4],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-profile-popup-progress-ring circle' => 'stroke-width: {{SIZE}}{{UNIT}};',
+                ],
+                'separator' => 'before',
+            ]
+        );
+
+        // === FIN CONTRÔLES PARTIE 8 ===
+
+        $this->end_controls_section();
+
+        // ========================================
         // STYLE TAB - BUTTONS & INTERACTIONS
         // ========================================
 
@@ -1093,6 +1177,21 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
             echo '<style>';
             echo $wrapper_selector . ' .vic-author-info img, ';
             echo $wrapper_selector . ' .vic-commenters-avatars img { border-radius: ' . $border_radius . ' !important; }';
+            echo '</style>';
+        }
+
+        // Output level badge position styles
+        $badge_position = isset($settings['level_badge_position']) ? $settings['level_badge_position'] : 'bottom-right';
+        $position_styles = [
+            'bottom-right' => 'bottom: -2px; right: -2px; left: auto; top: auto; transform: none;',
+            'bottom-left' => 'bottom: -2px; left: -2px; right: auto; top: auto; transform: none;',
+            'top-right' => 'top: -2px; right: -2px; bottom: auto; left: auto; transform: none;',
+            'top-left' => 'top: -2px; left: -2px; bottom: auto; right: auto; transform: none;',
+            'bottom-center' => 'bottom: -2px; left: 50%; right: auto; top: auto; transform: translateX(-50%);',
+        ];
+        if (isset($position_styles[$badge_position])) {
+            echo '<style>';
+            echo $wrapper_selector . ' .vic-level-badge { ' . $position_styles[$badge_position] . ' }';
             echo '</style>';
         }
 
