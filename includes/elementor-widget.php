@@ -827,10 +827,8 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
                 'size_units' => ['px'],
                 'range' => ['px' => ['min' => 2, 'max' => 8]],
                 'default' => ['unit' => 'px', 'size' => 4],
-                'selectors' => [
-                    '{{WRAPPER}} .vic-profile-popup-progress-ring circle' => 'stroke-width: {{SIZE}}{{UNIT}};',
-                ],
                 'separator' => 'before',
+                'description' => 'Anneau de progression dans le popup profil',
             ]
         );
 
@@ -1194,6 +1192,13 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
             echo $wrapper_selector . ' .vic-level-badge { ' . $position_styles[$badge_position] . ' }';
             echo '</style>';
         }
+
+        // Output progress ring thickness (global style - popup is appended to body)
+        $ring_thickness = isset($settings['progress_ring_thickness']['size']) ? $settings['progress_ring_thickness']['size'] : 4;
+        $ring_unit = isset($settings['progress_ring_thickness']['unit']) ? $settings['progress_ring_thickness']['unit'] : 'px';
+        echo '<style>';
+        echo '#vic-profile-popup .vic-profile-popup-progress-ring circle { stroke-width: ' . $ring_thickness . $ring_unit . ' !important; }';
+        echo '</style>';
 
         // Build shortcode attributes
         $atts = [
