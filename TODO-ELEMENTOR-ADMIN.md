@@ -90,14 +90,14 @@
 
 ---
 
-### 8. Badge de Niveau
+### 8. Badge de Niveau ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
-| Taille badge | Slider | EN ATTENTE |
-| Position badge | Select | EN ATTENTE |
-| Bordure badge | Border | EN ATTENTE |
-| Ombre badge | Box Shadow | EN ATTENTE |
-| Epaisseur anneau progression | Slider | EN ATTENTE |
+| Taille badge | Slider | OK |
+| Position badge | Select | OK |
+| Bordure badge | Border | OK |
+| Ombre badge | Box Shadow | OK |
+| Epaisseur anneau progression | Slider | OK |
 
 ---
 
@@ -470,9 +470,9 @@
 
 | Categorie | Elements OK | Elements EN ATTENTE | Total |
 |-----------|-------------|---------------------|-------|
-| Elementor Style | 36 | ~81 | ~117 |
+| Elementor Style | 41 | ~76 | ~117 |
 | Console Admin | 11 | ~120 | ~131 |
-| **TOTAL** | **47** | **~201** | **~248** |
+| **TOTAL** | **52** | **~196** | **~248** |
 
 ---
 
@@ -488,4 +488,5 @@
 | 2025-01-10 | 5. Typo Contenu | OK | +4 controles (lignes, police contenu, liens, liens hover) |
 | 2025-01-10 | 6. Typo Auteur | OK | +2 controles (police date, couleur date) |
 | 2025-02-03 | 7. Avatars | OK | +4 controles (forme, rayon custom, bordure, ombre) |
+| 2025-02-03 | 8. Badge de Niveau | OK | +5 controles (taille, position, bordure, ombre, anneau) |
 
