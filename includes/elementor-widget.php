@@ -724,7 +724,7 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
                 ],
                 'default' => ['unit' => 'px', 'size' => 8],
                 'selectors' => [
-                    '{{WRAPPER}} .vic-author-info img, {{WRAPPER}} .vic-commenters-avatars img' => 'border-radius: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .vic-author-info img, {{WRAPPER}} .vic-commenters-avatars img' => 'border-radius: {{SIZE}}{{UNIT}} !important;',
                 ],
                 'condition' => [
                     'avatar_shape' => 'custom',
