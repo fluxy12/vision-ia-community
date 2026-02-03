@@ -1073,7 +1073,8 @@ class Vision_IA_Community {
                         $content = preg_replace('/https?:\/\/[^\s]+/', '', $content);
                         // Remove GIF tags for excerpt
                         $content = preg_replace('/\[gif\].*?\[\/gif\]/i', '', $content);
-                        echo wp_trim_words(wp_strip_all_tags($content), 25, '...');
+                        // Generate more words, CSS line-clamp will handle display
+                        echo wp_trim_words(wp_strip_all_tags($content), 100, '...');
                         ?>
                     </p>
                 </div>
