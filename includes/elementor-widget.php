@@ -1332,6 +1332,271 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
         $this->end_controls_section();
 
         // ========================================
+        // STYLE TAB - SEARCH BAR (Partie 14)
+        // ========================================
+
+        $this->start_controls_section(
+            'style_search',
+            [
+                'label' => 'Barre de Recherche',
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'search_bg_color',
+            [
+                'label' => 'Couleur de fond',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#F3F4F6',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-search-input' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'search_text_color',
+            [
+                'label' => 'Couleur du texte',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#111827',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-search-input' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'search_placeholder_color',
+            [
+                'label' => 'Couleur placeholder',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#9CA3AF',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-search-input::placeholder' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'search_border',
+                'label' => 'Bordure',
+                'selector' => '{{WRAPPER}} .vic-search-input',
+            ]
+        );
+
+        $this->add_control(
+            'search_border_radius',
+            [
+                'label' => 'Rayon de bordure',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 0, 'max' => 30]],
+                'default' => ['unit' => 'px', 'size' => 8],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-search-input' => 'border-radius: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'search_icon_color',
+            [
+                'label' => 'Couleur icône',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#6B7280',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-search-icon' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .vic-search-toggle-btn svg' => 'color: {{VALUE}};',
+                ],
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'search_focus_border_color',
+            [
+                'label' => 'Couleur bordure (focus)',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#3B82F6',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-search-input:focus' => 'border-color: {{VALUE}}; box-shadow: 0 0 0 2px {{VALUE}}33;',
+                ],
+            ]
+        );
+
+        // === FIN CONTRÔLES PARTIE 14 ===
+
+        $this->end_controls_section();
+
+        // ========================================
+        // STYLE TAB - POST FORM (Partie 15)
+        // ========================================
+
+        $this->start_controls_section(
+            'style_post_form',
+            [
+                'label' => 'Formulaire de Post',
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'form_bg_color',
+            [
+                'label' => 'Couleur fond formulaire',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#FFFFFF',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-create-post-box' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'form_border',
+                'label' => 'Bordure formulaire',
+                'selector' => '{{WRAPPER}} .vic-create-post-box',
+            ]
+        );
+
+        $this->add_control(
+            'form_border_radius',
+            [
+                'label' => 'Rayon bordure formulaire',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 0, 'max' => 24]],
+                'default' => ['unit' => 'px', 'size' => 12],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-create-post-box' => 'border-radius: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'form_fields_heading',
+            [
+                'label' => 'Champs de saisie',
+                'type' => \Elementor\Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'field_bg_color',
+            [
+                'label' => 'Couleur fond champs',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#F9FAFB',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-create-post-trigger' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .vic-post-title-input, {{WRAPPER}} .vic-post-content-input' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'field_text_color',
+            [
+                'label' => 'Couleur texte champs',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#111827',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-create-post-trigger' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .vic-post-title-input, {{WRAPPER}} .vic-post-content-input' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'field_placeholder_color',
+            [
+                'label' => 'Couleur placeholder',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#9CA3AF',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-title-input::placeholder, {{WRAPPER}} .vic-post-content-input::placeholder' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'field_border',
+                'label' => 'Bordure champs',
+                'selector' => '{{WRAPPER}} .vic-create-post-trigger, {{WRAPPER}} .vic-post-title-input, {{WRAPPER}} .vic-post-content-input',
+            ]
+        );
+
+        $this->add_control(
+            'field_focus_border_color',
+            [
+                'label' => 'Couleur bordure (focus)',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#3B82F6',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-title-input:focus, {{WRAPPER}} .vic-post-content-input:focus' => 'border-color: {{VALUE}}; box-shadow: 0 0 0 2px {{VALUE}}33;',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'form_button_heading',
+            [
+                'label' => 'Bouton Publier',
+                'type' => \Elementor\Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'button_bg_color',
+            [
+                'label' => 'Couleur fond bouton',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#F59E0B',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-submit-post-btn' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'button_text_color',
+            [
+                'label' => 'Couleur texte bouton',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#FFFFFF',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-submit-post-btn' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'button_hover_bg_color',
+            [
+                'label' => 'Couleur fond (survol)',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#D97706',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-submit-post-btn:hover' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        // === FIN CONTRÔLES PARTIE 15 ===
+
+        $this->end_controls_section();
+
+        // ========================================
         // ADVANCED TAB - CUSTOM CSS
         // ========================================
 
