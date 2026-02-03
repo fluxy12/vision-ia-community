@@ -452,6 +452,39 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
             ]
         );
 
+        // === NOUVEAUX CONTRÔLES PARTIE 4 - TITRES ===
+
+        $this->add_control(
+            'post_title_color_hover',
+            [
+                'label' => 'Couleur du titre (survol)',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#4F46E5',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-title:hover, {{WRAPPER}} .vic-post-title a:hover' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'post_title_spacing',
+            [
+                'label' => 'Espacement sous le titre',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px', 'em'],
+                'range' => [
+                    'px' => ['min' => 0, 'max' => 30],
+                    'em' => ['min' => 0, 'max' => 2],
+                ],
+                'default' => ['unit' => 'px', 'size' => 8],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-title' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        // === FIN NOUVEAUX CONTRÔLES PARTIE 4 ===
+
         $this->add_control(
             'excerpt_heading',
             [
@@ -482,6 +515,66 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
             ]
         );
 
+        // === NOUVEAUX CONTRÔLES PARTIE 5 - CONTENU ===
+
+        $this->add_control(
+            'post_excerpt_lines',
+            [
+                'label' => 'Nombre de lignes (extrait)',
+                'type' => \Elementor\Controls_Manager::NUMBER,
+                'default' => 3,
+                'min' => 1,
+                'max' => 10,
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-excerpt' => 'display: -webkit-box; -webkit-line-clamp: {{VALUE}}; -webkit-box-orient: vertical; overflow: hidden;',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'content_heading',
+            [
+                'label' => 'Contenu complet',
+                'type' => \Elementor\Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'post_content_typography',
+                'label' => 'Typographie du contenu',
+                'selector' => '{{WRAPPER}} .vic-post-content, {{WRAPPER}} .vic-modal-content',
+            ]
+        );
+
+        $this->add_control(
+            'post_link_color',
+            [
+                'label' => 'Couleur des liens',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#4F46E5',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-content a, {{WRAPPER}} .vic-post-excerpt a' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'post_link_color_hover',
+            [
+                'label' => 'Couleur des liens (survol)',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#3730A3',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-content a:hover, {{WRAPPER}} .vic-post-excerpt a:hover' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        // === FIN NOUVEAUX CONTRÔLES PARTIE 5 ===
+
         $this->add_control(
             'author_heading',
             [
@@ -511,6 +604,40 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
                 ],
             ]
         );
+
+        // === NOUVEAUX CONTRÔLES PARTIE 6 - DATE ===
+
+        $this->add_control(
+            'date_heading',
+            [
+                'label' => 'Date de publication',
+                'type' => \Elementor\Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'post_date_typography',
+                'label' => 'Typographie de la date',
+                'selector' => '{{WRAPPER}} .vic-post-date, {{WRAPPER}} .vic-post-time',
+            ]
+        );
+
+        $this->add_control(
+            'post_date_color',
+            [
+                'label' => 'Couleur de la date',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#9CA3AF',
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-date, {{WRAPPER}} .vic-post-time' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        // === FIN NOUVEAUX CONTRÔLES PARTIE 6 ===
 
         $this->end_controls_section();
 

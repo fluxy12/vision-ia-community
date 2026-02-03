@@ -43,34 +43,37 @@
 
 ---
 
-### 4. Typographie - Titres
+### 4. Typographie - Titres ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
 | Police titre | Typography | OK |
 | Couleur titre | Color | OK |
+| Couleur titre survol | Color | OK |
+| Espacement titre | Slider | OK |
 | Couleur titre survol | Color | EN ATTENTE |
 | Espacement titre | Slider | EN ATTENTE |
 
 ---
 
-### 5. Typographie - Contenu
+### 5. Typographie - Contenu ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
 | Police extrait | Typography | OK |
 | Couleur extrait | Color | OK |
-| Nombre de lignes extrait | Number | EN ATTENTE |
-| Police contenu complet | Typography | EN ATTENTE |
-| Couleur liens | Color | EN ATTENTE |
+| Nombre de lignes extrait | Number | OK |
+| Police contenu complet | Typography | OK |
+| Couleur liens | Color | OK |
+| Couleur liens survol | Color | OK (BONUS) |
 
 ---
 
-### 6. Typographie - Auteur
+### 6. Typographie - Auteur ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
 | Police nom auteur | Typography | OK |
 | Couleur nom auteur | Color | OK |
-| Police date | Typography | EN ATTENTE |
-| Couleur date | Color | EN ATTENTE |
+| Police date | Typography | OK |
+| Couleur date | Color | OK |
 
 ---
 
@@ -294,18 +297,20 @@
 ### 23. Gestion des Categories ✅ COMPLET
 | Parametre | Type | Status |
 |-----------|------|--------|
-| Liste des categories | Cards | OK |
+| Liste des categories | Accordion Cards | OK |
 | Nom categorie | Text | OK |
 | Slug categorie | Text | OK |
 | Emoji categorie | Text | OK |
 | Couleur categorie | Color | OK |
 | Description categorie | Text | OK |
 | Roles autorises par categorie | Multi-checkbox | OK |
+| Niveaux PMP autorises | Multi-checkbox | OK |
 | Ordre d'affichage | Drag & Drop | OK |
-| Activer/desactiver categorie | Toggle | OK |
+| Activer/desactiver categorie | Toggle AJAX | OK |
 | Ajouter nouvelle categorie | Form | OK |
 | Supprimer categorie | Button AJAX | OK |
 | Synchronisation taxonomie WP | Auto | OK |
+| Menu WP Categories cache | Auto | OK |
 
 ---
 
@@ -477,5 +482,8 @@
 | 2025-01-10 | 1. Conteneur Principal | OK | +4 controles (marge, bordure, rayon bordure, ombre) |
 | 2025-01-10 | 2. Cartes de Posts | OK | +7 controles (largeur/style bordure + 5 effets hover) |
 | 2025-01-10 | 3. Posts Admin | SUPPRIME | Remplace par gestion categories |
-| 2025-01-10 | 23. Gestion Categories | OK | Nouvelle page admin complete (CRUD, permissions, couleurs, emojis) |
+| 2025-01-10 | 23. Gestion Categories | OK | Accordion UI, niveaux PMP, toggle AJAX, menu WP cache |
+| 2025-01-10 | 4. Typo Titres | OK | +2 controles (couleur survol, espacement) |
+| 2025-01-10 | 5. Typo Contenu | OK | +4 controles (lignes, police contenu, liens, liens hover) |
+| 2025-01-10 | 6. Typo Auteur | OK | +2 controles (police date, couleur date) |
 
