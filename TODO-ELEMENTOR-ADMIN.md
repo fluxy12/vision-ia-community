@@ -258,37 +258,37 @@
 
 ## PARTIE CONSOLE ADMIN
 
-### 21. Parametres Generaux
+### 21. Parametres Generaux ✅ COMPLET
 | Parametre | Type | Status |
 |-----------|------|--------|
-| Activer/desactiver la communaute | Toggle | EN ATTENTE |
-| Posts par page (defaut) | Number | EN ATTENTE |
-| Ordre tri par defaut | Select | EN ATTENTE |
-| Afficher les timestamps | Toggle | EN ATTENTE |
-| Afficher compteurs likes publiquement | Toggle | EN ATTENTE |
-| Activer le mode maintenance | Toggle | EN ATTENTE |
+| Activer/desactiver la communaute | Toggle | OK |
+| Posts par page (defaut) | Number | OK |
+| Ordre tri par defaut | Select | OK |
+| Afficher les timestamps | Toggle | OK |
+| Afficher compteurs likes publiquement | Toggle | OK |
+| Activer le mode maintenance | Toggle | OK |
 
 ---
 
-### 22. Activation/Desactivation Fonctionnalites
+### 22. Activation/Desactivation Fonctionnalites ✅ COMPLET
 | Fonctionnalite | Type | Status |
 |----------------|------|--------|
-| Activer les J'aime | Toggle | EN ATTENTE |
-| Activer les commentaires | Toggle | EN ATTENTE |
-| Activer les reponses aux commentaires | Toggle | EN ATTENTE |
-| Activer les pieces jointes | Toggle | EN ATTENTE |
-| Activer l'embed YouTube | Toggle | EN ATTENTE |
-| Activer les GIFs | Toggle | EN ATTENTE |
-| Activer le picker emoji | Toggle | EN ATTENTE |
-| Activer les URLs | Toggle | EN ATTENTE |
-| Activer l'epinglage | Toggle | EN ATTENTE |
-| Activer le signalement posts | Toggle | EN ATTENTE |
-| Activer le signalement commentaires | Toggle | EN ATTENTE |
-| Activer la recherche | Toggle | EN ATTENTE |
-| Activer les filtres categories | Toggle | EN ATTENTE |
-| Activer le profil popup | Toggle | EN ATTENTE |
-| Activer l'activite utilisateur | Toggle | EN ATTENTE |
-| Activer le systeme de niveaux | Toggle | EN ATTENTE |
+| Activer les J'aime | Toggle | OK |
+| Activer les commentaires | Toggle | OK |
+| Activer les reponses aux commentaires | Toggle | OK |
+| Activer les pieces jointes | Toggle | OK |
+| Activer l'embed YouTube | Toggle | OK |
+| Activer les GIFs | Toggle | OK |
+| Activer le picker emoji | Toggle | OK |
+| Activer les URLs | Toggle | OK |
+| Activer l'epinglage | Toggle | OK |
+| Activer le signalement posts | Toggle | OK |
+| Activer le signalement commentaires | Toggle | OK |
+| Activer la recherche | Toggle | OK |
+| Activer les filtres categories | Toggle | OK |
+| Activer le profil popup | Toggle | OK |
+| Activer l'activite utilisateur | Toggle | OK |
+| Activer le systeme de niveaux | Toggle | OK
 
 ---
 
@@ -468,8 +468,8 @@
 | Categorie | Elements OK | Elements EN ATTENTE | Total |
 |-----------|-------------|---------------------|-------|
 | Elementor Style | 114 | ~3 | ~117 |
-| Console Admin | 11 | ~120 | ~131 |
-| **TOTAL** | **125** | **~123** | **~248** |
+| Console Admin | 33 | ~98 | ~131 |
+| **TOTAL** | **147** | **~101** | **~248** |
 
 ---
 
@@ -498,4 +498,6 @@
 | 2025-02-03 | 18. Popup Profil | OK | +7 controles (fond, bordure, ombre, rayon, largeur, typo, stats) |
 | 2025-02-03 | 19. Embed YouTube | OK | +4 controles (rayon, ombre, ratio, icone play) |
 | 2025-02-03 | 20. Pieces Jointes | OK | +5 controles (colonnes, gap, rayon, overlay, icone zoom) |
+| 2025-02-03 | 21. Parametres Generaux | OK | +6 parametres (communaute, posts/page, tri, timestamps, likes publics, maintenance) |
+| 2025-02-03 | 22. Fonctionnalites | OK | +16 toggles (likes, comments, replies, medias, moderation, navigation, profils) |
 

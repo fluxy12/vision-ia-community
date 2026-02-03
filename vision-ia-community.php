@@ -23,6 +23,7 @@ add_action('elementor/init', function() {
 // Load Admin Categories Management
 if (is_admin()) {
     require_once VIC_PLUGIN_DIR . 'includes/admin-categories.php';
+    require_once VIC_PLUGIN_DIR . 'includes/admin-settings.php';
 }
 
 class Vision_IA_Community {
