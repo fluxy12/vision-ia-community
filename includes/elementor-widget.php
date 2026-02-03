@@ -233,6 +233,45 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
             ]
         );
 
+        // === NOUVEAUX CONTRÔLES PARTIE 2 ===
+
+        $this->add_control(
+            'card_border_width',
+            [
+                'label' => 'Largeur de bordure',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => ['px' => ['min' => 0, 'max' => 10]],
+                'default' => ['unit' => 'px', 'size' => 1],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-card' => 'border-width: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'card_border_style',
+            [
+                'label' => 'Style de bordure',
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'solid',
+                'options' => [
+                    'none' => 'Aucune',
+                    'solid' => 'Solide',
+                    'dashed' => 'Tirets',
+                    'dotted' => 'Pointillés',
+                    'double' => 'Double',
+                    'groove' => 'Groove',
+                    'ridge' => 'Ridge',
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-card' => 'border-style: {{VALUE}};',
+                ],
+            ]
+        );
+
+        // === FIN NOUVEAUX CONTRÔLES PARTIE 2 ===
+
         $this->add_control(
             'card_border_radius',
             [
@@ -288,6 +327,87 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
                 'selector' => '{{WRAPPER}} .vic-post-card',
             ]
         );
+
+        // === EFFETS AU SURVOL (HOVER) PARTIE 2 ===
+
+        $this->add_control(
+            'card_hover_heading',
+            [
+                'label' => 'Effets au survol',
+                'type' => \Elementor\Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'card_hover_bg_color',
+            [
+                'label' => 'Couleur de fond (survol)',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-card:hover' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'card_hover_border_color',
+            [
+                'label' => 'Couleur bordure (survol)',
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-card:hover' => 'border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            [
+                'name' => 'card_hover_box_shadow',
+                'label' => 'Ombre (survol)',
+                'selector' => '{{WRAPPER}} .vic-post-card:hover',
+            ]
+        );
+
+        $this->add_control(
+            'card_hover_transform',
+            [
+                'label' => 'Effet de transformation',
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'none',
+                'options' => [
+                    'none' => 'Aucun',
+                    'translateY(-2px)' => 'Légère élévation',
+                    'translateY(-4px)' => 'Élévation moyenne',
+                    'translateY(-6px)' => 'Forte élévation',
+                    'scale(1.01)' => 'Léger zoom',
+                    'scale(1.02)' => 'Zoom moyen',
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-card:hover' => 'transform: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'card_transition_duration',
+            [
+                'label' => 'Durée de transition',
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['s', 'ms'],
+                'range' => [
+                    's' => ['min' => 0, 'max' => 1, 'step' => 0.1],
+                    'ms' => ['min' => 0, 'max' => 1000, 'step' => 50],
+                ],
+                'default' => ['unit' => 's', 'size' => 0.3],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-post-card' => 'transition: all {{SIZE}}{{UNIT}} ease;',
+                ],
+            ]
+        );
+
+        // === FIN EFFETS AU SURVOL PARTIE 2 ===
 
         $this->end_controls_section();
 

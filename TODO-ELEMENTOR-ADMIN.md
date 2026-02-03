@@ -18,7 +18,7 @@
 
 ---
 
-### 2. Cartes de Posts
+### 2. Cartes de Posts ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
 | Couleur de fond | Color | OK |
@@ -27,9 +27,13 @@
 | Padding | Dimensions | OK |
 | Marge bas | Slider | OK |
 | Ombre portee | Box Shadow | OK |
-| Largeur bordure | Slider | EN ATTENTE |
-| Style bordure | Select | EN ATTENTE |
-| Effet au survol | Hover Group | EN ATTENTE |
+| Largeur bordure | Slider | OK |
+| Style bordure | Select | OK |
+| Couleur fond survol | Color | OK (BONUS) |
+| Couleur bordure survol | Color | OK (BONUS) |
+| Ombre survol | Box Shadow | OK (BONUS) |
+| Effet transformation | Select | OK (BONUS) |
+| Duree transition | Slider | OK (BONUS) |
 
 ---
 
@@ -470,4 +474,5 @@
 | Date | Partie | Status | Notes |
 |------|--------|--------|-------|
 | 2025-01-10 | 1. Conteneur Principal | OK | +4 controles (marge, bordure, rayon bordure, ombre) |
+| 2025-01-10 | 2. Cartes de Posts | OK | +7 controles (largeur/style bordure + 5 effets hover) |
 
