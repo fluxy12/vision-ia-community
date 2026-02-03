@@ -5,15 +5,16 @@
 
 ## PARTIE ELEMENTOR - STYLE
 
-### 1. Conteneur Principal (Wrapper)
+### 1. Conteneur Principal (Wrapper) ✅ COMPLET
 | Element | Type | Status |
 |---------|------|--------|
 | Couleur de fond | Color | OK |
 | Largeur maximale | Slider (px/%) | OK |
 | Padding | Dimensions | OK |
-| Marge externe | Dimensions | EN ATTENTE |
-| Bordure | Border Group | EN ATTENTE |
-| Ombre portee | Box Shadow | EN ATTENTE |
+| Marge externe | Dimensions | OK |
+| Bordure | Border Group | OK |
+| Rayon de bordure | Dimensions | OK (BONUS) |
+| Ombre portee | Box Shadow | OK |
 
 ---
 
@@ -468,5 +469,5 @@
 
 | Date | Partie | Status | Notes |
 |------|--------|--------|-------|
-| - | - | - | - |
+| 2025-01-10 | 1. Conteneur Principal | OK | +4 controles (marge, bordure, rayon bordure, ombre) |
 

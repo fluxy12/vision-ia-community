@@ -9,7 +9,10 @@
       "Bash(tree:*)",
       "Bash(ls -la \"C:\\\\Users\\\\Jean\\\\vision-ia-community\\\\assets\\\\css\"\" && ls -la \"C:UsersJeanvision-ia-communityassetsjs\"\")",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nIntégration avatars MasterStudy LMS + affichage points utilisateur\n\n- Ajout fonction get_user_avatar\\(\\) compatible MasterStudy LMS\n- Récupère l''avatar depuis stm_lms_user_avatar en priorité\n- Fallback vers BuddyPress puis Gravatar\n- Affichage des points utilisateur \\(stm_lms_points\\) à côté du nom\n- Style badge points avec dégradé doré\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "WebFetch(domain:docs.stylemixthemes.com)"
+      "WebFetch(domain:docs.stylemixthemes.com)",
+      "Bash(git checkout:*)",
+      "Bash(git reset:*)",
+      "Bash(dir:*)"
     ]
   }
 }

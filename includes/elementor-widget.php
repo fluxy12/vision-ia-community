@@ -134,6 +134,67 @@ class VIC_Elementor_Widget extends \Elementor\Widget_Base {
             ]
         );
 
+        // === NOUVEAUX CONTRÔLES PARTIE 1 ===
+
+        $this->add_responsive_control(
+            'wrapper_margin',
+            [
+                'label' => 'Marge externe',
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'default' => [
+                    'top' => 0,
+                    'right' => 'auto',
+                    'bottom' => 0,
+                    'left' => 'auto',
+                    'unit' => 'px',
+                    'isLinked' => false,
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-community-wrapper' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'wrapper_border',
+                'label' => 'Bordure',
+                'selector' => '{{WRAPPER}} .vic-community-wrapper',
+            ]
+        );
+
+        $this->add_control(
+            'wrapper_border_radius',
+            [
+                'label' => 'Rayon de bordure',
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', '%'],
+                'default' => [
+                    'top' => 0,
+                    'right' => 0,
+                    'bottom' => 0,
+                    'left' => 0,
+                    'unit' => 'px',
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .vic-community-wrapper' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            [
+                'name' => 'wrapper_box_shadow',
+                'label' => 'Ombre portée',
+                'selector' => '{{WRAPPER}} .vic-community-wrapper',
+            ]
+        );
+
+        // === FIN NOUVEAUX CONTRÔLES PARTIE 1 ===
+
         $this->end_controls_section();
 
         // ========================================
